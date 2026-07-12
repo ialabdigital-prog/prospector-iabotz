@@ -1,13 +1,39 @@
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 
+const STATUS_LABEL = {
+  novo: "Novo",
+  redesenhado: "Redesenhado",
+  publicado: "Publicado",
+  proposta: "Proposta",
+  fechado: "Fechado",
+  descartado: "Descartado",
+  queued: "Na fila",
+  running: "Rodando",
+  succeeded: "OK",
+  failed: "Falhou",
+  cancelled: "Cancelado",
+};
+
+const JOB_LABEL = {
+  prospectar: "Prospecção",
+  redesenhar: "Redesign",
+  publicar: "Publicar + DNS",
+  proposta: "Proposta",
+  followup: "Follow-up",
+  contrato: "Contrato",
+};
+
 const PIPELINE = [
-  { status: "novo", label: "Novo", hint: "Lead ouro do Maps", next: "redesenhar", nextLabel: "Redesenhar site" },
-  { status: "redesenhado", label: "Redesenhado", hint: "Site gerado em sites/", next: "publicar", nextLabel: "Publicar + DNS" },
-  { status: "publicado", label: "Publicado", hint: "aaPanel + Cloudflare", next: "proposta", nextLabel: "Enviar proposta" },
-  { status: "proposta", label: "Proposta", hint: "Rascunho / Gmail", next: null, nextLabel: "Aguardar resposta" },
-  { status: "fechado", label: "Fechado", hint: "Cliente", next: null, nextLabel: "—" },
+  { status: "novo", label: "Novo", next: "redesenhar", nextLabel: "Redesenhar site" },
+  { status: "redesenhado", label: "Redesenhado", next: "publicar", nextLabel: "Publicar + DNS" },
+  { status: "publicado", label: "Publicado", next: "proposta", nextLabel: "Gerar proposta" },
+  { status: "proposta", label: "Proposta", next: null, nextLabel: "Aguardar resposta" },
+  { status: "fechado", label: "Fechado", next: null, nextLabel: "—" },
 ];
+
+const NICHOS = ["nutricionistas", "psicólogos", "dentistas", "advogados", "clínicas estéticas", "personal trainers"];
+const CIDADES = ["Rio de Janeiro", "São Paulo", "Belo Horizonte", "Curitiba", "Porto Alegre", "Brasília"];
 
 const state = {
   leads: [],
@@ -16,7 +42,13 @@ const state = {
   config: null,
   integrations: null,
   filter: "ativos",
+  search: "",
   selected: null,
+  cfgTab: "llm",
+  selectedProvider: null,
+  emailId: null,
+  orModelQuery: "",
+  openrouterModels: [],
   es: null,
 };
 
@@ -50,12 +82,16 @@ function esc(s) {
     .replaceAll('"', "&quot;");
 }
 
+function statusPill(status) {
+  const label = STATUS_LABEL[status] || status;
+  return `<span class="pill ${esc(status)}">${esc(label)}</span>`;
+}
+
 function pipelineInfo(status) {
   return PIPELINE.find((p) => p.status === status) || {
     status,
-    label: status,
-    hint: "",
-    next: status === "novo" ? "redesenhar" : null,
+    label: STATUS_LABEL[status] || status,
+    next: null,
     nextLabel: "—",
   };
 }
@@ -63,18 +99,29 @@ function pipelineInfo(status) {
 function nextAction(lead) {
   const info = pipelineInfo(lead.status);
   if (lead.status === "publicado" && !lead.email) {
-    return { type: null, label: "Falta e-mail no lead", disabled: true };
+    return { type: null, label: "Falta e-mail", disabled: true };
   }
   if (!info.next) return { type: null, label: info.nextLabel, disabled: true };
   return { type: info.next, label: info.nextLabel, disabled: false };
 }
 
+function selectHtml(id, options, attrs = "") {
+  const opts = options
+    .map((o) => {
+      if (typeof o === "string") return `<option value="${esc(o)}">${esc(o)}</option>`;
+      return `<option value="${esc(o.value)}" ${o.disabled ? "disabled" : ""}>${esc(o.label)}</option>`;
+    })
+    .join("");
+  return `<div class="select-wrap"><select id="${esc(id)}" ${attrs}>${opts}</select></div>`;
+}
+
 const VIEWS = {
-  overview: { title: "Funil", sub: "Do Maps ao e-mail — um lead por vez" },
-  prospect: { title: "Prospectar", sub: "Busca no Google Maps · nota · site fraco · e-mail" },
-  leads: { title: "Leads", sub: "Redesenhar → publicar (aaPanel + DNS) → proposta" },
-  jobs: { title: "Jobs", sub: "Fila e histórico de execução" },
-  config: { title: "Configurações", sub: "Maps · aaPanel · Cloudflare · Gmail/Composio · LLM" },
+  overview: { title: "Funil", sub: "Do Maps ao e-mail" },
+  prospect: { title: "Prospectar", sub: "Maps · nota · site fraco · e-mail" },
+  leads: { title: "Leads", sub: "Redesenhar → publicar → proposta" },
+  emails: { title: "E-mails", sub: "Rascunhos de proposta · drafts/" },
+  jobs: { title: "Jobs", sub: "Fila e histórico" },
+  config: { title: "Config", sub: "LLM · Maps · aaPanel · Cloudflare · Gmail" },
 };
 
 function showView(name) {
@@ -90,6 +137,7 @@ $$(".nav").forEach((btn) =>
   btn.addEventListener("click", () => {
     showView(btn.dataset.view);
     if (btn.dataset.view === "leads") renderLeads();
+    if (btn.dataset.view === "emails") renderEmails();
     if (btn.dataset.view === "jobs") renderJobs();
     if (btn.dataset.view === "config") renderConfig();
     if (btn.dataset.view === "overview") renderOverview();
@@ -97,9 +145,10 @@ $$(".nav").forEach((btn) =>
   })
 );
 
-$$("[data-close-drawer]").forEach((el) =>
-  el.addEventListener("click", closeDrawer)
-);
+$$("[data-close-drawer]").forEach((el) => el.addEventListener("click", closeDrawer));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeDrawer();
+});
 
 function openDrawer(lead) {
   state.selected = lead;
@@ -107,7 +156,7 @@ function openDrawer(lead) {
   drawer.classList.remove("hidden");
   drawer.setAttribute("aria-hidden", "false");
   $("#drawer-title").textContent = lead.nome || lead.slug;
-  $("#drawer-status").innerHTML = `<span class="pill ${esc(lead.status)}">${esc(lead.status)}</span>`;
+  $("#drawer-status").innerHTML = statusPill(lead.status);
 
   const stages = ["novo", "redesenhado", "publicado", "proposta", "fechado"];
   const idx = stages.indexOf(lead.status);
@@ -130,12 +179,9 @@ function openDrawer(lead) {
       <div><dt>Site atual</dt><dd>${lead.siteAntigo ? `<a href="${esc(lead.siteAntigo)}" target="_blank" rel="noopener">${esc(lead.siteAntigo)}</a>` : "—"}</dd></div>
       <div><dt>Site novo</dt><dd>${lead.urlNova ? `<a href="${esc(lead.urlNova)}" target="_blank" rel="noopener">${esc(lead.urlNova)}</a>` : "<span class='muted'>ainda não publicado</span>"}</dd></div>
       <div><dt>Motivo</dt><dd>${esc(lead.motivo || "—")}</dd></div>
-      <div><dt>Slug</dt><dd class="muted small">${esc(lead.slug)}</dd></div>
     </div>
     <p class="muted small" style="margin:0">
-      <strong style="color:var(--accent)">Próximo passo:</strong> ${esc(next.label)}
-      ${lead.status === "redesenhado" ? " — copia para aaPanel e cria CNAME no Cloudflare." : ""}
-      ${lead.status === "publicado" ? " — gera rascunho (Composio/Gmail ou arquivo local)." : ""}
+      <strong style="color:var(--accent)">Próximo:</strong> ${esc(next.label)}
     </p>`;
 
   $("#drawer-actions").innerHTML = `
@@ -151,9 +197,7 @@ function openDrawer(lead) {
     ${["publicado", "proposta"].includes(lead.status)
       ? `<button class="btn ghost" data-run="proposta" data-slug="${esc(lead.slug)}">Proposta</button>`
       : ""}
-    ${lead.urlNova
-      ? `<a class="btn ghost" href="${esc(lead.urlNova)}" target="_blank" rel="noopener">Abrir site</a>`
-      : ""}
+    ${lead.urlNova ? `<a class="btn ghost" href="${esc(lead.urlNova)}" target="_blank" rel="noopener">Abrir site</a>` : ""}
   `;
   $$("#drawer-actions [data-run]").forEach((btn) =>
     btn.addEventListener("click", () => startJob(btn.dataset.run, btn.dataset.slug))
@@ -171,11 +215,12 @@ async function startJob(type, slug) {
   showView("prospect");
   renderProspectForm(type);
   try {
+    const provider = state.selectedProvider || state.config?.llm?.default_provider || null;
     const res = await api("/api/jobs", {
       method: "POST",
-      body: JSON.stringify({ type, payload: { slug } }),
+      body: JSON.stringify({ type, payload: { slug }, provider }),
     });
-    toast(`${type} · ${slug}`);
+    toast(`${JOB_LABEL[type] || type} · ${slug}`);
     await watchJob(res.id, type);
   } catch (err) {
     appendLog(`Erro: ${err.message}`);
@@ -185,16 +230,20 @@ async function startJob(type, slug) {
 
 async function boot() {
   renderProspectForm();
-  const [stats, engines, providers, integ] = await Promise.all([
+  const [stats, engines, providers, integ, cfg] = await Promise.all([
     api("/api/stats"),
     api("/api/config/engines"),
     api("/api/providers"),
     api("/api/config/integrations").catch(() => ({ funnel: [] })),
+    api("/api/config").catch(() => ({})),
   ]);
   state.providers = providers;
   state.integrations = integ;
+  state.config = cfg;
+  state.selectedProvider = cfg?.llm?.default_provider || "openrouter";
   const eng = engines.default || "nenhum";
-  $("#engine-badge").textContent = `Maps: ${eng}`;
+  const llm = providers.find((p) => p.id === state.selectedProvider);
+  $("#engine-badge").textContent = `Maps: ${eng} · LLM: ${llm?.name || state.selectedProvider}${llm?.available ? "" : " ✕"}`;
   renderOverview(stats);
   await renderLeads();
   await renderJobs();
@@ -203,11 +252,11 @@ async function boot() {
 function renderOverview(stats) {
   if (!stats) return api("/api/stats").then(renderOverview);
   const funnel = [
-    { key: "novo", label: "Novos", hint: "Achados no Maps", view: "leads", filter: "novo" },
-    { key: "redesenhado", label: "Redesenhados", hint: "Prontos p/ aaPanel", view: "leads", filter: "redesenhado" },
-    { key: "publicado", label: "Publicados", hint: "DNS no ar", view: "leads", filter: "publicado" },
-    { key: "proposta", label: "Propostas", hint: "Enviadas / rascunho", view: "leads", filter: "proposta" },
-    { key: "fechado", label: "Fechados", hint: "Clientes", view: "leads", filter: "fechado" },
+    { key: "novo", label: "Novos", hint: "Do Maps", filter: "novo" },
+    { key: "redesenhado", label: "Redesenhados", hint: "Prontos p/ aaPanel", filter: "redesenhado" },
+    { key: "publicado", label: "Publicados", hint: "DNS no ar", filter: "publicado" },
+    { key: "proposta", label: "Propostas", hint: "Rascunho / Gmail", filter: "proposta" },
+    { key: "fechado", label: "Fechados", hint: "Clientes", filter: "fechado" },
   ];
 
   const integ = (state.integrations?.funnel || [])
@@ -219,9 +268,25 @@ function renderOverview(stats) {
           <strong>${esc(f.label)}</strong>
           <div class="muted small">${esc(f.detail)}</div>
         </div>
-        <span class="pill">${f.ready ? "ok" : "configurar"}</span>
+        ${f.ready
+          ? '<span class="status-pill live"><span class="sdot"></span>ok</span>'
+          : '<span class="status-pill dead"><span class="sdot"></span>configurar</span>'}
       </div>`
     )
+    .join("");
+
+  const llmCards = (state.providers || [])
+    .map((p) => {
+      const live = p.available;
+      return `<div class="integ-row">
+        <span class="dot ${live ? "on" : ""}"></span>
+        <div>
+          <strong>${esc(p.name)}</strong>
+          <div class="muted small">${esc(p.detail || (live ? "Pronto" : "Não detectado / sem key"))}</div>
+        </div>
+        <span class="status-pill ${live ? "live" : "dead"}"><span class="sdot"></span>${live ? "detectado" : "off"}</span>
+      </div>`;
+    })
     .join("");
 
   $("#view-overview").innerHTML = `
@@ -240,26 +305,29 @@ function renderOverview(stats) {
 
     <div class="panel">
       <h3 style="margin-top:0">Como funciona</h3>
-      <ol class="clean" style="margin:0;padding-left:18px;line-height:1.7;color:var(--muted)">
-        <li><strong style="color:var(--ink)">Prospectar</strong> — Google Maps (Places/Apify): nota alta + muitas avaliações + site fraco + e-mail.</li>
-        <li><strong style="color:var(--ink)">Redesenhar</strong> — gera site premium em <code>sites/slug/</code>.</li>
-        <li><strong style="color:var(--ink)">Publicar</strong> — sobe no aaPanel local e cria CNAME no Cloudflare (<code>slug.iabotz.online</code>).</li>
-        <li><strong style="color:var(--ink)">Proposta</strong> — rascunho no Gmail via Composio (ou arquivo em <code>drafts/</code> se Composio não estiver ligado).</li>
+      <ol style="margin:0;padding-left:18px;line-height:1.75;color:var(--muted)">
+        <li><strong style="color:var(--ink)">Prospectar</strong> — Google Maps (nota + avaliações + site fraco + e-mail).</li>
+        <li><strong style="color:var(--ink)">Redesenhar</strong> — gera site em <code>sites/</code> (LLM opcional para copy).</li>
+        <li><strong style="color:var(--ink)">Publicar</strong> — aaPanel local + CNAME Cloudflare → <code>{slug}.iabotz.online</code>.</li>
+        <li><strong style="color:var(--ink)">Proposta</strong> — Composio/Gmail ou draft em <code>drafts/</code>.</li>
       </ol>
     </div>
 
-    <div class="panel">
-      <div class="row between" style="margin-bottom:12px">
-        <h3 style="margin:0">Integrações</h3>
-        <button class="btn ghost sm" type="button" id="goto-cfg">Abrir config</button>
+    <div class="row" style="align-items:stretch;margin-top:14px">
+      <div class="panel" style="flex:1;margin-top:0">
+        <div class="row between" style="margin-bottom:12px">
+          <h3 style="margin:0">Integrações</h3>
+          <button class="btn ghost sm" type="button" id="goto-cfg">Config</button>
+        </div>
+        <div class="integ">${integ || "<p class='muted'>—</p>"}</div>
       </div>
-      <div class="integ">${integ || "<p class='muted'>Sem status</p>"}</div>
-    </div>
-
-    <div class="grid" style="margin-top:14px">
-      <div class="stat"><span class="muted">Leads ativos</span><strong>${(stats.total || 0) - (stats.descartado || 0)}</strong></div>
-      <div class="stat"><span class="muted">Jobs na fila</span><strong>${stats.jobs_queued ?? 0}</strong></div>
-      <div class="stat"><span class="muted">Rodando</span><strong>${stats.jobs_running ?? 0}</strong></div>
+      <div class="panel" style="flex:1;margin-top:0">
+        <div class="row between" style="margin-bottom:12px">
+          <h3 style="margin:0">LLM / CLIs</h3>
+          <button class="btn ghost sm" type="button" id="goto-llm">Escolher</button>
+        </div>
+        <div class="integ">${llmCards || "<p class='muted'>—</p>"}</div>
+      </div>
     </div>`;
 
   $$("[data-jump]").forEach((btn) =>
@@ -270,6 +338,12 @@ function renderOverview(stats) {
     })
   );
   $("#goto-cfg")?.addEventListener("click", () => {
+    state.cfgTab = "maps";
+    showView("config");
+    renderConfig();
+  });
+  $("#goto-llm")?.addEventListener("click", () => {
+    state.cfgTab = "llm";
     showView("config");
     renderConfig();
   });
@@ -277,22 +351,34 @@ function renderOverview(stats) {
 
 function renderProspectForm(activeJobType = "prospectar") {
   const isProspect = activeJobType === "prospectar" || !activeJobType;
+  const providerOpts = [
+    { value: "", label: "Usar default (config)" },
+    ...(state.providers || []).map((p) => ({
+      value: p.id,
+      label: `${p.name}${p.available ? "" : " — off"}`,
+      disabled: !p.available && p.id !== "openrouter",
+    })),
+  ];
+
   $("#view-prospect").innerHTML = `
     <div class="panel">
       <p class="muted" style="margin-top:0">
-        Busca negócios no <strong style="color:var(--ink)">Google Maps</strong>, filtra por nota/avaliações,
-        analisa o site e só salva quem tem site fraco + e-mail público.
+        Busca no <strong style="color:var(--ink)">Google Maps</strong>, filtra por nota/avaliações,
+        analisa o site e só salva quem tem site fraco + e-mail.
       </p>
       <form id="prospect-form" class="stack">
         <div class="row">
-          <label style="flex:1">Nicho
-            <input name="nicho" value="nutricionistas" required />
+          <label style="flex:2">Nicho
+            <input name="nicho" id="f-nicho" value="nutricionistas" required />
+            <div class="suggest" id="sug-nicho">${NICHOS.map((n) => `<button type="button" data-fill="f-nicho" data-v="${esc(n)}">${esc(n)}</button>`).join("")}</div>
           </label>
-          <label style="flex:1">Cidade
-            <input name="cidade" value="Rio de Janeiro" required />
+          <label style="flex:2">Cidade
+            <input name="cidade" id="f-cidade" value="Rio de Janeiro" required />
+            <div class="suggest" id="sug-cidade">${CIDADES.map((n) => `<button type="button" data-fill="f-cidade" data-v="${esc(n)}">${esc(n)}</button>`).join("")}</div>
           </label>
-          <label>Meta de leads
+          <label style="flex:1">Meta
             <input name="meta" type="number" min="1" max="100" value="5" />
+            <span class="field-hint">leads ouro</span>
           </label>
         </div>
         <div class="row">
@@ -302,15 +388,16 @@ function renderProspectForm(activeJobType = "prospectar") {
           <label>Aval. mín.
             <input name="avaliacoesMinimas" type="number" value="40" />
           </label>
-          <label>Engine
-            <select name="engine">
-              <option value="auto">auto (Places → Apify)</option>
-              <option value="google_places">Google Places</option>
-              <option value="apify">Apify</option>
-            </select>
+          <label>Motor Maps
+            ${selectHtml("f-engine", [
+              { value: "auto", label: "Auto — Places → Apify" },
+              { value: "google_places", label: "Google Places" },
+              { value: "apify", label: "Apify" },
+            ], 'name="engine"')}
           </label>
-          <label>LLM
-            <select name="provider" id="provider-select"><option value="">default</option></select>
+          <label>LLM (desta rodada)
+            ${selectHtml("provider-select", providerOpts, 'name="provider"')}
+            <span class="field-hint">Só afeta redesign/proposta</span>
           </label>
         </div>
         <button class="btn primary" type="submit" id="btn-prospect">Disparar prospecção</button>
@@ -319,22 +406,22 @@ function renderProspectForm(activeJobType = "prospectar") {
 
     <div class="panel" id="run-panel">
       <div class="run-head">
-        <h3 style="margin:0" id="run-title">${isProspect ? "Andamento da prospecção" : `Job: ${esc(activeJobType)}`}</h3>
+        <h3 style="margin:0" id="run-title">${isProspect ? "Andamento" : JOB_LABEL[activeJobType] || activeJobType}</h3>
         <span class="muted small" id="run-job-label">Nenhuma rodada ainda</span>
       </div>
       <ol class="steps" id="run-steps">
         ${
           isProspect
             ? `
-        <li data-step="start" class="step"><span class="step-num">0</span><div><strong>Preparar</strong><div class="muted small">Critérios e motor</div></div></li>
+        <li data-step="start" class="step"><span class="step-num">0</span><div><strong>Preparar</strong><div class="muted small">Critérios</div></div></li>
         <li data-step="search" class="step"><span class="step-num">1</span><div><strong>Buscar no Maps</strong><div class="muted small">Places / Apify</div></div></li>
-        <li data-step="filter" class="step"><span class="step-num">2</span><div><strong>Filtrar potencial</strong><div class="muted small">Nota, avaliações, tem site</div></div></li>
-        <li data-step="qualify" class="step"><span class="step-num">3</span><div><strong>Analisar sites</strong><div class="muted small">Site ruim + e-mail</div></div></li>
-        <li data-step="save" class="step"><span class="step-num">4</span><div><strong>Salvar leads</strong><div class="muted small">Resumo final</div></div></li>`
+        <li data-step="filter" class="step"><span class="step-num">2</span><div><strong>Filtrar</strong><div class="muted small">Nota e avaliações</div></div></li>
+        <li data-step="qualify" class="step"><span class="step-num">3</span><div><strong>Analisar sites</strong><div class="muted small">Fraco + e-mail</div></div></li>
+        <li data-step="save" class="step"><span class="step-num">4</span><div><strong>Salvar leads</strong><div class="muted small">Resumo</div></div></li>`
             : `
         <li data-step="start" class="step"><span class="step-num">1</span><div><strong>Iniciar</strong><div class="muted small">Fila</div></div></li>
-        <li data-step="run" class="step"><span class="step-num">2</span><div><strong>Executar</strong><div class="muted small">Script do funil</div></div></li>
-        <li data-step="save" class="step"><span class="step-num">3</span><div><strong>Finalizar</strong><div class="muted small">Atualiza status do lead</div></div></li>`
+        <li data-step="run" class="step"><span class="step-num">2</span><div><strong>Executar</strong><div class="muted small">Script</div></div></li>
+        <li data-step="save" class="step"><span class="step-num">3</span><div><strong>Finalizar</strong><div class="muted small">Status do lead</div></div></li>`
         }
       </ol>
       <div class="grid counters ${isProspect ? "" : "hidden"}" id="run-counters">
@@ -345,12 +432,20 @@ function renderProspectForm(activeJobType = "prospectar") {
       </div>
       <div id="run-summary" class="summary hidden"></div>
       <details class="log-wrap" open>
-        <summary>Log detalhado</summary>
-        <div class="log" id="job-log">Aguardando job…</div>
+        <summary>Log</summary>
+        <div class="log" id="job-log">Aguardando…</div>
       </details>
     </div>`;
 
-  fillProviders();
+  $("#f-engine").value = "auto";
+  $$("[data-fill]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const input = $(`#${b.dataset.fill}`);
+      if (input) input.value = b.dataset.v;
+      $$(`[data-fill="${b.dataset.fill}"]`).forEach((x) => x.classList.toggle("active", x === b));
+    })
+  );
+
   $("#prospect-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = $("#btn-prospect");
@@ -405,15 +500,12 @@ function applyRunMessage(msg, jobType) {
   if (!msg) return;
   if (msg.startsWith("STEP:")) {
     const [left, ...rest] = msg.split("|");
-    const key = left.slice(5);
-    const label = rest.join("|");
-    setStep(key === "done" ? "done" : key);
-    if (label) appendLog(label);
+    setStep(left.slice(5) === "done" ? "done" : left.slice(5));
+    if (rest.length) appendLog(rest.join("|"));
     return;
   }
   if (msg.startsWith("COUNT:")) {
-    const body = msg.slice(6);
-    body.split(",").forEach((part) => {
+    msg.slice(6).split(",").forEach((part) => {
       const [k, v] = part.split("=");
       if (k === "candidates" && $("#c-candidates")) $("#c-candidates").textContent = v;
       if (k === "to_qualify" && $("#c-qualify")) $("#c-qualify").textContent = v;
@@ -460,22 +552,15 @@ function showJobSummary(job) {
     const leads = (result.qualified || [])
       .map((q) => `<li><strong>${esc(q.nome)}</strong> — <span class="muted">${esc(q.motivo || "")}</span></li>`)
       .join("");
-    const reasons = Object.entries(result.discard_reasons || {})
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([k, v]) => `<li>${esc(k)} <span class="pill">${v}</span></li>`)
-      .join("");
     box.classList.remove("hidden");
     box.innerHTML = `
       <strong>Resumo</strong>
       <p>
-        Encontrou <strong>${result.candidates ?? "—"}</strong> no Maps (${esc(result.engine || "")}).
-        Analisou <strong>${result.to_qualify ?? "—"}</strong> sites.
-        Salvou <strong>${result.qualified_count ?? 0}</strong> leads ouro
-        e descartou <strong>${result.discarded_count ?? 0}</strong>.
+        <strong>${result.candidates ?? "—"}</strong> no Maps ·
+        <strong>${result.qualified_count ?? 0}</strong> leads ouro ·
+        <strong>${result.discarded_count ?? 0}</strong> descartados
       </p>
-      ${leads ? `<p class="muted small" style="margin-bottom:4px">Leads salvos</p><ul class="clean">${leads}</ul>` : "<p class='muted'>Nenhum lead ouro nesta rodada.</p>"}
-      ${reasons ? `<p class="muted small" style="margin-bottom:4px">Principais descartes</p><ul class="clean">${reasons}</ul>` : ""}
+      ${leads ? `<ul class="clean">${leads}</ul>` : "<p class='muted'>Nenhum lead ouro.</p>"}
       <button class="btn ghost" id="goto-leads" type="button">Ver leads</button>`;
     $("#goto-leads")?.addEventListener("click", () => {
       showView("leads");
@@ -488,8 +573,8 @@ function showJobSummary(job) {
   box.classList.remove("hidden");
   const labels = {
     redesenhar: "Site redesenhado. Próximo: Publicar + DNS.",
-    publicar: "Publicado no aaPanel e DNS Cloudflare. Próximo: Proposta.",
-    proposta: "Rascunho de proposta gerado (Gmail/Composio ou drafts/).",
+    publicar: "Publicado + DNS. Próximo: Proposta.",
+    proposta: "Rascunho gerado (Gmail/Composio ou drafts/).",
   };
   box.innerHTML = `
     <strong class="ok">Concluído</strong>
@@ -504,13 +589,10 @@ function showJobSummary(job) {
 async function watchJob(id, jobType = "prospectar") {
   if (state.es) state.es.close();
   $("#run-job-label").textContent = `Job #${id}`;
-  if ($("#run-title")) {
-    $("#run-title").textContent =
-      jobType === "prospectar" ? "Andamento da prospecção" : `Job: ${jobType}`;
-  }
+  if ($("#run-title")) $("#run-title").textContent = JOB_LABEL[jobType] || jobType;
   resetRunUI();
   setStep("start");
-  appendLog(`Job #${id} (${jobType})…`);
+  appendLog(`Job #${id}…`);
 
   let lastId = 0;
   try {
@@ -535,7 +617,7 @@ async function watchJob(id, jobType = "prospectar") {
           state.es.close();
           const job = await api(`/api/jobs/${id}`);
           showJobSummary(job);
-          appendLog(`— fim (${data.status}) —`);
+          appendLog(`— fim —`);
           renderLeads();
           renderJobs();
           resolve(job);
@@ -548,33 +630,31 @@ async function watchJob(id, jobType = "prospectar") {
   });
 }
 
-function fillProviders() {
-  const sel = $("#provider-select");
-  if (!sel || sel.options.length > 1) return;
-  state.providers.forEach((p) => {
-    const opt = document.createElement("option");
-    opt.value = p.id;
-    opt.textContent = `${p.name}${p.available ? "" : " (off)"}`;
-    opt.disabled = !p.available && p.id !== "openrouter";
-    sel.appendChild(opt);
-  });
-}
-
 async function renderLeads() {
   state.leads = await api("/api/leads");
   const filters = [
     { id: "ativos", label: "Ativos" },
     { id: "novo", label: "Novos" },
-    { id: "redesenhado", label: "Redesenhar" },
+    { id: "redesenhado", label: "A publicar" },
     { id: "publicado", label: "Publicados" },
     { id: "proposta", label: "Propostas" },
     { id: "fechado", label: "Fechados" },
     { id: "todos", label: "Todos" },
   ];
 
+  const q = (state.search || "").toLowerCase().trim();
   let list = state.leads;
   if (state.filter === "ativos") list = list.filter((l) => l.status !== "descartado");
   else if (state.filter !== "todos") list = list.filter((l) => l.status === state.filter);
+  if (q) {
+    list = list.filter(
+      (l) =>
+        (l.nome || "").toLowerCase().includes(q) ||
+        (l.email || "").toLowerCase().includes(q) ||
+        (l.cidade || "").toLowerCase().includes(q) ||
+        (l.nicho || "").toLowerCase().includes(q)
+    );
+  }
 
   const rows = list
     .slice(0, 80)
@@ -588,7 +668,7 @@ async function renderLeads() {
           <div class="next-hint">${esc(next.label)}</div>
         </td>
         <td>${l.nota ?? "—"}<div class="muted small">${l.avaliacoes ?? 0} aval.</div></td>
-        <td><span class="pill ${esc(l.status)}">${esc(l.status)}</span></td>
+        <td>${statusPill(l.status)}</td>
         <td class="small">${esc(l.email || "—")}</td>
         <td onclick="event.stopPropagation()">
           ${
@@ -604,26 +684,27 @@ async function renderLeads() {
   $("#view-leads").innerHTML = `
     <div class="panel">
       <div class="filters">
-        ${filters
-          .map(
-            (f) =>
-              `<button type="button" class="chip ${state.filter === f.id ? "active" : ""}" data-filter="${f.id}">${f.label}</button>`
-          )
-          .join("")}
+        <div class="seg">
+          ${filters
+            .map(
+              (f) =>
+                `<button type="button" class="${state.filter === f.id ? "active" : ""}" data-filter="${f.id}">${f.label}</button>`
+            )
+            .join("")}
+        </div>
+        <div class="search-wrap">
+          <input id="lead-search" type="search" placeholder="Buscar nome, e-mail, cidade…" value="${esc(state.search)}" />
+        </div>
         <button class="btn ghost sm" id="refresh-leads" type="button">Atualizar</button>
       </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Lead · próximo passo</th>
-            <th>Maps</th>
-            <th>Status</th>
-            <th>E-mail</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody>${rows || "<tr><td colspan=5>Nenhum lead neste filtro</td></tr>"}</tbody>
-      </table>
+      ${
+        rows
+          ? `<table class="table">
+        <thead><tr><th>Lead</th><th>Maps</th><th>Status</th><th>E-mail</th><th>Ação</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`
+          : `<div class="empty"><strong>Nenhum lead aqui</strong>Ajuste o filtro ou rode uma prospecção.</div>`
+      }
     </div>`;
 
   $$("[data-filter]").forEach((b) =>
@@ -632,6 +713,11 @@ async function renderLeads() {
       renderLeads();
     })
   );
+  $("#lead-search")?.addEventListener("input", (e) => {
+    state.search = e.target.value;
+    clearTimeout(renderLeads._t);
+    renderLeads._t = setTimeout(renderLeads, 180);
+  });
   $("#refresh-leads")?.addEventListener("click", renderLeads);
   $$("[data-open]").forEach((tr) =>
     tr.addEventListener("click", () => {
@@ -653,6 +739,137 @@ async function renderLeads() {
   );
 }
 
+async function renderEmails() {
+  const data = await api("/api/emails");
+  const drafts = data.drafts || [];
+  const leads = data.leads || [];
+  const selected = state.emailId;
+
+  const list = drafts
+    .map((d) => {
+      const active = selected === d.id ? "active" : "";
+      return `
+      <button type="button" class="email-item ${active}" data-email="${esc(d.id)}">
+        <div class="email-item-top">
+          <strong>${esc(d.subject || "(sem assunto)")}</strong>
+          <span class="muted small">${esc((d.created || "").slice(0, 16))}</span>
+        </div>
+        <div class="muted small">${esc(d.to || "—")} · ${esc(d.slug || "")}</div>
+        <div class="email-item-meta">
+          <span class="pill proposta">rascunho</span>
+          <span class="muted small">${esc(d.channel || "local")}</span>
+        </div>
+      </button>`;
+    })
+    .join("");
+
+  const leadRows = leads
+    .map(
+      (l) => `
+    <tr>
+      <td><strong>${esc(l.nome)}</strong><div class="muted small">${esc(l.email)}</div></td>
+      <td>${statusPill(l.status)}</td>
+      <td class="small">${esc(l.dataProposta || l.atualizado || "")}</td>
+      <td class="row">
+        ${l.urlNova ? `<a class="btn ghost sm" href="${esc(l.urlNova)}" target="_blank" rel="noopener">Site</a>` : ""}
+        <button class="btn primary sm" data-act="proposta" data-slug="${esc(l.slug)}">Nova proposta</button>
+      </td>
+    </tr>`
+    )
+    .join("");
+
+  $("#view-emails").innerHTML = `
+    <div class="panel" style="margin-top:0">
+      <div class="row between" style="margin-bottom:12px">
+        <div>
+          <h3 style="margin:0">Rascunhos</h3>
+          <p class="muted small" style="margin:4px 0 0">Arquivos em <code>drafts/</code> · Composio cria no Gmail se estiver ligado</p>
+        </div>
+        <button class="btn ghost sm" type="button" id="refresh-emails">Atualizar</button>
+      </div>
+      <div class="email-layout">
+        <div class="email-list">
+          ${list || `<div class="empty"><strong>Nenhum e-mail ainda</strong>Publique um lead e rode «Proposta».</div>`}
+        </div>
+        <div class="email-preview" id="email-preview">
+          <div class="empty"><strong>Selecione um rascunho</strong>para ler o e-mail.</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3 style="margin-top:0">Leads com proposta / publicados</h3>
+      ${
+        leadRows
+          ? `<table class="table">
+        <thead><tr><th>Lead</th><th>Status</th><th>Data</th><th></th></tr></thead>
+        <tbody>${leadRows}</tbody>
+      </table>`
+          : `<div class="empty"><strong>Nenhum lead</strong>Publique e envie proposta primeiro.</div>`
+      }
+    </div>`;
+
+  $("#refresh-emails")?.addEventListener("click", () => {
+    state.emailId = null;
+    renderEmails();
+  });
+  $$("[data-email]").forEach((btn) =>
+    btn.addEventListener("click", () => openEmailPreview(btn.dataset.email))
+  );
+  $$("#view-emails [data-act]").forEach((btn) =>
+    btn.addEventListener("click", () => startJob(btn.dataset.act, btn.dataset.slug))
+  );
+
+  if (selected && drafts.some((d) => d.id === selected)) {
+    openEmailPreview(selected);
+  }
+}
+
+async function openEmailPreview(id) {
+  state.emailId = id;
+  $$(".email-item").forEach((el) => el.classList.toggle("active", el.dataset.email === id));
+  const box = $("#email-preview");
+  if (!box) return;
+  box.innerHTML = `<div class="muted small" style="padding:16px">Carregando…</div>`;
+  try {
+    const mail = await api(`/api/emails/${encodeURIComponent(id)}`);
+    box.innerHTML = `
+      <div class="email-preview-head">
+        <div>
+          <div class="muted small">Para</div>
+          <strong>${esc(mail.to || "—")}</strong>
+        </div>
+        <div>
+          <div class="muted small">Assunto</div>
+          <strong>${esc(mail.subject || "—")}</strong>
+        </div>
+        <div class="row">
+          <a class="btn ghost sm" href="/api/emails/${encodeURIComponent(id)}/preview" target="_blank" rel="noopener">Abrir</a>
+          <button class="btn ghost sm" type="button" id="copy-email">Copiar HTML</button>
+          <button class="btn danger sm" type="button" id="del-email">Apagar</button>
+        </div>
+      </div>
+      <iframe class="email-frame" title="preview" sandbox="allow-same-origin" src="/api/emails/${encodeURIComponent(id)}/preview"></iframe>
+      <p class="muted small" style="margin:10px 0 0">Arquivo: <code>${esc(mail.filename)}</code> · ${esc(mail.channel || "")}</p>`;
+    $("#copy-email")?.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(mail.content || "");
+        toast("HTML copiado — cole no Gmail");
+      } catch {
+        toast("Não foi possível copiar");
+      }
+    });
+    $("#del-email")?.addEventListener("click", async () => {
+      if (!confirm("Apagar este rascunho?")) return;
+      await api(`/api/emails/${encodeURIComponent(id)}`, { method: "DELETE" });
+      state.emailId = null;
+      toast("Rascunho apagado");
+      renderEmails();
+    });
+  } catch (e) {
+    box.innerHTML = `<div class="empty"><strong class="error">Erro</strong>${esc(e.message)}</div>`;
+  }
+}
+
 async function renderJobs() {
   state.jobs = await api("/api/jobs?limit=40");
   const rows = state.jobs
@@ -660,8 +877,8 @@ async function renderJobs() {
       (j) => `
     <tr>
       <td>#${j.id}</td>
-      <td>${esc(j.type)}</td>
-      <td><span class="pill ${esc(j.status)}">${esc(j.status)}</span></td>
+      <td>${esc(JOB_LABEL[j.type] || j.type)}</td>
+      <td>${statusPill(j.status)}</td>
       <td class="small">${esc(j.created_at || "")}</td>
       <td class="row">
         <button class="btn ghost sm" data-watch="${j.id}" data-type="${esc(j.type)}">Ver</button>
@@ -676,10 +893,14 @@ async function renderJobs() {
     .join("");
   $("#view-jobs").innerHTML = `
     <div class="panel">
-      <table class="table">
+      ${
+        rows
+          ? `<table class="table">
         <thead><tr><th>ID</th><th>Tipo</th><th>Status</th><th>Criado</th><th></th></tr></thead>
-        <tbody>${rows || "<tr><td colspan=5>Sem jobs</td></tr>"}</tbody>
-      </table>
+        <tbody>${rows}</tbody>
+      </table>`
+          : `<div class="empty"><strong>Sem jobs</strong>Dispare uma prospecção para começar.</div>`
+      }
     </div>`;
   $$("[data-watch]").forEach((b) =>
     b.addEventListener("click", async () => {
@@ -701,8 +922,75 @@ function val(id, fallback = "") {
   return el ? el.value : fallback;
 }
 
+function providerHelp(id) {
+  const map = {
+    openrouter: "API cloud — precisa de key. Bom default para copy de redesign/proposta.",
+    claude: "CLI local <code>claude</code> autenticado no PATH do servidor.",
+    codex: "CLI local <code>codex</code> no PATH.",
+    cursor: "CLI <code>cursor-agent</code> / <code>agent</code> no PATH.",
+  };
+  return map[id] || "";
+}
+
+async function loadOpenRouterModels(query = "") {
+  const sel = $("#cfg-ormodel");
+  const status = $("#or-models-status");
+  const count = $("#or-model-count");
+  if (!sel) return;
+  state.orModelQuery = query;
+  if (status) status.textContent = "Carregando modelos…";
+  if (count) count.textContent = "…";
+
+  const current = val("#cfg-ormodel") || state.config?.llm?.openrouter_model || "openai/gpt-4o-mini";
+  const keyInput = val("#cfg-or");
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  // Se o usuário acabou de colar uma key nova (não mascarada), envia no query
+  if (keyInput && keyInput !== "***" && keyInput.length > 8) params.set("key", keyInput);
+
+  try {
+    const res = await fetch(`/api/providers/openrouter/models?${params}`, {
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      location.href = "/login";
+      return;
+    }
+    if (!res.ok || !data.success) {
+      if (status) status.textContent = data.message || "Falha ao listar modelos";
+      if (count) count.textContent = "erro";
+      return;
+    }
+    const models = data.models || [];
+    const want = data.default || current;
+    sel.innerHTML = models
+      .map((m) => {
+        const id = m.id || m;
+        const label = m.name && m.name !== id ? `${m.name} — ${id}` : id;
+        return `<option value="${esc(id)}">${esc(label)}</option>`;
+      })
+      .join("");
+    if (want && ![...sel.options].some((o) => o.value === want)) {
+      const opt = document.createElement("option");
+      opt.value = want;
+      opt.textContent = want;
+      sel.prepend(opt);
+    }
+    sel.value = want;
+    if ($("#or-current-label")) $("#or-current-label").textContent = sel.value;
+    if (status) status.textContent = `${models.length} modelos disponíveis`;
+    if (count) count.textContent = String(models.length);
+    state.openrouterModels = models;
+  } catch (e) {
+    if (status) status.textContent = e.message || "Erro";
+    if (count) count.textContent = "erro";
+  }
+}
+
 async function renderConfig() {
   state.config = await api("/api/config");
+  state.providers = await api("/api/providers");
   state.integrations = await api("/api/config/integrations").catch(() => state.integrations);
   const c = state.config;
   const m = c.maps || {};
@@ -713,40 +1001,118 @@ async function renderConfig() {
   const co = c.composio || {};
   const envio = c.envio || {};
   const ready = Object.fromEntries((state.integrations?.funnel || []).map((f) => [f.id, f.ready]));
+  state.selectedProvider = state.selectedProvider || llm.default_provider || "openrouter";
+
+  const tabs = [
+    { id: "llm", label: "LLM" },
+    { id: "maps", label: "Maps" },
+    { id: "publish", label: "Publicar" },
+    { id: "gmail", label: "Gmail" },
+    { id: "assinatura", label: "Assinatura" },
+  ];
+
+  const providerCards = (state.providers || [])
+    .map((p) => {
+      const selected = state.selectedProvider === p.id;
+      const live = !!p.available;
+      return `
+      <button type="button" class="provider-card ${selected ? "selected" : ""} ${live ? "" : "disabled"}"
+        data-provider="${esc(p.id)}" ${live || p.id === "openrouter" ? "" : "disabled"}>
+        <div class="pc-top">
+          <span class="pc-name">${esc(p.name)}</span>
+          <span class="status-pill ${live ? "live" : "dead"}"><span class="sdot"></span>${live ? "detectado" : "não encontrado"}</span>
+        </div>
+        <div class="pc-detail">${providerHelp(p.id)}</div>
+        <div class="pc-detail">${esc(p.detail || (live ? "Pronto para usar" : "Instale/auth a CLI ou cole a API key"))}</div>
+        ${selected ? `<div class="pc-detail" style="color:var(--accent-2)">✓ Provider padrão</div>` : ""}
+      </button>`;
+    })
+    .join("");
+
+  const models = []; // carregados sob demanda ao escolher OpenRouter
+  const currentModel = llm.openrouter_model || "openai/gpt-4o-mini";
+  const showOrPanel = state.selectedProvider === "openrouter";
 
   $("#view-config").innerHTML = `
-    <div class="cfg-grid">
+    <div class="cfg-tabs">
+      ${tabs.map((t) => `<button type="button" class="${state.cfgTab === t.id ? "active" : ""}" data-tab="${t.id}">${t.label}</button>`).join("")}
+    </div>
+
+    <div class="cfg-pane ${state.cfgTab === "llm" ? "" : "hidden"}" data-pane="llm">
       <div class="panel cfg-card stack">
-        <h3>Assinatura <span class="tag">e-mails</span></h3>
+        <h3>Provider de IA <span class="tag">redesign · proposta</span></h3>
+        <p class="muted small" style="margin:0">
+          O LLM <strong style="color:var(--ink)">não</strong> prospecta no Maps.
+          Só entra em <strong style="color:var(--ink)">redesign</strong> e <strong style="color:var(--ink)">proposta</strong>.
+          Clique em OpenRouter para carregar os modelos disponíveis.
+        </p>
+        <div class="provider-grid">${providerCards}</div>
         <div class="row">
-          <label style="flex:1">Nome<input id="cfg-nome" value="${esc(a.nome || "")}" /></label>
-          <label style="flex:1">WhatsApp<input id="cfg-wa" value="${esc(a.whatsapp || "")}" /></label>
-          <label style="flex:1">E-mail remete<input id="cfg-email" value="${esc(a.email || "")}" placeholder="voce@gmail.com" /></label>
+          <button class="btn ghost sm" type="button" id="refresh-providers">Re-detectar CLIs</button>
+          <button class="btn ghost sm" type="button" id="test-provider">Testar provider + modelo</button>
         </div>
-        <label>Apresentação<textarea id="cfg-apres" rows="2">${esc(a.apresentacao || "")}</textarea></label>
+        <div id="llm-test-msg" class="muted small"></div>
       </div>
 
+      <div class="panel cfg-card stack ${showOrPanel ? "" : "hidden"}" id="openrouter-panel">
+        <h3>OpenRouter · modelos <span class="tag on" id="or-model-count">…</span></h3>
+        <div class="row">
+          <label style="flex:1">API Key
+            <input id="cfg-or" type="password" value="${esc(llm.openrouter_api_key || "")}" placeholder="sk-or-…" />
+          </label>
+          <label style="flex:1">Buscar modelo
+            <input id="or-model-search" type="search" placeholder="gpt, claude, gemini, deepseek…" />
+          </label>
+        </div>
+        <label>Modelo que vamos usar
+          <div class="select-wrap">
+            <select id="cfg-ormodel" size="1">
+              <option value="${esc(currentModel)}">${esc(currentModel)}</option>
+            </select>
+          </div>
+        </label>
+        <div class="row">
+          <button class="btn primary sm" type="button" id="load-or-models">Carregar modelos</button>
+          <span class="muted small" id="or-models-status">Selecione OpenRouter para listar</span>
+        </div>
+        <p class="field-hint">Modelo atual salvo: <code id="or-current-label">${esc(currentModel)}</code></p>
+      </div>
+
+      <div class="panel cfg-card stack ${showOrPanel ? "hidden" : ""}" id="cli-panel">
+        <h3>CLI selecionada</h3>
+        <p class="muted small" style="margin:0">
+          Com Claude / Codex / Cursor não há lista de modelos OpenRouter —
+          o modelo é o da própria CLI autenticada no servidor.
+        </p>
+      </div>
+    </div>
+
+    <div class="cfg-pane ${state.cfgTab === "maps" ? "" : "hidden"}" data-pane="maps">
       <div class="panel cfg-card stack">
-        <h3>1 · Google Maps <span class="tag ${ready.maps ? "on" : "off"}">${ready.maps ? "conectado" : "faltando"}</span></h3>
-        <p class="muted small" style="margin:0">Places (oficial) ou Apify (scraping). Engine auto tenta Places e cai no Apify.</p>
+        <h3>Google Maps <span class="tag ${ready.maps ? "on" : "off"}">${ready.maps ? "conectado" : "faltando"}</span></h3>
+        <p class="muted small" style="margin:0">Places (oficial) ou Apify. Auto tenta Places e cai no Apify.</p>
         <div class="row">
           <label style="flex:1">Google Maps API Key<input id="cfg-gmaps" type="password" value="${esc(m.google_maps_api_key || "")}" placeholder="AIza…" /></label>
           <label style="flex:1">Apify API Key<input id="cfg-apify" type="password" value="${esc(m.apify_api_key || "")}" placeholder="apify_api_…" /></label>
-          <label>Engine<select id="cfg-engine">
-            <option value="auto">auto</option>
-            <option value="google_places">places</option>
-            <option value="apify">apify</option>
-          </select></label>
+          <label>Engine
+            ${selectHtml("cfg-engine", [
+              { value: "auto", label: "Auto" },
+              { value: "google_places", label: "Places" },
+              { value: "apify", label: "Apify" },
+            ])}
+          </label>
         </div>
         <div class="row">
           <button class="btn ghost sm" type="button" id="test-places">Testar Places</button>
           <button class="btn ghost sm" type="button" id="test-apify">Testar Apify</button>
         </div>
       </div>
+    </div>
 
+    <div class="cfg-pane ${state.cfgTab === "publish" ? "" : "hidden"}" data-pane="publish">
       <div class="panel cfg-card stack">
-        <h3>3 · aaPanel (publicar) <span class="tag ${ready.aapanel ? "on" : "off"}">${ready.aapanel ? "ok" : "faltando"}</span></h3>
-        <p class="muted small" style="margin:0">Publicação local em <code>/www/wwwroot/</code> com nginx do aaPanel. URL: <code>{slug}.{dominio_base}</code> (use <code>iabotz.online</code> — Universal SSL não cobre <code>*.panel.iabotz.online</code>).</p>
+        <h3>aaPanel <span class="tag ${ready.aapanel ? "on" : "off"}">${ready.aapanel ? "ok" : "faltando"}</span></h3>
+        <p class="muted small" style="margin:0">URL pública: <code>https://{slug}.{domínio}</code>. Use <code>iabotz.online</code> (Universal SSL).</p>
         <div class="row">
           <label style="flex:1">URL painel<input id="cfg-aa-url" value="${esc(aa.url || "")}" /></label>
           <label style="flex:1">Domínio base<input id="cfg-aa-dom" value="${esc(aa.dominio_base || "iabotz.online")}" /></label>
@@ -754,88 +1120,134 @@ async function renderConfig() {
         </div>
         <div class="row">
           <label>Subdomínio?
-            <select id="cfg-aa-sub">
-              <option value="true">sim (recomendado)</option>
-              <option value="false">não (subpasta)</option>
-            </select>
+            ${selectHtml("cfg-aa-sub", [
+              { value: "true", label: "Sim" },
+              { value: "false", label: "Não (subpasta)" },
+            ])}
           </label>
-          <label style="flex:1">API token (opcional)<input id="cfg-aa-token" type="password" value="${esc(aa.api_token || "")}" placeholder="vazio = modo local sudo" /></label>
-          <label>SSL auto
-            <select id="cfg-aa-ssl">
-              <option value="true">sim</option>
-              <option value="false">não</option>
-            </select>
+          <label style="flex:1">API token (opcional)<input id="cfg-aa-token" type="password" value="${esc(aa.api_token || "")}" placeholder="vazio = sudo local" /></label>
+          <label>SSL
+            ${selectHtml("cfg-aa-ssl", [
+              { value: "true", label: "Cert compartilhado" },
+              { value: "false", label: "Off" },
+            ])}
           </label>
         </div>
       </div>
-
       <div class="panel cfg-card stack">
-        <h3>4 · Cloudflare DNS <span class="tag ${ready.cloudflare ? "on" : "off"}">${ready.cloudflare ? "conectado" : "faltando"}</span></h3>
-        <p class="muted small" style="margin:0">Ao publicar, cria CNAME <code>{slug}</code> → <code>panel.iabotz.online</code> (URL final <code>https://{slug}.iabotz.online</code>).</p>
+        <h3>Cloudflare DNS <span class="tag ${ready.cloudflare ? "on" : "off"}">${ready.cloudflare ? "conectado" : "faltando"}</span></h3>
+        <p class="muted small" style="margin:0">Cria CNAME <code>{slug}</code> → target ao publicar.</p>
         <div class="row">
           <label style="flex:1">API Key / Token<input id="cfg-cf-key" type="password" value="${esc(cf.api_key || cf.api_token || "")}" /></label>
-          <label style="flex:1">E-mail conta<input id="cfg-cf-email" value="${esc(cf.email || "")}" /></label>
+          <label style="flex:1">E-mail<input id="cfg-cf-email" value="${esc(cf.email || "")}" /></label>
           <label style="flex:1">Zona<input id="cfg-cf-zone" value="${esc(cf.zone || "iabotz.online")}" /></label>
         </div>
-        <div class="row">
-          <button class="btn ghost sm" type="button" id="test-cf">Testar Cloudflare</button>
-        </div>
+        <button class="btn ghost sm" type="button" id="test-cf">Testar Cloudflare</button>
       </div>
+    </div>
 
+    <div class="cfg-pane ${state.cfgTab === "gmail" ? "" : "hidden"}" data-pane="gmail">
       <div class="panel cfg-card stack">
-        <h3>5 · Gmail via Composio <span class="tag ${ready.gmail ? "on" : "off"}">${ready.gmail ? "conectado" : "draft local"}</span></h3>
+        <h3>Gmail via Composio <span class="tag ${ready.gmail ? "on" : "off"}">${ready.gmail ? "conectado" : "draft local"}</span></h3>
         <p class="muted small" style="margin:0">
-          Originalmente usamos <strong style="color:var(--ink)">Composio</strong> para criar rascunhos no Gmail.
-          Sem API key, a proposta salva HTML em <code>drafts/</code> para você colar no Gmail.
+          Sem key → salva HTML em <code>drafts/</code>. Com key → tenta criar rascunho no Gmail.
         </p>
         <div class="row">
-          <label style="flex:1">Composio API Key<input id="cfg-co-key" type="password" value="${esc(co.api_key || "")}" placeholder="COMPOSIO_API_KEY" /></label>
+          <label style="flex:1">Composio API Key<input id="cfg-co-key" type="password" value="${esc(co.api_key || "")}" /></label>
           <label style="flex:1">Entity ID<input id="cfg-co-entity" value="${esc(co.entity_id || "")}" placeholder="default" /></label>
-          <label>Modo envio
-            <select id="cfg-envio">
-              <option value="rascunho">rascunho (recomendado)</option>
-              <option value="enviar">enviar direto</option>
-            </select>
+          <label>Modo
+            ${selectHtml("cfg-envio", [
+              { value: "rascunho", label: "Rascunho (recomendado)" },
+              { value: "enviar", label: "Enviar direto" },
+            ])}
           </label>
         </div>
       </div>
+    </div>
 
+    <div class="cfg-pane ${state.cfgTab === "assinatura" ? "" : "hidden"}" data-pane="assinatura">
       <div class="panel cfg-card stack">
-        <h3>LLM (redesign / copy) <span class="tag on">opcional</span></h3>
+        <h3>Assinatura dos e-mails</h3>
         <div class="row">
-          <label style="flex:1">OpenRouter Key<input id="cfg-or" type="password" value="${esc(llm.openrouter_api_key || "")}" /></label>
-          <label style="flex:1">Modelo<input id="cfg-ormodel" value="${esc(llm.openrouter_model || "openai/gpt-4o-mini")}" /></label>
-          <label>Provider<select id="cfg-prov">
-            <option value="openrouter">openrouter</option>
-            <option value="claude">claude</option>
-            <option value="codex">codex</option>
-            <option value="cursor">cursor</option>
-          </select></label>
+          <label style="flex:1">Nome<input id="cfg-nome" value="${esc(a.nome || "")}" /></label>
+          <label style="flex:1">WhatsApp<input id="cfg-wa" value="${esc(a.whatsapp || "")}" /></label>
+          <label style="flex:1">E-mail<input id="cfg-email" value="${esc(a.email || "")}" /></label>
         </div>
-        <div id="providers-status" class="muted small"></div>
+        <label>Apresentação<textarea id="cfg-apres" rows="2">${esc(a.apresentacao || "")}</textarea></label>
       </div>
+    </div>
 
-      <div class="row">
-        <button class="btn primary" id="save-cfg" type="button">Salvar tudo</button>
-        <div id="cfg-msg" class="muted"></div>
-      </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" id="save-cfg" type="button">Salvar</button>
+      <div id="cfg-msg" class="muted"></div>
     </div>`;
 
-  $("#cfg-engine").value = m.engine || "auto";
-  $("#cfg-prov").value = llm.default_provider || "openrouter";
-  $("#cfg-aa-sub").value = String(aa.usar_subdominio !== false);
-  $("#cfg-aa-ssl").value = String(aa.ssl_auto !== false);
-  $("#cfg-envio").value = envio.modo || "rascunho";
-  $("#providers-status").textContent = state.providers
-    .map((x) => `${x.name}: ${x.available ? "ok" : "off"}`)
-    .join(" · ");
+  // set select values after mount
+  if ($("#cfg-engine")) $("#cfg-engine").value = m.engine || "auto";
+  if ($("#cfg-aa-sub")) $("#cfg-aa-sub").value = String(aa.usar_subdominio !== false);
+  if ($("#cfg-aa-ssl")) $("#cfg-aa-ssl").value = String(aa.ssl_auto !== false);
+  if ($("#cfg-envio")) $("#cfg-envio").value = envio.modo || "rascunho";
+
+  $$("[data-tab]").forEach((b) =>
+    b.addEventListener("click", () => {
+      state.cfgTab = b.dataset.tab;
+      renderConfig();
+    })
+  );
+
+  $$("[data-provider]").forEach((card) =>
+    card.addEventListener("click", () => {
+      if (card.disabled) return;
+      state.selectedProvider = card.dataset.provider;
+      toast(`Provider: ${state.selectedProvider}`);
+      renderConfig();
+    })
+  );
+
+  $("#refresh-providers")?.addEventListener("click", async () => {
+    state.providers = await api("/api/providers");
+    toast("CLIs re-detectados");
+    renderConfig();
+  });
+
+  $("#load-or-models")?.addEventListener("click", () => loadOpenRouterModels());
+  $("#or-model-search")?.addEventListener("input", (e) => {
+    clearTimeout(loadOpenRouterModels._t);
+    loadOpenRouterModels._t = setTimeout(() => loadOpenRouterModels(e.target.value), 280);
+  });
+  $("#cfg-ormodel")?.addEventListener("change", () => {
+    const v = val("#cfg-ormodel");
+    if ($("#or-current-label")) $("#or-current-label").textContent = v;
+    toast(`Modelo: ${v}`);
+  });
+
+  // Auto-carrega modelos ao abrir aba LLM com OpenRouter
+  if (state.cfgTab === "llm" && state.selectedProvider === "openrouter") {
+    loadOpenRouterModels(state.orModelQuery || "");
+  }
+
+  $("#test-provider")?.addEventListener("click", async () => {
+    const msgEl = $("#llm-test-msg");
+    msgEl.textContent = "Testando…";
+    try {
+      const r = await api("/api/providers/test", {
+        method: "POST",
+        body: JSON.stringify({
+          provider: state.selectedProvider,
+          model: state.selectedProvider === "openrouter" ? val("#cfg-ormodel") : null,
+        }),
+      });
+      msgEl.textContent = r.success ? `OK: ${r.reply}` : r.message || "falhou";
+    } catch (e) {
+      msgEl.textContent = e.message;
+    }
+  });
 
   const msg = (t) => {
     $("#cfg-msg").textContent = t;
   };
 
   $("#save-cfg").onclick = async () => {
-    const cfKey = val("#cfg-cf-key");
     const body = {
       assinatura: {
         nome: val("#cfg-nome"),
@@ -846,7 +1258,7 @@ async function renderConfig() {
       maps: {
         google_maps_api_key: val("#cfg-gmaps") || "***",
         apify_api_key: val("#cfg-apify") || "***",
-        engine: val("#cfg-engine"),
+        engine: val("#cfg-engine") || "auto",
       },
       aapanel: {
         url: val("#cfg-aa-url"),
@@ -857,7 +1269,7 @@ async function renderConfig() {
         api_token: val("#cfg-aa-token") || "***",
       },
       cloudflare: {
-        api_key: cfKey || "***",
+        api_key: val("#cfg-cf-key") || "***",
         email: val("#cfg-cf-email"),
         zone: val("#cfg-cf-zone"),
         proxied: true,
@@ -866,38 +1278,41 @@ async function renderConfig() {
         api_key: val("#cfg-co-key") || "***",
         entity_id: val("#cfg-co-entity"),
       },
-      envio: { modo: val("#cfg-envio") },
+      envio: { modo: val("#cfg-envio") || "rascunho" },
       llm: {
         openrouter_api_key: val("#cfg-or") || "***",
-        openrouter_model: val("#cfg-ormodel"),
-        default_provider: val("#cfg-prov"),
+        openrouter_model: val("#cfg-ormodel") || "openai/gpt-4o-mini",
+        default_provider: state.selectedProvider || "openrouter",
       },
     };
     await api("/api/config", { method: "POST", body: JSON.stringify(body) });
     state.providers = await api("/api/providers");
     state.integrations = await api("/api/config/integrations");
+    state.config = await api("/api/config");
+    const llmP = state.providers.find((p) => p.id === state.selectedProvider);
+    $("#engine-badge").textContent = `LLM: ${llmP?.name || state.selectedProvider}${llmP?.available ? "" : " ✕"}`;
     msg("Salvo.");
-    toast("Configurações salvas");
+    toast("Config salva");
   };
 
-  $("#test-places").onclick = async () => {
+  $("#test-places")?.addEventListener("click", async () => {
     const r = await api("/api/config/engines/test", {
       method: "POST",
       body: JSON.stringify({ engine: "google_places" }),
     });
     msg(r.message || JSON.stringify(r));
-  };
-  $("#test-apify").onclick = async () => {
+  });
+  $("#test-apify")?.addEventListener("click", async () => {
     const r = await api("/api/config/engines/test", {
       method: "POST",
       body: JSON.stringify({ engine: "apify" }),
     });
     msg(r.message || JSON.stringify(r));
-  };
-  $("#test-cf").onclick = async () => {
+  });
+  $("#test-cf")?.addEventListener("click", async () => {
     const r = await api("/api/config/cloudflare/test", { method: "POST", body: "{}" });
     msg(r.message || JSON.stringify(r));
-  };
+  });
 }
 
 boot().catch((e) => console.error(e));
