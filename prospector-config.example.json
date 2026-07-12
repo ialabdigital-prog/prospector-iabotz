@@ -1,0 +1,64 @@
+{
+  "assinatura": {
+    "nome": "",
+    "apresentacao": "",
+    "whatsapp": ""
+  },
+  "prospeccao": {
+    "nichos": ["nutricionistas", "psicologos", "dentistas"],
+    "cidade": "São Paulo",
+    "leadsPorBusca": 10,
+    "raioKm": 15,
+    "notaMinima": 4.7,
+    "avaliacoesMinimas": 40
+  },
+  "envio": {
+    "modo": "rascunho"
+  },
+  "aapanel": {
+    "url": "https://panel.example.com",
+    "api_token": "",
+    "usuario": "",
+    "senha": "",
+    "dominio_base": "panel.example.com",
+    "pasta_base": "clientes",
+    "usar_subpasta": false,
+    "ssl_auto": true,
+    "php_version": "82"
+  },
+  "cloudflare": {
+    "api_key": "",
+    "api_token": "",
+    "email": "",
+    "zone": "example.com",
+    "proxied": true
+  },
+  "maps": {
+    "google_maps_api_key": "",
+    "apify_api_key": "",
+    "engine": "auto"
+  },
+  "llm": {
+    "default_provider": "openrouter",
+    "openrouter_api_key": "",
+    "openrouter_model": "openai/gpt-4o-mini"
+  },
+  "auth": {
+    "secret_key": "change-me"
+  },
+  "playwright": {
+    "headless": true,
+    "browser": "chromium",
+    "timeout_ms": 30000,
+    "delay_entre_requisicoes_ms": 2000,
+    "user_agent": "Mozilla/5.0",
+    "viewport": { "width": 1366, "height": 768 },
+    "proxy": "",
+    "stealth": true
+  },
+  "dashboard": {
+    "porta": 8765,
+    "host": "0.0.0.0"
+  },
+  "deploy_target": "aapanel"
+}

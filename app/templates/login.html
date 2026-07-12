@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prospector — Login</title>
+  <link rel="stylesheet" href="/static/css/panel.css" />
+</head>
+<body class="auth-body">
+  <main class="auth-card">
+    <p class="brand">Prospector</p>
+    <h1>Entrar</h1>
+    <p class="muted">Painel interno IA Botz</p>
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+    <form method="post" class="stack">
+      <label>Usuário
+        <input name="username" autocomplete="username" required autofocus />
+      </label>
+      <label>Senha
+        <input name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="btn primary">Entrar</button>
+    </form>
+  </main>
+</body>
+</html>

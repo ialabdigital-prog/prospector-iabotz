@@ -1,0 +1,82 @@
+{
+  "sections": [
+    {
+      "id": "hero",
+      "name": "Hero",
+      "required": true,
+      "fields": ["headline", "subheadline", "cta_primary", "cta_secondary", "background_image"]
+    },
+    {
+      "id": "sobre",
+      "name": "Sobre / Autoridade",
+      "required": true,
+      "fields": ["texto", "credenciais", "certificacoes"]
+    },
+    {
+      "id": "servicos",
+      "name": "Serviços",
+      "required": true,
+      "fields": ["items[].titulo", "items[].descricao", "items[].icone", "items[].beneficio"]
+    },
+    {
+      "id": "diferenciais",
+      "name": "Diferenciais",
+      "required": false,
+      "fields": ["items[].titulo", "items[].descricao", "items[].icone"]
+    },
+    {
+      "id": "depoimentos",
+      "name": "Depoimentos",
+      "required": false,
+      "fields": ["items[].nome", "items[].texto", "items[].avaliacao", "items[].foto", "items[].cargo"]
+    },
+    {
+      "id": "equipe",
+      "name": "Equipe",
+      "required": false,
+      "fields": ["items[].nome", "items[].cargo", "items[].bio", "items[].foto"]
+    },
+    {
+      "id": "faq",
+      "name": "FAQ",
+      "required": true,
+      "fields": ["items[].pergunta", "items[].resposta"]
+    },
+    {
+      "id": "contato",
+      "name": "Contato / Localização",
+      "required": true,
+      "fields": ["endereco", "telefone", "whatsapp", "email", "horario", "mapa_embed"]
+    }
+  ],
+  "css_variables": {
+    "--color-primary": "#1e40af",
+    "--color-secondary": "#0f172a",
+    "--color-accent": "#059669",
+    "--color-bg": "#f8fafc",
+    "--color-card": "#ffffff",
+    "--color-border": "#e2e8f0",
+    "--color-text": "#0f172a",
+    "--color-muted": "#64748b",
+    "--font-heading": "Inter, system-ui, sans-serif",
+    "--font-body": "Inter, system-ui, sans-serif",
+    "--spacing-unit": "1rem",
+    "--radius-sm": "8px",
+    "--radius-md": "12px",
+    "--radius-lg": "16px",
+    "--shadow-sm": "0 1px 2px rgba(0,0,0,.05)",
+    "--shadow-md": "0 4px 12px rgba(0,0,0,.08)",
+    "--shadow-lg": "0 12px 32px rgba(0,0,0,.12)"
+  },
+  "breakpoints": {
+    "mobile": "375px",
+    "tablet": "768px",
+    "desktop": "1024px",
+    "wide": "1440px"
+  },
+  "editor_snippets": {
+    "hero": "<section class=\"hero\" style=\"--hero-bg: url('{{background_image}}')\"><div class=\"container\"><h1>{{headline}}</h1><p>{{subheadline}}</p><div class=\"cta-group\"><a href=\"https://wa.me/{{whatsapp}}\" class=\"btn btn-primary\">{{cta_primary}}</a><a href=\"#contato\" class=\"btn btn-secondary\">{{cta_secondary}}</a></div></div></section>",
+    "servico_card": "<article class=\"servico-card\"><div class=\"icon\">{{icone}}</div><h3>{{titulo}}</h3><p>{{descricao}}</p><span class=\"beneficio\">{{beneficio}}</span></article>",
+    "depoimento_card": "<article class=\"depoimento-card\"><blockquote>{{texto}}</blockquote><footer><img src=\"{{foto}}\" alt=\"{{nome}}\"><div><strong>{{nome}}</strong><span>{{cargo}}</span><div class=\"stars\">{{avaliacao}}</div></footer></article>"
+  }
+}

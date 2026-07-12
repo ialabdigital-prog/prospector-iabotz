@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prospector Dashboard</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--border:#e4e8ef;--primary:#2563eb;--primary-h:#1d4ed8;--danger:#dc2626;--warn:#f59e0b;--ok:#16a34a;--muted:#6b7280;--radius:12px;--shadow:0 2px 8px rgba(0,0,0,.06);--shadow-h:0 8px 24px rgba(0,0,0,.1)}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;background:var(--bg);margin:0;min-height:100vh;color:#111}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-size:1.2rem;font-weight:700;margin:0;color:var(--primary)}
+.badge{font-size:.7rem;padding:3px 8px;border-radius:999px;background:#eff6ff;color:var(--primary);font-weight:600}
+main{max-width:1400px;margin:0 auto;padding:20px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+input[type=search]{flex:1;min-width:220px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card);font-size:.9rem}
+select{padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card);font-size:.9rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.stat .label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.stat .value{font-size:1.6rem;font-weight:700;color:#111}
+.views{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.views button{padding:8px 16px;border:1px solid var(--border);background:var(--card);border-radius:10px;cursor:pointer;font-size:.85rem;transition:.15s}
+.views button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.views button:hover:not(.active){background:#f0f4f8}
+.kanban{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;min-height:500px}
+.column{background:var(--bg);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column}
+.column-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;margin-bottom:8px;border-radius:8px;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.5px}
+.column[data-status="novo"] .column-header{background:#dbeafe;color:#1e40af}
+.column[data-status="redesenhado"] .column-header{background:#fef3c7;color:#92400e}
+.column[data-status="publicado"] .column-header{background:#dcfce7;color:#166534}
+.column[data-status="proposta"] .column-header{background:#e0e7ff;color:#3730a3}
+.column[data-status="respondeu"] .column-header{background:#fce7f3;color:#9d174d}
+.column[data-status="fechado"] .column-header{background:#dcfce7;color:#166534}
+.column[data-status="descartado"] .column-header{background:#f3f4f6;color:#6b7280}
+.cards{list-style:none;padding:0;margin:0;min-height:200px;display:flex;flex-direction:column;gap:10px}
+.cards.drag-over{background:rgba(37,99,235,.08)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:var(--shadow);cursor:grab;transition:.15s}
+.card:hover{box-shadow:var(--shadow-h);transform:translateY(-1px)}
+.card.dragging{opacity:.5;cursor:grabbing}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.card-name{font-weight:600;font-size:.95rem;color:#111;line-height:1.3}
+.card-badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge-sm{font-size:.65rem;padding:2px 6px;border-radius:999px;font-weight:600}
+.badge-nicho{background:#e0e7ff;color:#3730a3}
+.badge-cidade{background:#fef3c7;color:#92400e}
+.card-meta{display:flex;flex-direction:column;gap:6px;font-size:.8rem;color:#4b5563}
+.meta-row{display:flex;justify-content:space-between;gap:8px}
+.meta-label{color:var(--muted)}
+.meta-value{font-weight:500}
+.card-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap}
+.btn{font-size:.75rem;padding:6px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer;transition:.15s;font-weight:500}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-h)}
+.btn-ghost{background:transparent;border-color:var(--border);color:#374151}
+.btn-ghost:hover{background:#f3f4f6}
+.btn-danger{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+.btn-danger:hover{background:#fee2e2}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);width:100%;max-width:560px;max-height:90vh;overflow:auto;box-shadow:var(--shadow-h)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-title{font-weight:700;font-size:1.1rem}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;padding:0 4px}
+.modal-body{padding:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+label{font-size:.8rem;font-weight:500;color:#374151}
+input,select,textarea{padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:.9rem;background:var(--card);font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+textarea{min-height:100px;resize:vertical}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--border)}
+.followups{margin-top:24px;padding-top:24px;border-top:1px solid var(--border)}
+.followup-item{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;margin-bottom:8px;font-size:.85rem}
+.empty-state{text-align:center;padding:40px;color:var(--muted)}
+.empty-state svg{width:64px;height:64px;margin-bottom:12px;opacity:.5}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}.kanban{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>Prospector Dashboard</h1>
+<span class="badge" id="modeBadge">Modo Arquivo</span>
+</header>
+<main>
+<div class="controls">
+<input type="search" id="searchInput" placeholder="Buscar por nome, nicho, cidade, e-mail...">
+<select id="statusFilter"><option value="">Todos os status</option></select>
+<select id="nichoFilter"><option value="">Todos os nichos</option></select>
+</div>
+<div class="stats" id="stats"></div>
+<div class="views" id="views"></div>
+<div class="kanban" id="kanban"></div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal">
+<div class="modal-header"><h2 class="modal-title" id="modalTitle">Editar Lead</h2><button class="modal-close" id="modalClose">&times;</button></div>
+<div class="modal-body">
+<form id="leadForm">
+<input type="hidden" name="slug" id="f_slug">
+<div class="form-grid">
+<div class="form-field full"><label>Nome</label><input type="text" name="nome" id="f_nome" required></div>
+<div class="form-field"><label>Nicho</label><input type="text" name="nicho" id="f_nicho" list="nichoList"><datalist id="nichoList"></datalist></div>
+<div class="form-field"><label>Cidade</label><input type="text" name="cidade" id="f_cidade" list="cidadeList"><datalist id="cidadeList"></datalist></div>
+<div class="form-field"><label>Nota</label><input type="number" name="nota" id="f_nota" step="0.1" min="0" max="5"></div>
+<div class="form-field"><label>Avaliações</label><input type="number" name="avaliacoes" id="f_avaliacoes" min="0"></div>
+<div class="form-field"><label>E-mail</label><input type="email" name="email" id="f_email"></div>
+<div class="form-field"><label>Telefone</label><input type="text" name="telefone" id="f_telefone"></div>
+<div class="form-field"><label>WhatsApp</label><input type="text" name="whatsapp" id="f_whatsapp" placeholder="55DDD9XXXXXXXX"></div>
+<div class="form-field full"><label>Site Atual</label><input type="url" name="siteAntigo" id="f_siteAntigo"></div>
+<div class="form-field full"><label>Motivo / Observações</label><textarea name="motivo" id="f_motivo"></textarea></div>
+<div class="form-field"><label>Status</label><select name="status" id="f_status"></select></div>
+<div class="form-field"><label>URL Nova</label><input type="url" name="urlNova" id="f_urlNova"></div>
+<div class="form-field"><label>Valor (R$)</label><input type="number" name="valor" id="f_valor" step="0.01" min="0"></div>
+<div class="form-field"><label>Manutenção (R$/mês)</label><input type="number" name="manutencao" id="f_manutencao" step="0.01" min="0"></div>
+<div class="form-field"><label>Contrato Status</label><select name="contratoStatus" id="f_contratoStatus"></select></div>
+<div class="form-field full"><label>Doc Cliente (caminho/URL)</label><input type="text" name="docCliente" id="f_docCliente"></div>
+<div class="form-field full"><label>Endereço Cliente</label><textarea name="endCliente" id="f_endCliente" rows="2"></textarea></div>
+</div>
+</form>
+</div>
+<div class="modal-footer">
+<button class="btn btn-danger" id="btnDelete">Excluir</button>
+<button class="btn btn-ghost" id="btnCancel">Cancelar</button>
+<button class="btn btn-primary" id="btnSave">Salvar</button>
+</div>
+</div>
+</div>
+
+<script>
+// ==== DADOS EMBUTIDOS (substituído pelo script do plugin) ====
+const EMBEDDED_DATA = __DADOS__;
+
+// ==== ESTADO ====
+let leads = [];
+let currentView = 'kanban';
+let editingSlug = null;
+
+// ==== UTIL ====
+const fmtMoney = v => v ? 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—';
+const fmtDate = d => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
+const statusOrder = ['novo','redesenhado','publicado','proposta','respondeu','fechado','descartado'];
+const statusLabels = {novo:'Novo',redesenhado:'Redesenhado',publicado:'Publicado',proposta:'Proposta',respondeu:'Respondeu',fechado:'Fechado',descartado:'Descartado'};
+const contratoStatusLabels = {pendente:'Pendente',enviado:'Enviado',assinado:'Assinado'};
+
+// ==== INIT ====
+function init(){
+  loadData();
+  renderAll();
+  bindEvents();
+  checkServerMode();
+}
+
+function loadData(){
+  if(EMBEDDED_DATA && EMBEDDED_DATA.leads){
+    leads = EMBEDDED_DATA.leads;
+  }
+  // Ordenar por status e atualizado
+  leads.sort((a,b)=>{
+    const sa = statusOrder.indexOf(a.status);
+    const sb = statusOrder.indexOf(b.status);
+    if(sa !== sb) return sa - sb;
+    return new Date(b.atualizado || 0) - new Date(a.atualizado || 0);
+  });
+}
+
+function checkServerMode(){
+  // Tenta detectar se está rodando via servidor (websocket/API)
+  fetch('/api/leads').then(r=>r.ok && (document.getElementById('modeBadge').textContent='Modo Servidor', document.getElementById('modeBadge').style.background='#dcfce7', document.getElementById('modeBadge').style.color='#166534')).catch(()=>{});
+}
+
+// ==== RENDER ====
+function renderAll(){
+  renderStats();
+  renderViews();
+  renderKanban();
+  populateFilters();
+}
+
+function renderStats(){
+  const stats = {total:leads.length, novo:0, redesenhado:0, publicado:0, proposta:0, respondeu:0, fechado:0, descartado:0, valor:0, mrr:0};
+  leads.forEach(l=>{
+    if(l.status in stats) stats[l.status]++;
+    if(l.valor) stats.valor += Number(l.valor);
+    if(l.manutencao) stats.mrr += Number(l.manutencao);
+  });
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="label">Total</div><div class="value">${stats.total}</div></div>
+    <div class="stat"><div class="label">Novos</div><div class="value">${stats.novo}</div></div>
+    <div class="stat"><div class="label">Redesenhados</div><div class="value">${stats.redesenhado}</div></div>
+    <div class="stat"><div class="label">Publicados</div><div class="value">${stats.publicado}</div></div>
+    <div class="stat"><div class="label">Propostas</div><div class="value">${stats.proposta}</div></div>
+    <div class="stat"><div class="label">Fechados</div><div class="value">${stats.fechado}</div></div>
+    <div class="stat"><div class="label">Receita Total</div><div class="value">${fmtMoney(stats.valor)}</div></div>
+    <div class="stat"><div class="label">MRR Manutenção</div><div class="value">${fmtMoney(stats.mrr)}</div></div>
+  `;
+}
+
+function renderViews(){
+  const views = ['kanban','contratos','financeiro'];
+  document.getElementById('views').innerHTML = views.map(v=>
+    `<button class="${v===currentView?'active':''}" data-view="${v}">${v.charAt(0).toUpperCase()+v.slice(1)}</button>`
+  ).join('');
+}
+
+function renderKanban(){
+  const kanban = document.getElementById('kanban');
+  if(currentView !== 'kanban'){
+    kanban.innerHTML = renderAlternativeView();
+    return;
+  }
+  kanban.innerHTML = statusOrder.map(status=>`
+    <div class="column" data-status="${status}" ondragover="dragOver(event)" ondrop="drop(event)" ondragleave="dragLeave(event)">
+      <div class="column-header">${statusLabels[status]} <span style="font-weight:400;font-size:.7rem;opacity:.7">(${leads.filter(l=>l.status===status).length})</span></div>
+      <ul class="cards" id="cards-${status}">${leads.filter(l=>l.status===status).map(renderCard).join('')}</ul>
+    </div>
+  `).join('');
+  document.querySelectorAll('.card').forEach(el=>{
+    el.draggable = true;
+    el.addEventListener('dragstart', dragStart);
+    el.addEventListener('dragend', dragEnd);
+  });
+}
+
+function renderCard(lead){
+  const updated = lead.atualizado ? new Date(lead.atualizado).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '—';
+  return `<li class="card" data-slug="${lead.slug}" draggable="true">
+    <div class="card-header">
+      <div class="card-name">${escapeHtml(lead.nome)}</div>
+      <div class="card-badges">
+        ${lead.nicho?`<span class="badge-sm badge-nicho">${escapeHtml(lead.nicho)}</span>`:''}
+        ${lead.cidade?`<span class="badge-sm badge-cidade">${escapeHtml(lead.cidade)}</span>`:''}
+      </div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-row"><span class="meta-label">⭐ Nota</span><span class="meta-value">${lead.nota||'—'}</span></div>
+      <div class="meta-row"><span class="meta-label">📊 Avaliações</span><span class="meta-value">${lead.avaliacoes||'—'}</span></div>
+      <div class="meta-row"><span class="meta-label">✉️ E-mail</span><span class="meta-value">${escapeHtml(lead.email||'—')}</span></div>
+      ${lead.whatsapp?`<div class="meta-row"><span class="meta-label">📱 WhatsApp</span><span class="meta-value"><a href="https://wa.me/${lead.whatsapp}" target="_blank">${lead.whatsapp}</a></span></div>`:''}
+      ${lead.urlNova?`<div class="meta-row"><span class="meta-label">🔗 URL</span><span class="meta-value"><a href="${lead.urlNova}" target="_blank">Abrir</a></span></div>`:''}
+      <div class="meta-row"><span class="meta-label">Atualizado</span><span class="meta-value">${updated}</span></div>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-primary" onclick="openModal('${lead.slug}')">Editar</button>
+      ${lead.urlNova?`<a class="btn btn-ghost" href="${lead.urlNova}" target="_blank">Ver Site</a>`:''}
+      ${lead.status==='proposta' && !lead.dataProposta?`<button class="btn btn-ghost" onclick="setPropostaDate('${lead.slug}')">Marcar Proposta</button>`:''}
+    </div>
+  </li>`;
+}
+
+function renderAlternativeView(){
+  if(currentView === 'contratos'){
+    const contratos = leads.filter(l=>['enviado','assinado'].includes(l.contratoStatus));
+    if(!contratos.length) return '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><p>Nenhum contrato enviado/assinado</p></div>';
+    return `<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:.85rem"><thead><tr style="text-align:left;border-bottom:2px solid var(--border)"><th style="padding:10px">Cliente</th><th style="padding:10px">Status</th><th style="padding:10px">Valor</th><th style="padding:10px">Manutenção</th><th style="padding:10px">Enviado em</th><th style="padding:10px">Documento</th><th style="padding:10px">Pago</th></tr></thead><tbody>${contratos.map(l=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px">${escapeHtml(l.nome)}</td><td style="padding:10px"><span class="badge-sm" style="background:${l.contratoStatus==='assinado'?'#dcfce7':'#fef3c7'};color:${l.contratoStatus==='assinado'?'#166534':'#92400e'}">${contratoStatusLabels[l.contratoStatus]}</span></td><td style="padding:10px">${fmtMoney(l.valor)}</td><td style="padding:10px">${fmtMoney(l.manutencao)}</td><td style="padding:10px">${fmtDate(l.contratoEm)}</td><td style="padding:10px">${l.docCliente?`<a href="${l.docCliente}" target="_blank">Ver</a>`:'—'}</td><td style="padding:10px">${l.pago?'✅ Sim':'❌ Não'}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+  if(currentView === 'financeiro'){
+    const fechados = leads.filter(l=>l.status==='fechado');
+    const recebido = fechados.filter(l=>l.pago).reduce((s,l)=>s+Number(l.valor||0),0);
+    const aReceber = fechados.filter(l=>!l.pago).reduce((s,l)=>s+Number(l.valor||0),0);
+    const mrr = leads.reduce((s,l)=>s+Number(l.manutencao||0),0);
+    const proj12 = mrr * 12;
+    return `<div class="stats" style="margin-top:0">
+      <div class="stat"><div class="label">Recebido</div><div class="value" style="color:var(--ok)">${fmtMoney(recebido)}</div></div>
+      <div class="stat"><div class="label">A Receber</div><div class="value" style="color:var(--warn)">${fmtMoney(aReceber)}</div></div>
+      <div class="stat"><div class="label">MRR Atual</div><div class="value">${fmtMoney(mrr)}</div></div>
+      <div class="stat"><div class="label">Projeção 12m</div><div class="value">${fmtMoney(proj12)}</div></div>
+    </div>
+    <div class="followups">
+      <h3 style="margin:0 0 12px;font-size:1rem">Follow-ups pendentes (proposta ≥ 4 dias úteis)</h3>
+      ${renderFollowups()}
+    </div>`;
+  }
+  return '';
+}
+
+function renderFollowups(){
+  const now = new Date();
+  const pending = leads.filter(l=>{
+    if(l.status!=='proposta' || !l.dataProposta) return false;
+    const propDate = new Date(l.dataProposta);
+    const diff = Math.floor((now - propDate) / (1000*60*60*24));
+    return diff >= 4;
+  });
+  if(!pending.length) return '<p style="color:var(--muted);text-align:center;padding:20px">Nenhum follow-up pendente 🎉</p>';
+  return pending.map(l=>`<div class="followup-item"><strong>${escapeHtml(l.nome)}</strong> — proposta em ${fmtDate(l.dataProposta)} (${Math.floor((now-new Date(l.dataProposta))/(1000*60*60*24))} dias) — <button class="btn btn-ghost" style="padding:4px 10px;font-size:.75rem" onclick="openModal('${l.slug}')">Ver/Editar</button></div>`).join('');
+}
+
+function populateFilters(){
+  const nichos = [...new Set(leads.map(l=>l.nicho).filter(Boolean))].sort();
+  const cidades = [...new Set(leads.map(l=>l.cidade).filter(Boolean))].sort();
+  document.getElementById('nichoFilter').innerHTML = '<option value="">Todos os nichos</option>' + nichos.map(n=>`<option>${escapeHtml(n)}</option>`).join('');
+  document.getElementById('cidadeFilter').innerHTML = '<option value="">Todas as cidades</option>' + cidades.map(c=>`<option>${escapeHtml(c)}</option>`).join('');
+  document.getElementById('f_status').innerHTML = statusOrder.map(s=>`<option value="${s}">${statusLabels[s]}</option>`).join('');
+  document.getElementById('f_contratoStatus').innerHTML = Object.entries(contratoStatusLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  document.getElementById('statusFilter').innerHTML = '<option value="">Todos os status</option>' + statusOrder.map(s=>`<option value="${s}">${statusLabels[s]}</option>`).join('');
+}
+
+// ==== DRAG & DROP ====
+let draggedSlug = null;
+function dragStart(e){ draggedSlug = e.currentTarget.dataset.slug; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+function dragEnd(e){ e.currentTarget.classList.remove('dragging'); draggedSlug = null; document.querySelectorAll('.column').forEach(c=>c.classList.remove('drag-over')); }
+function dragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function drop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const newStatus = e.currentTarget.dataset.status;
+  if(draggedSlug && newStatus){
+    updateLeadStatus(draggedSlug, newStatus);
+  }
+}
+
+async function updateLeadStatus(slug, newStatus){
+  const lead = leads.find(l=>l.slug===slug);
+  if(!lead || lead.status===newStatus) return;
+  lead.status = newStatus;
+  lead.atualizado = new Date().toISOString();
+  if(newStatus==='proposta' && !lead.dataProposta) lead.dataProposta = new Date().toISOString().split('T')[0];
+  await saveToServer(lead);
+  renderAll();
+}
+
+// ==== MODAL ====
+function openModal(slug){
+  const lead = leads.find(l=>l.slug===slug);
+  if(!lead) return;
+  editingSlug = slug;
+  document.getElementById('modalTitle').textContent = `Editar: ${lead.nome}`;
+  // Preencher
+  Object.keys(lead).forEach(k=>{
+    const el = document.getElementById('f_'+k);
+    if(el){
+      if(el.type === 'checkbox') el.checked = !!lead[k];
+      else el.value = lead[k] ?? '';
+    }
+  });
+  // Datalists
+  updateDatalists();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); editingSlug = null; }
+function updateDatalists(){
+  const nichos = [...new Set(leads.map(l=>l.nicho).filter(Boolean))];
+  const cidades = [...new Set(leads.map(l=>l.cidade).filter(Boolean))];
+  document.getElementById('nichoList').innerHTML = nichos.map(n=>`<option value="${escapeHtml(n)}">`).join('');
+  document.getElementById('cidadeList').innerHTML = cidades.map(c=>`<option value="${escapeHtml(c)}">`).join('');
+}
+
+async function saveLead(){
+  const form = document.getElementById('leadForm');
+  const data = Object.fromEntries(new FormData(form).entries());
+  // Converter números
+  ['nota','avaliacoes','valor','manutencao'].forEach(k=>{ if(data[k]) data[k] = data[k].includes('.')?parseFloat(data[k]):parseInt(data[k]); });
+  data.atualizado = new Date().toISOString();
+  const idx = leads.findIndex(l=>l.slug===editingSlug);
+  if(idx>=0){ leads[idx] = {...leads[idx], ...data}; }
+  await saveToServer(leads[idx] || data);
+  closeModal();
+  renderAll();
+}
+
+async function deleteLead(){
+  if(!confirm('Excluir este lead permanentemente?')) return;
+  await fetch('/api/leads/'+editingSlug, {method:'DELETE'}).catch(()=>{});
+  leads = leads.filter(l=>l.slug!==editingSlug);
+  closeModal();
+  renderAll();
+}
+
+function setPropostaDate(slug){
+  const lead = leads.find(l=>l.slug===slug);
+  if(!lead) return;
+  lead.dataProposta = new Date().toISOString().split('T')[0];
+  lead.status = 'proposta';
+  lead.atualizado = new Date().toISOString();
+  saveToServer(lead);
+  renderAll();
+}
+
+// ==== SERVER SYNC ====
+async function saveToServer(lead){
+  try{
+    await fetch('/api/leads', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(lead)
+    });
+  }catch(e){
+    console.warn('Servidor não disponível, salvando localmente apenas', e);
+  }
+  // Atualizar dashboard.html local (fallback)
+  updateLocalDashboard();
+}
+
+function updateLocalDashboard(){
+  const snapshot = {atualizado:new Date().toISOString(), leads};
+  // Não podemos escrever arquivo do navegador, mas o plugin regenera o dashboard.html
+  // Aqui apenas log para debug
+  console.log('Dashboard atualizado localmente', snapshot);
+}
+
+// ==== EVENTOS ====
+function bindEvents(){
+  document.getElementById('searchInput').addEventListener('input', filterLeads);
+  document.getElementById('statusFilter').addEventListener('change', filterLeads);
+  document.getElementById('nichoFilter').addEventListener('change', filterLeads);
+  document.getElementById('cidadeFilter').addEventListener('change', filterLeads);
+  document.getElementById('views').addEventListener('click', e=>{
+    if(e.target.matches('[data-view]')){
+      currentView = e.target.dataset.view;
+      renderAll();
+    }
+  });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('btnCancel').addEventListener('click', closeModal);
+  document.getElementById('btnSave').addEventListener('click', saveLead);
+  document.getElementById('btnDelete').addEventListener('click', deleteLead);
+  document.getElementById('modalOverlay').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+}
+
+function filterLeads(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  const nicho = document.getElementById('nichoFilter').value;
+  const cidade = document.getElementById('cidadeFilter').value;
+  document.querySelectorAll('.card').forEach(card=>{
+    const lead = leads.find(l=>l.slug===card.dataset.slug);
+    if(!lead){ card.style.display='none'; return; }
+    const match = (!q || lead.nome.toLowerCase().includes(q) || (lead.nicho||'').toLowerCase().includes(q) || (lead.cidade||'').toLowerCase().includes(q) || (lead.email||'').toLowerCase().includes(q)) &&
+                  (!status || lead.status===status) &&
+                  (!nicho || lead.nicho===nicho) &&
+                  (!cidade || lead.cidade===cidade);
+    card.style.display = match ? '' : 'none';
+  });
+  // Atualizar contadores nas colunas
+  document.querySelectorAll('.column').forEach(col=>{
+    const st = col.dataset.status;
+    const vis = col.querySelectorAll('.card:not([style*="display: none"])').length;
+    const tot = leads.filter(l=>l.status===st).length;
+    col.querySelector('.column-header').innerHTML = `${statusLabels[st]} <span style="font-weight:400;font-size:.7rem;opacity:.7">(${vis}/${tot})</span>`;
+  });
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&','<':'<','>':'>','"':'"',"'":'''}[c])); }
+
+// ==== START ====
+init();
+</script>
+</body>
+</html>

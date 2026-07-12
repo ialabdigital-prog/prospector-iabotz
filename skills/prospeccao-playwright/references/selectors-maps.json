@@ -1,0 +1,31 @@
+{
+  "maps": {
+    "search_url": "https://www.google.com/maps/search/{query}",
+    "result_cards": "//div[contains(@class, 'Nv2PK')]",
+    "card_name": ".//div[contains(@class, 'qBF1D')]//span",
+    "card_rating": ".//span[contains(@aria-label, 'estrelas') or contains(@aria-label, 'stars')]",
+    "card_reviews": ".//span[contains(@aria-label, 'avalia') or contains(@aria-label, 'review')]",
+    "card_website_button": ".//button[contains(@aria-label, 'Site') or contains(@aria-label, 'Website')]",
+    "card_phone_button": ".//button[contains(@aria-label, 'Telefone') or contains(@aria-label, 'Phone')]",
+    "card_address": ".//div[contains(@class, 'W4Efsd')]//span[contains(@class, 'UsdlK')]"
+  },
+  "place_detail": {
+    "name": "//h1[contains(@class, 'DUwDvf')]",
+    "rating": "//span[contains(@class, 'F7nice')]",
+    "reviews_count": "//button[contains(@class, 'HHrUdb')]",
+    "address": "//button[contains(@data-item-id, 'address')]//div[contains(@class, 'Io6YTe')]",
+    "phone": "//button[contains(@data-item-id, 'phone')]",
+    "website": "//a[contains(@data-item-id, 'authority')]",
+    "website_button": "//button[contains(@data-item-id, 'authority')]"
+  },
+  "scroll_config": {
+    "max_cards": 50,
+    "scroll_pause_ms": 1500,
+    "no_new_cards_threshold": 3
+  },
+  "wait_times": {
+    "page_load": 3000,
+    "card_click": 1500,
+    "site_load": 5000
+  }
+}

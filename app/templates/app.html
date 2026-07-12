@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prospector IA Botz</title>
+  <link rel="stylesheet" href="/static/css/panel.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <p class="brand">Prospector</p>
+        <p class="muted small">IA Botz</p>
+      </div>
+      <nav>
+        <button data-view="overview" class="nav active">Overview</button>
+        <button data-view="prospect" class="nav">Prospecções</button>
+        <button data-view="leads" class="nav">Leads</button>
+        <button data-view="jobs" class="nav">Jobs</button>
+        <button data-view="config" class="nav">Config</button>
+      </nav>
+      <a class="logout" href="/logout">Sair</a>
+    </aside>
+    <main class="content">
+      <header class="top">
+        <h1 id="view-title">Overview</h1>
+        <div id="engine-badge" class="badge">engines…</div>
+      </header>
+      <section id="view-overview" class="view"></section>
+      <section id="view-prospect" class="view hidden"></section>
+      <section id="view-leads" class="view hidden"></section>
+      <section id="view-jobs" class="view hidden"></section>
+      <section id="view-config" class="view hidden"></section>
+    </main>
+  </div>
+  <script src="/static/js/panel.js"></script>
+</body>
+</html>

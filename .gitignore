@@ -1,0 +1,32 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# Secrets & local state
+prospector-config.json
+.env
+.env.*
+!.env.example
+playwright-state.json
+prospector.db
+prospector.db-*
+*.log
+
+# Runtime / generated
+logs/
+drafts/
+sites/*/
+!sites/.gitkeep
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Temp
+/tmp/
+*.pid

@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+# Prospector IA Botz - Launcher Principal
+
+BASE_DIR="/home/clawd/workspace/prospector-iabotz"
+cd "$BASE_DIR"
+
+# Verificar venv
+if [ ! -d "venv" ]; then
+    echo "⚠️  Ambiente virtual não encontrado. Rode: ./install.sh"
+    exit 1
+fi
+
+source venv/bin/activate
+
+# Comandos
+case "${1:-menu}" in
+    menu|"")
+        python3 menu-guiado.py
+        ;;
+    setup)
+        python3 menu-guiado.py
+        ;;
+    prospectar)
+        shift
+        python3 skills/prospeccao-playwright/references/scraper-playwright.py "$@"
+        ;;
+    redesenhar)
+        shift
+        python3 skills/redesign-premium/references/redesign.py "$@"
+        ;;
+    publicar)
+        shift
+        python3 skills/deploy-aapanel/references/deploy.py "$@"
+        ;;
+    proposta)
+        shift
+        python3 skills/proposta-email/references/proposta.py "$@"
+        ;;
+    followup)
+        shift
+        python3 skills/proposta-email/references/followup.py "$@"
+        ;;
+    editor)
+        shift
+        python3 skills/redesign-premium/references/editor.py "$@"
+        ;;
+    dashboard)
+        python3 dashboard-server.py
+        ;;
+    test-aapanel)
+        python3 -c "
+import sys
+sys.path.insert(0, 'skills/deploy-aapanel/references')
+from aapanel_api import AAPanelClient
+import json
+with open('prospector-config.json') as f:
+    c = json.load(f)['aapanel']
+client = AAPanelClient(c['url'], c['api_token'])
+print('API:', 'OK' if client.test_connection() else 'FALHOU')
+sites = client.list_sites()
+print(f'Sites: {len(sites)}')
+for s in sites[:5]:
+    print(f'  - {s.get(\"domain\")} ({s.get(\"path\")})')
+"
+        ;;
+    test-playwright)
+        python3 -c "
+from playwright.async_api import async_playwright
+import asyncio
+async def test():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        await page.goto('https://example.com')
+        print('Título:', await page.title())
+        await browser.close()
+        print('✅ Playwright OK!')
+asyncio.run(test())
+"
+        ;;
+    test-sftp)
+        python3 -c "
+import paramiko, json
+with open('prospector-config.json') as f:
+    c = json.load(f)['aapanel']
+host = c['url'].replace('https://','').replace('http://','')
+user = c['usuario']
+pwd = c['senha']
+print(f'Testando SFTP: {user}@{host}')
+try:
+    transport = paramiko.Transport((host, 22))
+    transport.connect(username=user, password=pwd)
+    sftp = paramiko.SFTPClient.from_transport(transport)
+    print('✅ SFTP conectado!')
+    sftp.listdir('.')
+    sftp.close()
+    transport.close()
+except Exception as e:
+    print(f'❌ Falha: {e}')
+"
+        ;;
+    install)
+        ./install.sh
+        ;;
+    update)
+        git pull
+        ./install.sh
+        ;;
+    logs)
+        tail -f publicador-log.txt 2>/dev/null || echo "Log não encontrado"
+        ;;
+    clean)
+        rm -f playwright-state.json
+        rm -f fila-publicada-*.txt
+        echo "Cache limpo"
+        ;;
+    help|--help|-h)
+        cat << 'EOF'
+═══════════════════════════════════════════════════════════════
+   🤖 PROSPECTOR IA BOTZ - Comandos
+═══════════════════════════════════════════════════════════════
+
+MENU INTERATIVO:
+  ./prospector              # Menu guiado principal (recomendado)
+  ./prospector setup        # Configuração inicial guiada
+
+COMANDOS DIRETOS:
+  ./prospector prospectar [nicho] [cidade] [--meta N]
+                          # Prospecção Playwright (Google Maps)
+  ./prospector redesenhar [slug|todos]
+                          # Redesign de sites
+  ./prospector publicar [slug|todos]
+                          # Deploy no aapanel (SSL automático)
+  ./prospector proposta [slug|todos]
+                          # Gerar rascunhos de proposta no Gmail
+  ./prospector followup     # Follow-up leads sem resposta (3+ dias)
+  ./prospector editor       # Editor visual de páginas
+  ./prospector dashboard    # Regenerar dashboard.html
+
+TESTES E DIAGNÓSTICO:
+  ./prospector test-aapanel   # Testar conexão API aapanel
+  ./prospector test-playwright # Testar Playwright/Chromium
+  ./prospector test-sftp      # Testar SFTP/SSH servidor
+  ./prospector logs          # Ver logs do publicador
+  ./prospector clean         # Limpar cache (playwright-state, filas antigas)
+
+MANUTENÇÃO:
+  ./prospector install      # Reinstalar dependências
+  ./prospector update       # Atualizar repo + reinstalar
+
+EXEMPLOS:
+  ./prospector prospectar nutricionistas "São Paulo" --meta 10
+  ./prospector prospectar dentistas "Rio de Janeiro" --meta 5
+  ./prospector publicar nutricionista-joao-sao-paulo
+  ./prospector publicar todos
+  ./prospector proposta todos
+
+CONFIGURAÇÃO:
+  Edite: prospector-config.json
+  - assinatura: nome, apresentação, whatsapp
+  - prospeccao: nichos, cidade, leadsPorBusca, filtros
+  - playwright: headless, stealth, proxy, delays
+  - aapanel: url, api_token, usuario, senha, dominio_base, usar_subpasta
+  - deploy_target: "aapanel" (ou "hostgator" para legacy)
+
+DASHBOARD LOCAL:
+  ./iniciar-dashboard.sh      # Inicia em http://localhost:8765
+  Requer Python + Flask. Modo edição = banco SQLite.
+  Sem Python = abre dashboard.html modo leitura.
+
+ARQUIVOS IMPORTANTES:
+  prospector-config.json   # Config principal (NUNCA commite senhas!)
+  leads.md                 # Backup local dos leads
+  prospector.db            # Banco SQLite (dashboard)
+  sites/                   # Sites gerados (por slug)
+  fila-publicacao.txt      # Fila do publicador local
+  publicador-log.txt       # Log do publicador
+  playwright-state.json    # Estado persistente (cookies, login)
+
+DOCUMENTAÇÃO:
+  manual.html              # Manual do usuário completo
+  skills/*/SKILL.md        # Documentação técnica de cada skill
+EOF
+        ;;
+    *)
+        echo "❌ Comando desconhecido: $1"
+        echo "Use: ./prospector help"
+        exit 1
+        ;;
+esac

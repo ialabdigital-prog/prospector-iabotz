@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Template Capa Proposta</title>
+<style>
+:root{--primary:#2563eb;--bg:#f8fafc;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;padding:40px 20px}
+.container{max-width:900px;margin:0 auto;background:var(--card);border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.06);overflow:hidden}
+.header{background:linear-gradient(135deg,var(--primary) 0%,#1d4ed8 100%);color:#fff;padding:40px;text-align:center}
+.header h1{font-size:2rem;font-weight:700;margin-bottom:8px}
+.header p{opacity:.9;font-size:1.1rem}
+.content{padding:40px}
+.section{margin-bottom:36px}
+.section h2{font-size:1.25rem;font-weight:600;color:var(--text);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--primary);display:inline-block}
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+@media(max-width:768px){.before-after{grid-template-columns:1fr}}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-header{background:var(--text);color:#fff;padding:16px;font-weight:600;text-align:center;font-size:.9rem}
+.card-img{aspect-ratio:16/10;background:#e2e8f0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.85rem;overflow:hidden}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:16px}
+.benefit{display:flex;align-items:flex-start;gap:12px;padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--border)}
+.benefit-icon{width:40px;height:40px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;flex-shrink:0}
+.benefit-text h3{font-size:.95rem;font-weight:600;margin-bottom:4px}
+.benefit-text p{font-size:.85rem;color:var(--muted);margin:0}
+.signature{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);text-align:center}
+.signature-name{font-weight:700;font-size:1.1rem;color:var(--text)}
+.signature-role{color:var(--muted);margin:4px 0 12px}
+.signature-whatsapp{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;transition:background .2s}
+.signature-whatsapp:hover{background:#1d4ed8}
+.footer{background:var(--bg);border-top:1px solid var(--border);padding:24px 40px;text-align:center;font-size:.8rem;color:var(--muted)}
+.placeholder{background:repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9 10px,#e2e8f0 10px,#e2e8f0 20px);min-height:200px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-style:italic}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="header">
+<h1>Nova versão do site: {{NOME_CLIENTE}}</h1>
+<p>Antes & Depois — comparação lado a lado</p>
+</header>
+
+<div class="content">
+<section class="section">
+<h2>🎯 O que mudou</h2>
+<p>Redesenhamos o site mantendo a identidade da sua marca, mas aplicando padrões modernos de conversão, velocidade e experiência mobile. Principais melhorias:</p>
+<div class="benefits">
+<div class="benefit"><span class="benefit-icon">📱</span><div class="benefit-text"><h3>Mobile-first real</h3><p>Layout fluido, toque otimizado, CTA WhatsApp sempre visível</p></div></div>
+<div class="benefit"><span class="benefit-icon">⚡</span><div class="benefit-text"><h3>Carregamento instantâneo</h3><p>CSS/JS crítico inline, imagens WebP lazy-load, Core Web Vitals verdes</p></div></div>
+<div class="benefit"><span class="benefit-icon">🔍</span><div class="benefit-text"><h3>SEO técnico completo</h3><p>Schema.org LocalBusiness, meta tags, heading hierarchy, sitemap</p></div></div>
+<div class="benefit"><span class="benefit-icon">💬</span><div class="benefit-text"><h3>Conversão focada</h3><p>CTAs estratégicos, prova social, formulário simplificado, WhatsApp one-click</p></div></div>
+</div>
+</section>
+
+<section class="section">
+<h2>📸 Antes & Depois</h2>
+<div class="before-after">
+<div class="card">
+<div class="card-header">🔴 Site Atual</div>
+<div class="card-img placeholder">Print do site antigo<br>(inserir screenshot 1440×900)</div>
+</div>
+<div class="card">
+<div class="card-header">🟢 Nova Versão</div>
+<div class="card-img placeholder">Print do novo site<br>(inserir screenshot 1440×900)</div>
+</div>
+</div>
+<p style="margin-top:16px;font-size:.9rem;color:var(--muted);text-align:center">Abra no celular também: o slider funciona no mobile 📱</p>
+</section>
+
+<section class="section">
+<h2>🔗 Acesse a versão completa</h2>
+<p style="margin-bottom:16px">O site novo já está no ar e funcional:</p>
+<p style="text-align:center;margin-bottom:24px"><a href="{{URL_NOVA}}" class="signature-whatsapp" style="display:inline-flex" target="_blank">{{URL_NOVA}}</a></p>
+<p style="font-size:.9rem;color:var(--muted);text-align:center">A página de proposta (esta) está em: <a href="{{URL_PROPOSTA}}" target="_blank">{{URL_PROPOSTA}}</a></p>
+</section>
+</div>
+
+<div class="signature">
+<div class="signature-name">{{NOME_PRESTADOR}}</div>
+<div class="signature-role">{{APRESENTACAO}}</div>
+<a href="https://wa.me/{{WHATSAPP}}" class="signature-whatsapp" target="_blank">💬 Falar no WhatsApp</a>
+</div>
+
+<div class="footer">
+<p>Esta página foi gerada automaticamente pelo Prospector de Sites para demonstração da nova versão.<br>Dados reais do cliente • Sem cadastro • Sem coleta de dados</p>
+</div>
+</div>
+</body>
+</html>
