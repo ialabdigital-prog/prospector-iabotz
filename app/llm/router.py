@@ -14,19 +14,15 @@ def list_providers() -> list[dict]:
     items = []
     # OpenRouter
     or_key = (llm.get("openrouter_api_key") or "").strip()
-    models = []
-    if or_key:
-        try:
-            models = openrouter.list_models(or_key)
-        except Exception:
-            models = []
     items.append(
         {
             "id": "openrouter",
             "name": "OpenRouter",
             "available": bool(or_key),
-            "models": models[:80],
+            "models": [],  # sob demanda: /api/providers/openrouter/models
+            "models_loaded_via": "/api/providers/openrouter/models",
             "default_model": llm.get("openrouter_model") or "openai/gpt-4o-mini",
+            "detail": "API key configurada" if or_key else "Sem API key",
         }
     )
     for pid, name, checker in (

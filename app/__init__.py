@@ -28,6 +28,7 @@ def create_app() -> Flask:
     from app.api.providers import providers_bp
     from app.api.stats import stats_bp
     from app.api.ui import ui_bp
+    from app.api.emails import emails_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(leads_bp)
@@ -36,6 +37,7 @@ def create_app() -> Flask:
     app.register_blueprint(providers_bp)
     app.register_blueprint(stats_bp)
     app.register_blueprint(ui_bp)
+    app.register_blueprint(emails_bp)
 
     @app.get("/health")
     def health():
