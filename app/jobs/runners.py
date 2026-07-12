@@ -29,6 +29,20 @@ def run_job(job: dict) -> None:
         jq.update_job(job_id, status="running", progress=0.05)
         if job_type == "prospectar":
             result = _run_prospectar(payload, log)
+        elif job_type == "publicar":
+            slug = payload.get("slug") or "todos"
+            if slug != "todos":
+                site_dir = BASE_DIR / "sites" / slug
+                if not site_dir.exists():
+                    raise RuntimeError(
+                        f"Site ainda não redesenhado: falta sites/{slug}/. "
+                        f"Rode primeiro o job «redesenhar» para este lead."
+                    )
+            result = _run_script(
+                "skills/deploy-aapanel/references/deploy.py",
+                slug,
+                log,
+            )
         elif job_type == "redesenhar":
             result = _run_script(
                 "skills/redesign-premium/references/redesign.py",
@@ -36,12 +50,6 @@ def run_job(job: dict) -> None:
                 log,
                 provider=provider,
                 enrich=True,
-            )
-        elif job_type == "publicar":
-            result = _run_script(
-                "skills/deploy-aapanel/references/deploy.py",
-                payload.get("slug") or "todos",
-                log,
             )
         elif job_type == "proposta":
             result = _run_proposta(payload, log, provider)

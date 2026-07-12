@@ -78,41 +78,49 @@ class CloudflareClient:
         ]
 
     def get_record(self, name: str, record_type: str = "CNAME") -> Optional[Dict]:
-        """Busca registro por nome"""
+        """Busca registro por nome (aceita relativo ou FQDN)."""
         zone_id = self._get_zone_id()
-        records = self.client.dns.records.list(zone_id=zone_id, type=record_type, name=name)
+        # Normaliza para FQDN
+        fqdn = name if name.endswith(self.zone_name) else f"{name}.{self.zone_name}"
+        records = self.client.dns.records.list(zone_id=zone_id, type=record_type, name=fqdn)
         for r in records:
-            if r.name == name:
+            if r.name in (name, fqdn, f"{name}.{self.zone_name}"):
                 return {
-                    'id': r.id,
-                    'name': r.name,
-                    'type': r.type,
-                    'content': r.content,
-                    'proxied': r.proxied,
-                    'ttl': r.ttl
+                    "id": r.id,
+                    "name": r.name,
+                    "type": r.type,
+                    "content": r.content,
+                    "proxied": r.proxied,
+                    "ttl": r.ttl,
+                }
+        # Fallback: listar e filtrar (algumas contas ignoram name=)
+        for r in self.client.dns.records.list(zone_id=zone_id, type=record_type):
+            if r.name in (fqdn, name):
+                return {
+                    "id": r.id,
+                    "name": r.name,
+                    "type": r.type,
+                    "content": r.content,
+                    "proxied": r.proxied,
+                    "ttl": r.ttl,
                 }
         return None
 
     def create_cname(self, subdomain: str, target: str = "panel.iabotz.online", proxied: bool = True, ttl: int = 1) -> Dict:
-        """Cria registro CNAME para subdomínio"""
+        """Cria ou atualiza CNAME. subdomain = relativo à zona (ex.: 'cliente' ou 'cliente.panel')."""
         zone_id = self._get_zone_id()
-        
-        # Nome completo do subdomínio
         name = subdomain
-        
-        # Verifica se já existe
         existing = self.get_record(subdomain)
         if existing:
-            return self.update_cname(existing['id'], subdomain, target, proxied)
+            return self.update_cname(existing["id"], existing["name"], target, proxied)
 
-        # Cria novo
         record = self.client.dns.records.create(
             zone_id=zone_id,
             type="CNAME",
             name=name,
             content=target,
             proxied=proxied,
-            ttl=ttl  # 1 = auto
+            ttl=ttl,
         )
         return {"success": True, "id": record.id, "record": record}
 

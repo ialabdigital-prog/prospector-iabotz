@@ -4,27 +4,34 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Prospector IA Botz</title>
-  <link rel="stylesheet" href="/static/css/panel.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/panel.css?v=4" />
 </head>
 <body>
   <div class="shell">
     <aside class="sidebar">
       <div class="brand-block">
         <p class="brand">Prospector</p>
-        <p class="muted small">IA Botz</p>
+        <p class="muted small">Funil IA Botz</p>
       </div>
       <nav>
-        <button data-view="overview" class="nav active">Overview</button>
-        <button data-view="prospect" class="nav">Prospecções</button>
-        <button data-view="leads" class="nav">Leads</button>
+        <button data-view="overview" class="nav active">Funil</button>
+        <button data-view="prospect" class="nav">1 · Prospectar</button>
+        <button data-view="leads" class="nav">2–5 · Leads</button>
         <button data-view="jobs" class="nav">Jobs</button>
-        <button data-view="config" class="nav">Config</button>
+        <button data-view="config" class="nav">Configurações</button>
       </nav>
+      <p class="sidebar-hint muted small">Maps → Redesign → aaPanel → Cloudflare → Gmail</p>
       <a class="logout" href="/logout">Sair</a>
     </aside>
     <main class="content">
       <header class="top">
-        <h1 id="view-title">Overview</h1>
+        <div>
+          <h1 id="view-title">Funil</h1>
+          <p class="muted small" id="view-sub">Visão do pipeline comercial</p>
+        </div>
         <div id="engine-badge" class="badge">engines…</div>
       </header>
       <section id="view-overview" class="view"></section>
@@ -34,6 +41,23 @@
       <section id="view-config" class="view hidden"></section>
     </main>
   </div>
-  <script src="/static/js/panel.js"></script>
+
+  <div id="drawer" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-backdrop" data-close-drawer></div>
+    <aside class="drawer-panel">
+      <header class="drawer-head">
+        <div>
+          <p class="muted small" id="drawer-status">—</p>
+          <h2 id="drawer-title">Lead</h2>
+        </div>
+        <button type="button" class="btn ghost" data-close-drawer>Fechar</button>
+      </header>
+      <div id="drawer-body" class="drawer-body"></div>
+      <footer id="drawer-actions" class="drawer-actions"></footer>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/static/js/panel.js?v=4"></script>
 </body>
 </html>

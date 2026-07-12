@@ -20,6 +20,7 @@ SECRET_KEYS = {
     ("maps", "apify_api_key"),
     ("llm", "openrouter_api_key"),
     ("auth", "secret_key"),
+    ("composio", "api_key"),
 }
 
 

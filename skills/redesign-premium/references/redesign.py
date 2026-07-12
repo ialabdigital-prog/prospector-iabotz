@@ -43,34 +43,101 @@ class Lead:
 
 
 def load_lead(slug: str) -> Optional[Lead]:
-    """Carrega lead do leads.md"""
+    """Carrega lead do SQLite (fonte da verdade) com fallback leads.md."""
+    db_file = BASE_DIR / "prospector.db"
+    if db_file.exists():
+        import sqlite3
+        conn = sqlite3.connect(db_file)
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT * FROM leads WHERE slug=?", (slug,)).fetchone()
+        conn.close()
+        if row:
+            return Lead(
+                slug=row["slug"],
+                nome=row["nome"] or slug,
+                nicho=row["nicho"] or "",
+                cidade=row["cidade"] or "",
+                nota=str(row["nota"] or ""),
+                avaliacoes=str(row["avaliacoes"] or ""),
+                email=row["email"] or "",
+                telefone=row["telefone"] or "",
+                whatsapp=row["whatsapp"] or "",
+                site_atual=row["siteAntigo"] or "",
+                motivo=row["motivo"] or "",
+                status=row["status"] or "",
+                url_nova=row["urlNova"] or "",
+            )
+
     leads_file = BASE_DIR / "leads.md"
     if not leads_file.exists():
         return None
-    
-    content = leads_file.read_text(encoding='utf-8')
-    for line in content.split('\n'):
-        if '|' in line and not line.startswith('| #') and not line.startswith('|---'):
-            parts = [p.strip() for p in line.split('|')]
-            if len(parts) >= 12:
-                lead_slug = parts[2].lower().replace(' ', '-')
-                if lead_slug == slug:
-                    return Lead(
-                        slug=slug,
-                        nome=parts[2],
-                        nota=parts[3],
-                        avaliacoes=parts[4],
-                        email=parts[5],
-                        telefone=parts[6],
-                        whatsapp=parts[7],
-                        site_atual=parts[8],
-                        motivo=parts[9],
-                        status=parts[10],
-                        url_nova=parts[11] if len(parts) > 11 else '',
-                        cidade="",
-                        nicho=""
-                    )
+
+    content = leads_file.read_text(encoding="utf-8")
+    for line in content.split("\n"):
+        if "|" not in line or line.startswith("| #") or line.startswith("|---"):
+            continue
+        parts = [p.strip() for p in line.strip().strip("|").split("|")]
+        # # | Nome | Nota | Aval | Email | Tel | WA | Site | Motivo | Status | URL
+        if len(parts) < 10:
+            continue
+        nome = parts[1] if parts[0].replace(".", "").isdigit() else parts[0]
+        lead_slug = "".join(
+            c for c in __import__("unicodedata").normalize("NFKD", nome.lower())
+            if not __import__("unicodedata").combining(c)
+        )
+        import re
+        lead_slug = re.sub(r"[^a-z0-9]+", "-", lead_slug).strip("-")
+        if lead_slug == slug or nome.lower().replace(" ", "-") == slug:
+            idx = 1 if parts[0].replace(".", "").isdigit() else 0
+            return Lead(
+                slug=slug,
+                nome=parts[idx],
+                nota=parts[idx + 1] if len(parts) > idx + 1 else "",
+                avaliacoes=parts[idx + 2] if len(parts) > idx + 2 else "",
+                email=parts[idx + 3] if len(parts) > idx + 3 else "",
+                telefone=parts[idx + 4] if len(parts) > idx + 4 else "",
+                whatsapp=parts[idx + 5] if len(parts) > idx + 5 else "",
+                site_atual=parts[idx + 6] if len(parts) > idx + 6 else "",
+                motivo=parts[idx + 7] if len(parts) > idx + 7 else "",
+                status=parts[idx + 8] if len(parts) > idx + 8 else "",
+                url_nova=parts[idx + 9] if len(parts) > idx + 9 else "",
+                cidade="",
+                nicho="",
+            )
     return None
+
+
+def mark_redesigned(slug: str) -> None:
+    db_file = BASE_DIR / "prospector.db"
+    if not db_file.exists():
+        return
+    import sqlite3
+    conn = sqlite3.connect(db_file)
+    conn.execute(
+        """UPDATE leads SET status='redesenhado', atualizado=datetime('now','localtime')
+           WHERE slug=? AND status IN ('novo','descartado','redesenhado')""",
+        (slug,),
+    )
+    conn.commit()
+    conn.close()
+
+
+def list_slugs_for_redesign(target: str) -> List[str]:
+    db_file = BASE_DIR / "prospector.db"
+    if db_file.exists():
+        import sqlite3
+        conn = sqlite3.connect(db_file)
+        if target == "todos":
+            rows = conn.execute(
+                "SELECT slug FROM leads WHERE status='novo' ORDER BY atualizado DESC"
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT slug FROM leads WHERE slug=?", (target,)
+            ).fetchall()
+        conn.close()
+        return [r[0] for r in rows]
+    return [target] if target != "todos" else []
 
 
 def extract_content_from_site(url: str) -> Dict:
@@ -294,7 +361,7 @@ def generate_contato(lead: Lead, conteudo: Dict) -> str:
             </div>
         </div>
         <form class="contato-form" action="https://formspree.io/f/SEU_ID" method="POST">
-            <input type="hidden" name="_next" value="https://{lead.slug}.panel.iabotz.online/obrigado.html">
+            <input type="hidden" name="_next" value="{_public_url(lead.slug)}obrigado.html">
             <div class="form-row">
                 <input type="text" name="nome" placeholder="Seu nome" required>
                 <input type="tel" name="telefone" placeholder="WhatsApp/Telefone" required>
@@ -558,8 +625,8 @@ async def redesign_lead(lead: Lead, conteudo_extra: Dict = None) -> Dict:
     return {
         'slug': lead.slug,
         'site_dir': str(site_dir),
-        'url': f"https://{lead.slug}.panel.iabotz.online/",
-        'proposta_url': f"https://{lead.slug}.panel.iabotz.online/proposta.html"
+        'url': _public_url(lead.slug),
+        'proposta_url': _public_url(lead.slug) + 'proposta.html'
     }
 
 
@@ -809,45 +876,29 @@ async def main():
     if len(sys.argv) < 2:
         print("Uso: python3 redesign.py <slug|todos>")
         sys.exit(1)
-    
+
     target = sys.argv[1]
-    
-    # Carrega leads
-    leads_file = BASE_DIR / "leads.md"
-    if not leads_file.exists():
-        print("❌ leads.md não encontrado")
-        return
-    
-    content = leads_file.read_text(encoding='utf-8')
-    slugs = []
-    
-    for line in content.split('\n'):
-        if '|' in line and not line.startswith('| #') and not line.startswith('|---'):
-            parts = [p.strip() for p in line.split('|')]
-            if len(parts) >= 12 and parts[10] == 'novo':
-                slug = parts[2].lower().replace(' ', '-')
-                slugs.append(slug)
-    
-    if target != "todos":
-        slugs = [target] if target in slugs else []
-    
+    slugs = list_slugs_for_redesign(target)
+
     if not slugs:
-        print("⚠️  Nenhum lead com status 'novo' encontrado")
-        return
-    
+        print("⚠️  Nenhum lead elegível para redesign (status 'novo' ou slug inexistente)")
+        sys.exit(1)
+
     print(f"\n🎨 Iniciando redesign de {len(slugs)} site(s)...\n")
-    
+
     for slug in slugs:
-        # Carrega lead completo
         lead = load_lead(slug)
         if not lead:
             print(f"❌ Lead não encontrado: {slug}")
             continue
-        
-        await redesign_lead(lead)
-    
-    print("\n🎉 Redesign concluído!")
-    print("💡 Próximo: ./prospector publicar")
 
-if __name__ == '__main__':
+        await redesign_lead(lead)
+        mark_redesigned(slug)
+        print(f"✅ Status → redesenhado: {slug}")
+
+    print("\n🎉 Redesign concluído!")
+    print("💡 Próximo: publicar no painel ou ./prospector publicar")
+
+
+if __name__ == "__main__":
     asyncio.run(main())

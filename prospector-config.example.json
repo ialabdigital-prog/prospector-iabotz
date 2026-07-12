@@ -15,13 +15,20 @@
   "envio": {
     "modo": "rascunho"
   },
+  "composio": {
+    "api_key": "",
+    "entity_id": ""
+  },
   "aapanel": {
     "url": "https://panel.example.com",
     "api_token": "",
     "usuario": "",
     "senha": "",
-    "dominio_base": "panel.example.com",
+    "dominio_base": "example.com",
+    "dns_target": "panel.example.com",
+    "ssl_cert_dir": "/www/server/panel/vhost/cert/example.com",
     "pasta_base": "clientes",
+    "usar_subdominio": true,
     "usar_subpasta": false,
     "ssl_auto": true,
     "php_version": "82"

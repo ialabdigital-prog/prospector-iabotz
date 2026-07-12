@@ -31,32 +31,82 @@ class Lead:
     motivo: str
     url_nova: str = ""
 
+
 def load_leads() -> List[Dict]:
-    """Carrega leads do leads.md"""
+    """Carrega leads do SQLite (fonte da verdade) com fallback leads.md."""
+    db_file = BASE_DIR / "prospector.db"
+    if db_file.exists():
+        import sqlite3
+        conn = sqlite3.connect(db_file)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT * FROM leads ORDER BY atualizado DESC").fetchall()
+        conn.close()
+        return [
+            {
+                "slug": r["slug"],
+                "nome": r["nome"] or "",
+                "nicho": r["nicho"] or "",
+                "cidade": r["cidade"] or "",
+                "nota": r["nota"],
+                "avaliacoes": r["avaliacoes"],
+                "email": r["email"] or "",
+                "telefone": r["telefone"] or "",
+                "whatsapp": r["whatsapp"] or "",
+                "site_atual": r["siteAntigo"] or "",
+                "motivo": r["motivo"] or "",
+                "status": r["status"] or "",
+                "url_nova": r["urlNova"] or "",
+            }
+            for r in rows
+        ]
+
     leads_file = BASE_DIR / "leads.md"
     if not leads_file.exists():
         return []
-    
     leads = []
-    content = leads_file.read_text(encoding='utf-8')
-    for line in content.split('\n'):
-        if '|' in line and not line.startswith('| #') and not line.startswith('|---'):
-            parts = [p.strip() for p in line.split('|')]
-            if len(parts) >= 12:
+    content = leads_file.read_text(encoding="utf-8")
+    for line in content.split("\n"):
+        if "|" in line and not line.startswith("| #") and not line.startswith("|---"):
+            parts = [p.strip() for p in line.strip().strip("|").split("|")]
+            if len(parts) >= 10:
                 leads.append({
-                    'slug': parts[2].lower().replace(' ', '-'),
-                    'nome': parts[2],
-                    'nota': parts[3],
-                    'avaliacoes': parts[4],
-                    'email': parts[5],
-                    'telefone': parts[6],
-                    'whatsapp': parts[7],
-                    'site_atual': parts[8],
-                    'motivo': parts[9],
-                    'status': parts[10],
-                    'url_nova': parts[11] if len(parts) > 11 else ''
+                    "slug": parts[1].lower().replace(" ", "-") if parts[0].isdigit() else parts[0],
+                    "nome": parts[1] if parts[0].isdigit() else parts[0],
+                    "email": parts[4] if len(parts) > 4 else "",
+                    "status": parts[9] if len(parts) > 9 else "",
+                    "url_nova": parts[10] if len(parts) > 10 else "",
+                    "site_atual": parts[7] if len(parts) > 7 else "",
+                    "motivo": parts[8] if len(parts) > 8 else "",
+                    "whatsapp": parts[6] if len(parts) > 6 else "",
+                    "nicho": "",
+                    "cidade": "",
                 })
     return leads
+
+
+def mark_proposta(slug: str) -> None:
+    db_file = BASE_DIR / "prospector.db"
+    if not db_file.exists():
+        return
+    import sqlite3
+    conn = sqlite3.connect(db_file)
+    conn.execute(
+        """UPDATE leads SET status='proposta', dataProposta=date('now','localtime'),
+           atualizado=datetime('now','localtime') WHERE slug=?""",
+        (slug,),
+    )
+    conn.commit()
+    conn.close()
+
+
+def public_url(slug: str, config: Dict | None = None) -> str:
+    cfg = config or {}
+    if not cfg:
+        cf = BASE_DIR / "prospector-config.json"
+        if cf.exists():
+            cfg = json.loads(cf.read_text(encoding="utf-8"))
+    base = (cfg.get("aapanel") or {}).get("dominio_base") or "iabotz.online"
+    return f"https://{slug}.{base}/"
 
 
 def load_template() -> str:
@@ -155,7 +205,7 @@ def generate_email_body(lead: Dict, config: Dict) -> str:
     return html
 
 
-def validate_email(subject: str, body: str) -> List[str]:
+def validate_email(subject: str, body: str, lead: Optional[Dict] = None) -> List[str]:
     """Valida checklist anti-spam"""
     errors = []
     
@@ -197,7 +247,7 @@ def validate_email(subject: str, body: str) -> List[str]:
         errors.append(f"Assunto muito longo ({len(subject)} chars, máx 60)")
     
     # Primeira linha personalizada
-    primeiro_nome = lead['nome'].split()[0] if lead['nome'] else ''
+    primeiro_nome = (lead or {}).get("nome", "").split()[0] if (lead or {}).get("nome") else ""
     if primeiro_nome and primeiro_nome.lower() not in body.lower():
         errors.append("Primeira linha não personalizada com nome do lead")
     
@@ -205,48 +255,64 @@ def validate_email(subject: str, body: str) -> List[str]:
 
 
 async def create_gmail_draft(lead: Dict, config: Dict) -> Dict:
-    """Cria rascunho no Gmail via Composio MCP"""
-    # Este é um placeholder - a implementação real usa o MCP do Composio
-    # que já está configurado com a conta Gmail
-    
+    """Cria rascunho: Composio Gmail se configurado, senão arquivo local em drafts/."""
     subject = generate_subject(lead)
     body = generate_email_body(lead, config)
-    errors = validate_email(subject, body)
-    
+    errors = validate_email(subject, body, lead=lead)
     if errors:
-        return {'success': False, 'errors': errors, 'subject': subject, 'body': body}
-    
-    # Aqui entraria a chamada real ao MCP do Composio:
-    # from composio import Composio
-    # composio = Composio(api_key=os.getenv('COMPOSIO_API_KEY'))
-    # draft = composio.gmail.create_draft(
-    #     to=lead['email'],
-    #     subject=subject,
-    #     body=body,
-    #     html=True
-    # )
-    
-    # Por enquanto, salva localmente para revisão
+        return {"success": False, "errors": errors, "subject": subject, "body": body}
+
+    envio = config.get("envio") or {}
+    composio_cfg = config.get("composio") or {}
+    api_key = (composio_cfg.get("api_key") or os.getenv("COMPOSIO_API_KEY") or "").strip()
+    entity_id = (composio_cfg.get("entity_id") or os.getenv("COMPOSIO_ENTITY_ID") or "").strip()
+
+    # Tenta Composio se houver chave
+    if api_key:
+        try:
+            # SDK opcional — se não instalado, cai no draft local
+            from composio import ComposioToolSet  # type: ignore
+            toolset = ComposioToolSet(api_key=api_key, entity_id=entity_id or None)
+            # Action name varies by Composio version; keep best-effort
+            result = toolset.execute_action(
+                action="GMAIL_CREATE_EMAIL_DRAFT",
+                params={
+                    "recipient_email": lead["email"],
+                    "subject": subject,
+                    "body": body,
+                    "is_html": True,
+                },
+            )
+            return {
+                "success": True,
+                "lead": lead["nome"],
+                "subject": subject,
+                "channel": "composio_gmail",
+                "result": str(result)[:500],
+                "message": "Rascunho criado no Gmail via Composio. Revise e envie.",
+            }
+        except Exception as e:
+            print(f"⚠️  Composio Gmail falhou ({e}) — salvando draft local")
+
     draft_dir = BASE_DIR / "drafts"
     draft_dir.mkdir(exist_ok=True)
     draft_file = draft_dir / f"draft_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{lead['slug']}.html"
-    
-    draft_content = f"""Subject: {subject}
-To: {lead['email']}
-From: {config.get('assinatura', {}).get('email', 'seu@email.com')}
-
-{'' if isinstance(body, str) else body}
-"""
-    
-    # O body já é HTML, salva como .html para abrir no browser
-    draft_file.write_text(body, encoding='utf-8')
-    
+    html = f"""<!DOCTYPE html><html><head><meta charset=utf-8><title>{subject}</title></head>
+<body>
+<p><strong>Para:</strong> {lead['email']}<br>
+<strong>Assunto:</strong> {subject}<br>
+<strong>Modo:</strong> {envio.get('modo', 'rascunho')} (Composio não conectado — draft local)</p>
+<hr>
+{body}
+</body></html>"""
+    draft_file.write_text(html, encoding="utf-8")
     return {
-        'success': True,
-        'lead': lead['nome'],
-        'subject': subject,
-        'draft_file': str(draft_file),
-        'message': 'Rascunho salvo localmente. Abra no browser, revise e envie via Gmail.'
+        "success": True,
+        "lead": lead["nome"],
+        "subject": subject,
+        "draft_file": str(draft_file),
+        "channel": "local_draft",
+        "message": "Composio/Gmail não configurado. Draft salvo em drafts/ para copiar ao Gmail.",
     }
 
 
@@ -291,7 +357,7 @@ async def main():
     
     for lead in targets:
         # Renderiza capa
-        lead['url_nova'] = lead['url_nova'] or f"https://{lead['slug']}.panel.iabotz.online/"
+        lead['url_nova'] = lead.get('url_nova') or public_url(lead['slug'], config)
         capa_html = render_capa_template(template, lead, config)
         
         # Salva capa
@@ -299,21 +365,27 @@ async def main():
         capa_dir.mkdir(parents=True, exist_ok=True)
         (capa_dir / "proposta.html").write_text(capa_html, encoding='utf-8')
         
-        # Gera e-mail
-        lead['url_nova'] = f"https://{lead['slug']}.panel.iabotz.online/"
+        # Gera e-mail (mantém urlNova do SQLite se já publicada)
+        if not lead.get('url_nova'):
+            lead['url_nova'] = public_url(lead['slug'], config)
         result = await create_gmail_draft(lead, config)
         
         if result['success']:
             print(f"✅ {lead['nome']}: rascunho criado")
             print(f"   Assunto: {result['subject']}")
-            print(f"   Arquivo: {result['draft_file']}")
+            print(f"   Canal: {result.get('channel', 'local_draft')}")
+            if result.get('draft_file'):
+                print(f"   Arquivo: {result['draft_file']}")
+            print(f"   {result.get('message', '')}")
+            mark_proposta(lead['slug'])
         else:
             print(f"❌ {lead['nome']}: erros de validação")
-            for err in result['errors']:
+            for err in result.get('errors') or []:
                 print(f"   - {err}")
     
     print(f"\n📧 {len(targets)} proposta(s) processada(s)")
-    print("💡 Revise os rascunhos em ./drafts/ e envie via Gmail")
+    print("💡 Com Composio: abra o rascunho no Gmail e envie.")
+    print("💡 Sem Composio: revise ./drafts/ e copie para o Gmail.")
     print("💡 Próximo: ./prospector followup (após 3+ dias sem resposta)")
 
 

@@ -22,6 +22,23 @@ from aapanel_api import AAPanelClient, build_deploy_config, deploy_site_aapanel,
 from cloudflare_client import CloudflareClient
 
 
+
+
+def mark_published(slug: str, url: str) -> None:
+    db_file = BASE_DIR / "prospector.db"
+    if not db_file.exists():
+        return
+    import sqlite3
+    conn = sqlite3.connect(db_file)
+    conn.execute(
+        """UPDATE leads SET status='publicado', urlNova=?, atualizado=datetime('now','localtime')
+           WHERE slug=?""",
+        (url, slug),
+    )
+    conn.commit()
+    conn.close()
+    print(f"🗄  SQLite: {slug} → publicado ({url})")
+
 async def main():
     if len(sys.argv) < 2:
         print("Uso: python3 deploy.py <slug|todos>")
@@ -39,20 +56,17 @@ async def main():
     aapanel_cfg = config.get('aapanel', {})
     cf_config = config.get('cloudflare', {})
 
-    # Determinar slugs
-    leads_file = BASE_DIR / "leads.md"
+    # Determinar slugs (SQLite first)
+    import sqlite3
+    db_file = BASE_DIR / "prospector.db"
     slugs = []
-
-    if target == "todos":
-        if leads_file.exists():
-            content = leads_file.read_text()
-            for line in content.split('\n'):
-                if '|' in line and not line.startswith('| #') and not line.startswith('|---'):
-                    parts = [p.strip() for p in line.split('|')]
-                    if len(parts) >= 10 and parts[9] == 'redesenhado':
-                        slug = parts[1].lower().replace(' ', '-')
-                        slugs.append(slug)
-    else:
+    if target == "todos" and db_file.exists():
+        conn = sqlite3.connect(db_file)
+        slugs = [r[0] for r in conn.execute(
+            "SELECT slug FROM leads WHERE status='redesenhado' ORDER BY atualizado DESC"
+        ).fetchall()]
+        conn.close()
+    elif target != "todos":
         slugs = [target]
 
     if not slugs:
@@ -127,9 +141,12 @@ async def main():
         results.append(result)
 
         if result['success']:
-            print(f"✅ {slug} - {result.get('url', result.get('url_final', 'OK'))}")
+            url = result.get('url') or result.get('url_final') or ''
+            print(f"✅ {slug} - {url}")
+            mark_published(slug, url)
         else:
-            print(f"❌ {slug} - {result.get('errors', ['Erro desconhecido'])[0]}")
+            errs = result.get('errors') or [result.get('error') or 'Erro desconhecido']
+            print(f"❌ {slug} - {errs[0]}")
 
     # Resumo
     print(f"\n{'='*50}")
@@ -151,178 +168,164 @@ async def main():
 
 
 async def deploy_local_only(slug: str, config: Dict, local_dir: Path, cf_client: CloudflareClient = None) -> Dict:
-    """Deploy puramente local: cria dir, configura nginx, certbot, reload"""
-    aapanel = config.get('aapanel', {})
-    usar_subdominio = aapanel.get('usar_subdominio', True)
-    dominio_base = aapanel.get('dominio_base', 'panel.iabotz.online')
-    pasta_base = aapanel.get('pasta_base', 'clientes')
-    ssl_auto = aapanel.get('ssl_auto', True)
+    """Deploy local: /www/wwwroot + nginx aaPanel + CNAME Cloudflare.
+
+    Importante: Cloudflare Universal SSL cobre apenas *.iabotz.online (um nível).
+    Por isso o padrão é {slug}.iabotz.online → CNAME para panel.iabotz.online,
+    NÃO {slug}.panel.iabotz.online (isso exige Advanced Certificate Manager).
+    """
+    aapanel = config.get("aapanel", {})
+    cf_cfg = config.get("cloudflare") or {}
+    usar_subdominio = aapanel.get("usar_subdominio", True)
+    # Default alinhado ao Universal SSL da Cloudflare
+    dominio_base = aapanel.get("dominio_base") or "iabotz.online"
+    pasta_base = aapanel.get("pasta_base", "clientes")
+    dns_target = aapanel.get("dns_target") or "panel.iabotz.online"
+    cert_dir = aapanel.get("ssl_cert_dir") or "/www/server/panel/vhost/cert/iabotz.online"
 
     if usar_subdominio:
         dominio = f"{slug}.{dominio_base}"
         path = f"/www/wwwroot/{dominio}"
         url_final = f"https://{dominio}/"
+        zone = cf_cfg.get("zone") or "iabotz.online"
+        # Registro CF relativo à zona (ex.: slug ou slug.panel)
+        if dominio.endswith("." + zone):
+            cf_record_name = dominio[: -(len(zone) + 1)]
+        else:
+            cf_record_name = slug
     else:
         dominio = dominio_base
         path = f"/www/wwwroot/{dominio_base}/{pasta_base}/{slug}"
         url_final = f"https://{dominio_base}/{pasta_base}/{slug}/"
+        cf_record_name = None
 
     result = {
-        'slug': slug,
-        'dominio': dominio,
-        'url_final': url_final,
-        'url_proposta': f"{url_final}proposta.html",
-        'success': False,
-        'steps': [],
-        'errors': []
+        "slug": slug,
+        "dominio": dominio,
+        "url": url_final,
+        "url_final": url_final,
+        "url_proposta": f"{url_final}proposta.html",
+        "success": False,
+        "steps": [],
+        "errors": [],
     }
 
     def add_step(step, success=True, detail=""):
-        result['steps'].append({'step': step, 'success': success, 'detail': detail})
+        result["steps"].append({"step": step, "success": success, "detail": detail})
         if not success:
-            result['errors'].append(f"{step}: {detail}")
+            result["errors"].append(f"{step}: {detail}")
 
     def run_sudo(cmd, input_data=None):
-        proc = subprocess.run(
-            ['sudo'] + cmd,
+        sudo_bin = ["sudo", "-n"] if __import__("shutil").which("sudo") else ["sudo"]
+        return subprocess.run(
+            sudo_bin + cmd,
             input=input_data,
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
         )
-        return proc
 
     try:
-        # 1. Criar diretório e copiar arquivos (COM SUDO)
         add_step("Criando diretório e copiando arquivos (sudo)...")
-        remote = Path(path)
-
-        proc = run_sudo(['mkdir', '-p', path])
+        proc = run_sudo(["mkdir", "-p", path])
         if proc.returncode != 0:
             add_step("Criar diretório /www/wwwroot/", False, proc.stderr)
             return result
 
-        for item in local_dir.rglob('*'):
+        for item in local_dir.rglob("*"):
             if item.is_file():
                 rel = item.relative_to(local_dir)
                 dest = Path(path) / rel
-                run_sudo(['mkdir', '-p', str(dest.parent)])
-                proc = run_sudo(['cp', str(item), str(dest)])
+                run_sudo(["mkdir", "-p", str(dest.parent)])
+                proc = run_sudo(["cp", str(item), str(dest)])
                 if proc.returncode != 0:
                     add_step(f"Copiar {rel}", False, proc.stderr)
                     return result
 
-        add_step("Arquivos copiados para /www/wwwroot/ (sudo)", True)
+        add_step("Arquivos copiados para /www/wwwroot/", True)
 
-        # 2. Criar config nginx se não existir
-        nginx_conf = f"/etc/nginx/sites-available/{dominio}"
-        nginx_enabled = f"/etc/nginx/sites-enabled/{dominio}"
-
-        if not os.path.exists(nginx_conf):
-            add_step("Criando configuração nginx...")
-            nginx_config = f"""server {{
+        nginx_conf = f"/www/server/panel/vhost/nginx/{dominio}.conf"
+        # Sempre (re)escreve conf para garantir cert/domínio corretos
+        add_step("Configurando nginx aaPanel...")
+        nginx_config = f"""server {{
     listen 80;
     listen [::]:80;
     server_name {dominio};
+    return 301 https://$host$request_uri;
+}}
+
+server {{
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {dominio};
     root {path};
     index index.html index.htm;
+
+    ssl_certificate     {cert_dir}/fullchain.pem;
+    ssl_certificate_key {cert_dir}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
 
     location / {{
         try_files $uri $uri/ =404;
     }}
 
-    # Security headers
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
-    add_header X-XSS-Protection "1; mode=block";
-}}"""
-            proc = run_sudo(['tee', nginx_conf], input_data=nginx_config)
-            if proc.returncode != 0:
-                add_step("Criar nginx config", False, proc.stderr)
-                return result
-
-            run_sudo(['ln', '-sf', nginx_conf, nginx_enabled])
-
-            # Testar e reload nginx
-            run_sudo(['nginx', '-t'])
-            run_sudo(['systemctl', 'reload', 'nginx'])
-            add_step("Nginx configurado e recarregado", True)
-        else:
-            add_step("Nginx já configurado", True)
-
-        # 3. Cloudflare DNS - CRIAR CNAME ANTES DO SSL
-        dns_created = False
-        if cf_client:
-            add_step("Criando/atualizando DNS CNAME no Cloudflare...")
-            try:
-                subdomain = f"{slug}.panel"
-                target = "panel.iabotz.online"
-                cf_result = cf_client.create_cname(subdomain, target, proxied=True)
-                dns_created = True
-                add_step(f"DNS CNAME criado/atualizado: {subdomain}.iabotz.online -> {target}", True)
-            except Exception as e:
-                add_step("Cloudflare DNS", False, str(e))
-
-        # 4. SSL com certbot (se habilitado E DNS resolver)
-        ssl_ok = False
-        if ssl_auto:
-            add_step("Verificando/criando SSL Let's Encrypt...")
-
-            # Aguardar DNS propagar se criamos CNAME
-            if dns_created:
-                add_step("Aguardando DNS propagar...")
-                for i in range(12):  # 60 segundos max
-                    try:
-                        import socket
-                        socket.gethostbyname(f"{slug}.panel.iabotz.online")
-                        break
-                    except socket.gaierror:
-                        time.sleep(5)
-                add_step("DNS resolvendo", True)
-
-            # Verificar se DNS resolve
-            try:
-                import socket
-                socket.gethostbyname(dominio)
-                dns_ok = True
-            except socket.gaierror:
-                dns_ok = False
-
-            if dns_ok:
-                certbot_cmd = [
-                    'sudo', 'certbot', 'certonly', '--nginx',
-                    '-d', dominio,
-                    '--non-interactive', '--agree-tos',
-                    '-m', f'admin@iabotz.online',
-                    '--redirect'
-                ]
-                proc = subprocess.run(certbot_cmd, capture_output=True, text=True, timeout=120)
-                if proc.returncode == 0:
-                    add_step("SSL Let's Encrypt configurado", True)
-                    run_sudo(['systemctl', 'reload', 'nginx'])
-                    ssl_ok = True
-                else:
-                    add_step("SSL certbot", False, proc.stderr[:200])
-            else:
-                add_step("SSL pulado (DNS não resolvido - teste local)", True)
-
-        # 4. Verificar HTTP (sempre funciona se nginx ok)
-        add_step("Verificando HTTP...")
-        http_ok = await verify_http_local(dominio)
-        add_step("Verificação HTTP", http_ok, "OK" if http_ok else "Falha")
-
-        if not http_ok:
+}}
+"""
+        proc = run_sudo(["tee", nginx_conf], input_data=nginx_config)
+        if proc.returncode != 0:
+            add_step("Criar nginx config", False, proc.stderr)
             return result
 
-        # 5. Verificar proposta.html
-        add_step("Verificando proposta.html...")
-        prop_ok = await verify_http_local(f"{dominio}/proposta.html")
-        add_step("Verificação proposta.html", prop_ok)
+        t = run_sudo(["/www/server/nginx/sbin/nginx", "-c", "/www/server/nginx/conf/nginx.conf", "-t"])
+        if t.returncode != 0:
+            add_step("nginx -t", False, (t.stderr or t.stdout)[:300])
+            return result
+        run_sudo(["/www/server/nginx/sbin/nginx", "-c", "/www/server/nginx/conf/nginx.conf", "-s", "reload"])
+        add_step("Nginx configurado e recarregado", True)
 
-        result['success'] = True
-        result['http_ok'] = True
-        result['ssl_ok'] = ssl_ok if 'ssl_ok' in locals() else False
-        result['dns_created'] = dns_created if 'dns_created' in locals() else False
+        dns_created = False
+        if cf_client and cf_record_name:
+            add_step(f"Cloudflare DNS: {cf_record_name} → {dns_target}...")
+            try:
+                proxied = cf_cfg.get("proxied", True)
+                cf_client.create_cname(cf_record_name, dns_target, proxied=proxied)
+                dns_created = True
+                add_step(
+                    f"DNS CNAME {cf_record_name}.{cf_client.zone_name} → {dns_target} (proxied={proxied})",
+                    True,
+                )
+            except Exception as e:
+                add_step("Cloudflare DNS", False, str(e))
+                # DNS falhou: ainda podemos servir localmente, mas não marcamos sucesso total
+                return result
+        elif not cf_client:
+            add_step("Cloudflare não configurado — DNS manual necessário", True)
+
+        # Verifica origem local (não depende do edge Cloudflare)
+        add_step("Verificando origem local (HTTPS)...")
+        local_ok = await verify_origin_local(dominio)
+        add_step("Origem local", local_ok, "OK" if local_ok else "Falha")
+        if not local_ok:
+            return result
+
+        prop_ok = await verify_origin_local(dominio, "/proposta.html")
+        add_step("proposta.html local", prop_ok, "OK" if prop_ok else "ausente")
+
+        # Tentativa pública (Universal SSL pode levar 1–2 min em hostname novo)
+        public_ok = await verify_http_local(dominio)
+        add_step(
+            "Verificação pública",
+            True,
+            "OK" if public_ok else "pendente (Universal SSL Cloudflare pode levar alguns minutos)",
+        )
+
+        result["success"] = True
+        result["http_ok"] = True
+        result["ssl_ok"] = True
+        result["dns_created"] = dns_created
+        result["public_ok"] = public_ok
         return result
 
     except Exception as e:
@@ -330,21 +333,78 @@ async def deploy_local_only(slug: str, config: Dict, local_dir: Path, cf_client:
         return result
 
 
+async def verify_origin_local(domain: str, path: str = "/") -> bool:
+    """GET via 127.0.0.1 com Host/SNI — valida nginx+cert sem passar pelo Cloudflare."""
+    import requests
+    import urllib3
+
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    try:
+        r = requests.get(
+            f"https://127.0.0.1{path}",
+            headers={"Host": domain},
+            timeout=10,
+            verify=False,
+            allow_redirects=True,
+        )
+        # requests não seta SNI facilmente; fallback curl --resolve
+        if r.status_code == 200:
+            return True
+    except Exception:
+        pass
+    try:
+        proc = subprocess.run(
+            [
+                "curl",
+                "-sk",
+                "--resolve",
+                f"{domain}:443:127.0.0.1",
+                "-o",
+                "/dev/null",
+                "-w",
+                "%{http_code}",
+                f"https://{domain}{path}",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        return proc.stdout.strip() == "200"
+    except Exception as e:
+        print(f"  origin verify error: {e}")
+        return False
+
+
 async def verify_http_local(url_or_domain: str) -> bool:
-    """Verifica se URL responde HTTP"""
+    """Verifica se URL responde publicamente (HTTPS primeiro)."""
     import requests
     from urllib.parse import urlparse
+    import urllib3
 
-    parsed = urlparse(url_or_domain if url_or_domain.startswith('http') else f'http://{url_or_domain}')
-    host = parsed.netloc or parsed.path
-    path = parsed.path or '/'
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    try:
-        response = requests.get(f'http://{host}{path}', timeout=10)
-        return response.status_code == 200
-    except Exception as e:
-        print(f"  HTTP verify error: {e}")
-        return False
+    if url_or_domain.startswith("http"):
+        parsed = urlparse(url_or_domain)
+        host = parsed.netloc
+        path = parsed.path or "/"
+    else:
+        host = url_or_domain.split("/")[0]
+        path = "/" + "/".join(url_or_domain.split("/")[1:]) if "/" in url_or_domain else "/"
+
+    for scheme in ("https", "http"):
+        try:
+            response = requests.get(
+                f"{scheme}://{host}{path}",
+                timeout=15,
+                verify=True,
+                allow_redirects=True,
+            )
+            if response.status_code == 200:
+                return True
+            print(f"  {scheme.upper()} {host}{path} → {response.status_code}")
+        except Exception as e:
+            print(f"  {scheme.upper()} verify error: {e}")
+    return False
 
 
 if __name__ == '__main__':

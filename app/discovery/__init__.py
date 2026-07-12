@@ -52,13 +52,25 @@ def run_prospecting(
     engine: str | None = None,
     on_progress: Progress | None = None,
 ) -> dict:
-    def log(msg: str):
+    def log(msg: str, level: str = "info"):
         if on_progress:
-            on_progress(msg)
+            # runners pass only msg; level via prefix for UI
+            if level != "info":
+                on_progress(f"[{level}] {msg}")
+            else:
+                on_progress(msg)
+
+    def step(key: str, label: str):
+        log(f"STEP:{key}|{label}")
 
     eng_name, service = resolve_engine(engine)
-    log(f"Motor: {eng_name} · {nicho} em {cidade} · meta {meta}")
+    step("start", f"Iniciando · {nicho} em {cidade} · meta {meta} leads · motor {eng_name}")
+    log(
+        f"Critérios: nota ≥ {nota_min}, avaliações ≥ {aval_min}, "
+        f"site ativo ruim (≥2 problemas) + e-mail público"
+    )
 
+    step("search", "1/4 Buscando negócios no Google Maps (API Places/Apify)…")
     if eng_name == "google_places":
         candidates = service.search(
             nicho, cidade, max_results=max(meta * 5, 40), radius_km=raio_km, on_progress=log
@@ -68,16 +80,46 @@ def run_prospecting(
             nicho, cidade, max_results=max(meta * 5, 40), on_progress=log
         )
 
-    log(f"{len(candidates)} candidatos brutos")
+    log(f"COUNT:candidates={len(candidates)}")
+    step("filter", f"2/4 {len(candidates)} lugares encontrados — filtrando potencial e website…")
+
+    # Pre-filter: score / reviews / has site (cheap, before HTTP qualify)
+    to_qualify = []
+    skipped_potential = 0
+    skipped_no_site = 0
+    for p in candidates:
+        nota = p.get("nota")
+        aval = p.get("avaliacoes") or 0
+        if nota is None or nota < nota_min or aval < aval_min:
+            skipped_potential += 1
+            continue
+        if not (p.get("site") or "").strip():
+            skipped_no_site += 1
+            continue
+        to_qualify.append(p)
+
+    log(
+        f"Após filtro Maps: {len(to_qualify)} para analisar site "
+        f"(↓{skipped_potential} nota/aval · ↓{skipped_no_site} sem website)"
+    )
+    log(f"COUNT:to_qualify={len(to_qualify)}")
+
+    step("qualify", f"3/4 Analisando sites um a um (até meta {meta})…")
     qualified = []
     discarded = []
+    discard_reasons: dict[str, int] = {}
 
-    for i, p in enumerate(candidates):
+    for i, p in enumerate(to_qualify):
         if len(qualified) >= meta:
+            log(f"Meta de {meta} leads atingida — parando análise.")
             break
-        log(f"Qualificando {i+1}/{len(candidates)}: {p.get('nome')}")
+        log(f"  · ({i+1}/{len(to_qualify)}) {p.get('nome')} — abrindo site…")
         site = p.get("site") or ""
-        site_info = qualify_site(site) if site else {"ok": False, "motivos": ["sem website"], "email": "", "whatsapp": ""}
+        site_info = (
+            qualify_site(site)
+            if site
+            else {"ok": False, "motivos": ["sem website"], "email": "", "whatsapp": ""}
+        )
         ok, motivo = is_lead_gold(p, site_info, nota_min, aval_min)
         slug = _slugify(f"{p.get('nome','')}-{cidade}")
         wa = site_info.get("whatsapp") or _phone_to_wa(p.get("telefone") or "")
@@ -101,17 +143,43 @@ def run_prospecting(
         if ok:
             qualified.append(row)
             _upsert_lead(row, protect_advanced=True)
-            log(f"✓ Lead: {row['nome']}")
+            log(f"  ✓ LEAD #{len(qualified)}: {row['nome']} — {motivo}")
+            log(f"COUNT:qualified={len(qualified)}")
         else:
             discarded.append(row)
             _upsert_lead(row, protect_advanced=True)
-            log(f"✗ {row['nome']}: {motivo}")
+            key = (motivo or "outro").split(";")[0].strip()[:60]
+            discard_reasons[key] = discard_reasons.get(key, 0) + 1
+            log(f"  ✗ descartado: {row['nome']} — {motivo}")
+            log(f"COUNT:discarded={len(discarded)}")
+
+    step("save", "4/4 Resumo da prospecção")
+    log(
+        f"RESULTADO: {len(candidates)} no Maps → {len(to_qualify)} analisados → "
+        f"{len(qualified)} leads ouro · {len(discarded)} descartados"
+    )
+    if discard_reasons:
+        top = sorted(discard_reasons.items(), key=lambda x: -x[1])[:5]
+        log("Principais motivos de descarte: " + " · ".join(f"{k} ({v})" for k, v in top))
+    if qualified:
+        log("Leads salvos: " + ", ".join(q["nome"] for q in qualified))
+    else:
+        log("Nenhum lead ouro nesta rodada — tente outro nicho/cidade ou afrouxar nota/avaliações.")
+    step("done", "Concluído")
 
     return {
         "engine": eng_name,
-        "qualified": qualified,
+        "nicho": nicho,
+        "cidade": cidade,
+        "meta": meta,
+        "qualified": [{"slug": q["slug"], "nome": q["nome"], "motivo": q["motivo"]} for q in qualified],
+        "qualified_count": len(qualified),
         "discarded_count": len(discarded),
         "candidates": len(candidates),
+        "to_qualify": len(to_qualify),
+        "skipped_potential": skipped_potential,
+        "skipped_no_site": skipped_no_site,
+        "discard_reasons": discard_reasons,
     }
 
 
