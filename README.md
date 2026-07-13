@@ -20,6 +20,7 @@ O projeto foi desenhado para equipes que identificam negócios locais com presen
 - Capturas de desktop e mobile para revisão visual.
 - Deploy em aaPanel, DNS via Cloudflare e validação de HTTPS.
 - Rascunhos de e-mail e WhatsApp; Evolution API disponível somente quando o modo de envio é habilitado.
+- Trava de outreach: e-mail e WhatsApp só são processados após validar `proposta.html`, screenshots locais, HTTPS público e carregamento das imagens antes/depois.
 - Painel Flask com funil, métricas, jobs assíncronos, configurações e histórico de outreach.
 - Kanban drag-and-drop com etapas `novo`, `redesenhado`, `publicado`, `proposta`, `respondeu`, `fechado` e `descartado`.
 - Detecção de mensagens enviadas e respostas no Gmail via Composio.

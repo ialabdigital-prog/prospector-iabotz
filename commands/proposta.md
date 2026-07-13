@@ -32,7 +32,7 @@ Escreva e envie proposta por e-mail seguindo a skill `proposta-email`.
    - Modo **enviar direto**: se o conector não suportar envio, abrir o Gmail web via Claude in Chrome, ou criar o rascunho e avisar.
    - Nunca enviar para lead sem e-mail confirmado; nesses casos, sugerir contato via WhatsApp com a mesma mensagem adaptada.
 4. **Página-capa** (o que o cliente vê ao clicar):
-   - O link do e-mail leva à página-capa gerada no `/publicar` (template em `references/capa-proposta-template.html`): nome do cliente no topo, antes/depois lado a lado e a assinatura do usuário. Ela existe para dar credibilidade ao clique — o cliente vê o próprio negócio, não um link estranho. Exigências: servida em `https://`, personalizada com dados reais, sem pedido de dado pessoal nenhum.
+   - O link leva à página `sites/<slug>/proposta.html`, gerada com prints reais antes/depois. Bloqueie o outreach se a página HTTPS ou qualquer screenshot não estiver disponível.
 5. **Depois do envio**:
    - Registrar no banco/`leads.md` (status + data) e no dashboard. As respostas são verificadas pelo comando `/respostas` (Gmail via conector) — sugira ao usuário agendar a verificação diária. Follow-up pelo `/followup` após 3+ dias úteis sem resposta (1 único follow-up por lead: curto, gentil, "conseguiu ver a página?").
 

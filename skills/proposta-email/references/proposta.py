@@ -15,9 +15,6 @@ from dataclasses import dataclass
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
-# Carrega template da capa
-TEMPLATE_FILE = Path(__file__).parent / "capa-proposta-template.html"
-
 @dataclass
 class Lead:
     slug: str
@@ -107,40 +104,6 @@ def public_url(slug: str, config: Dict | None = None) -> str:
             cfg = json.loads(cf.read_text(encoding="utf-8"))
     base = (cfg.get("aapanel") or {}).get("dominio_base") or "example.com"
     return f"https://{slug}.{base}/"
-
-
-def load_template() -> str:
-    """Carrega template da capa"""
-    if TEMPLATE_FILE.exists():
-        return TEMPLATE_FILE.read_text(encoding='utf-8')
-    return ""
-
-
-def render_capa_template(template: str, lead: Dict, config: Dict) -> str:
-    """Renderiza template da capa de proposta"""
-    assinatura = config.get('assinatura', {})
-    
-    return template.replace(
-        '{{NOME_CLIENTE}}', lead['nome']
-    ).replace(
-        '{{SCREENSHOT_ANTIGO_OU_PLACEHOLDER}}', f'<img src="https://webcache.googleusercontent.com/search?q=cache:{lead["site_atual"]}" alt="Site antigo" style="max-width:100%;border-radius:8px;">'
-    ).replace(
-        '{{SCREENSHOT_NOVO_OU_PLACEHOLDER}}', f'<img src="{lead["url_nova"]}" alt="Site novo" style="max-width:100%;border-radius:8px;">'
-    ).replace(
-        '{{MOTIVOS_SITE_RUIM}}', lead['motivo']
-    ).replace(
-        '{{URL_NOVA}}', lead['url_nova']
-    ).replace(
-        '{{URL_PROPOSTA}}', f"{lead['url_nova']}proposta.html"
-    ).replace(
-        '{{ASSINATURA_NOME}}', assinatura.get('nome', '')
-    ).replace(
-        '{{ASSINATURA_APRESENTACAO}}', assinatura.get('apresentacao', '')
-    ).replace(
-        '{{ASSINATURA_WHATSAPP}}', assinatura.get('whatsapp', '')
-    ).replace(
-        '{{ASSINATURA_WHATSAPP_FORMATADO}}', assinatura.get('whatsapp', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
-    )
 
 
 def generate_subject(lead: Dict) -> str:
@@ -334,12 +297,6 @@ async def main():
     
     config = json.loads(config_file.read_text())
     
-    # Carrega template
-    template = load_template()
-    if not template:
-        print("❌ Template da capa não encontrado")
-        return
-    
     # Carrega leads
     leads = load_leads()
     if not leads:
@@ -359,14 +316,10 @@ async def main():
     print(f"\n📧 Gerando propostas para {len(targets)} lead(s)...\n")
     
     for lead in targets:
-        # Renderiza capa
         lead['url_nova'] = lead.get('url_nova') or public_url(lead['slug'], config)
-        capa_html = render_capa_template(template, lead, config)
-        
-        # Salva capa
-        capa_dir = BASE_DIR / "sites" / lead['slug']
-        capa_dir.mkdir(parents=True, exist_ok=True)
-        (capa_dir / "proposta.html").write_text(capa_html, encoding='utf-8')
+        from app.proposal_readiness import require_proposal_ready
+        require_proposal_ready(lead["slug"], lead["url_nova"])
+        print(f"✅ {lead['nome']}: proposta pública validada com prints antes/depois")
         
         # Gera e-mail (mantém urlNova do SQLite se já publicada)
         if not lead.get('url_nova'):

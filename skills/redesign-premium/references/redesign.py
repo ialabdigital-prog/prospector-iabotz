@@ -1355,6 +1355,8 @@ async def capture_comparison_screenshots(lead: Lead, site_dir: Path) -> None:
 
         assets = site_dir / "assets"
         assets.mkdir(exist_ok=True)
+        for screenshot in (assets / "before.png", assets / "after.png"):
+            screenshot.unlink(missing_ok=True)
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page(viewport={"width": 1440, "height": 980}, device_scale_factor=1)
@@ -1389,7 +1391,7 @@ def generate_proposta_html(lead: Lead, conteudo: Dict) -> str:
 body{{font-family:system-ui,sans-serif;background:#f8fafc;color:#1e293b;line-height:1.6}}
 .container{{max-width:1000px;margin:0 auto;padding:40px 20px}}
 .header{{text-align:center;padding:40px 0;border-bottom:1px solid #e2e8f0;margin-bottom:40px}}
-.header h1{{font-size:2rem;color:#1e40af;margin-bottom:8px}}
+.header h1{{font-size:2rem;color:var(--color-secondary);margin-bottom:8px}}
 .before-after{{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:32px 0}}
 @media(max-width:768px){{.before-after{{grid-template-columns:1fr}}}}
 .card{{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}}
@@ -1400,12 +1402,12 @@ body{{font-family:system-ui,sans-serif;background:#f8fafc;color:#1e293b;line-hei
 .card-img img{{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:8px;box-shadow:0 12px 32px rgba(15,23,42,.14)}}
 .features{{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:32px 0}}
 .feature{{display:flex;align-items:flex-start;gap:12px;padding:16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0}}
-.feature-icon{{width:40px;height:40px;background:#1e40af;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;flex-shrink:0}}
+.feature-icon{{width:40px;height:40px;background:var(--color-primary);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;flex-shrink:0}}
 .feature-text h3{{font-size:.95rem;font-weight:600;margin-bottom:4px}}
 .feature-text p{{font-size:.85rem;color:#64748b;margin:0}}
 .cta{{text-align:center;margin-top:40px;padding-top:32px;border-top:1px solid #e2e8f0}}
-.btn{{display:inline-block;background:#1e40af;color:#fff;padding:16px 32px;border-radius:10px;font-weight:600;text-decoration:none;transition:background .2s}}
-.btn:hover{{background:#1e3a8a}}
+.btn{{display:inline-block;background:var(--color-primary);color:#fff;padding:16px 32px;border-radius:10px;font-weight:600;text-decoration:none;transition:filter .2s}}
+.btn:hover{{filter:brightness(.9)}}
 .footer{{text-align:center;padding-top:32px;border-top:1px solid #e2e8f0;color:#64748b;font-size:.9rem}}
 </style>
 </head>
@@ -1428,10 +1430,10 @@ body{{font-family:system-ui,sans-serif;background:#f8fafc;color:#1e293b;line-hei
 </div>
 
 <div class="features">
-<div class="feature"><span class="feature-icon">📱</span><div class="feature-text"><h3>Mobile-first real</h3><p>Layout fluido, toque otimizado, CTA sempre visível</p></div></div>
-<div class="feature"><span class="feature-icon">⚡</span><div class="feature-text"><h3>Carregamento <2s</h3><p>CSS/JS crítico inline, imagens WebP lazy-load</p></div></div>
-<div class="feature"><span class="feature-icon">🔍</span><div class="feature-text"><h3>SEO técnico completo</h3><p>Schema.org, meta tags, heading hierarchy, sitemap</p></div></div>
-<div class="feature"><span class="feature-icon">💬</span><div class="feature-text"><h3>WhatsApp one-click</h3><p>CTA flutuante + formulário + telefone visível</p></div></div>
+<div class="feature"><span class="feature-icon">01</span><div class="feature-text"><h3>Experiência responsiva</h3><p>Layout validado em telas de desktop e celular.</p></div></div>
+<div class="feature"><span class="feature-icon">02</span><div class="feature-text"><h3>Identidade preservada</h3><p>Logo, cores e conteúdo público da marca aplicados ao redesign.</p></div></div>
+<div class="feature"><span class="feature-icon">03</span><div class="feature-text"><h3>Conteúdo organizado</h3><p>Serviços e informações apresentados com hierarquia mais clara.</p></div></div>
+<div class="feature"><span class="feature-icon">04</span><div class="feature-text"><h3>Contato direto</h3><p>Atalho visível para iniciar uma conversa pelo WhatsApp.</p></div></div>
 </div>
 
 <div class="cta">
@@ -1649,6 +1651,7 @@ async def main():
                 content.update(json.loads(overrides_file.read_text(encoding="utf-8")))
             (site_dir / "index.html").write_text(generate_page_html(lead, content), encoding="utf-8")
             await capture_comparison_screenshots(lead, site_dir)
+            (site_dir / "proposta.html").write_text(generate_proposta_html(lead, content), encoding="utf-8")
             print(f"   ✅ Render atualizado sem consumir KIE: {site_dir}")
         else:
             await redesign_lead(lead)

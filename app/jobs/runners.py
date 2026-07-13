@@ -124,6 +124,14 @@ def _run_script(rel_path: str, slug: str, log, provider=None, enrich=False) -> d
 
 def _run_proposta(payload: dict, log, provider: str | None) -> dict:
     slug = payload.get("slug") or "todos"
+    if slug != "todos":
+        from app.db import db
+        from app.proposal_readiness import require_proposal_ready
+
+        with db() as conn:
+            lead = conn.execute("SELECT urlNova FROM leads WHERE slug=?", (slug,)).fetchone()
+        require_proposal_ready(slug, (lead["urlNova"] if lead else "") or "")
+        log("Proposta validada: página pública e prints antes/depois estão disponíveis", "success")
     log("Preparando outreach nos canais configurados…")
     canais = (load_config().get("envio") or {}).get("canais") or ["email"]
     results = []
@@ -140,6 +148,13 @@ def _run_proposta(payload: dict, log, provider: str | None) -> dict:
 
 def _run_followup(payload: dict, log) -> dict:
     slug = payload.get("slug") or "todos"
+    if slug != "todos":
+        from app.db import db
+        from app.proposal_readiness import require_proposal_ready
+
+        with db() as conn:
+            lead = conn.execute("SELECT urlNova FROM leads WHERE slug=?", (slug,)).fetchone()
+        require_proposal_ready(slug, (lead["urlNova"] if lead else "") or "")
     config = load_config()
     channels = (config.get("envio") or {}).get("canais") or ["email"]
     results = []

@@ -9,7 +9,7 @@ Publique páginas no aapanel seguindo a skill `deploy-aapanel`.
 
 1. Leia `prospector-config.json`. Se os dados do aapanel não estiverem preenchidos, colete-os agora (url, api_token, usuário, senha, dominio_base, pasta_base, usar_subdominio) — não prossiga sem eles.
 2. Determine o que publicar: `$ARGUMENTS` (um cliente ou "todos"), ou liste as páginas com status `redesenhado` em `leads.md` e pergunte.
-3. **Gere a página-capa de cada cliente**: preencha `skills/proposta-email/references/capa-proposta-template.html` com os dados do lead + assinatura do config e salve como `sites/[slug]/proposta.html`. É ela que vai no e-mail de proposta.
+3. **Valide a página-capa**: `sites/[slug]/proposta.html` e os assets `before.png`/`after.png` devem existir antes do upload e responder publicamente após o deploy.
 4. **Publique seguindo a skill `deploy-aapanel`**, nesta ordem:
    - Tente a API direta do aapanel: crie site → SSL Let's Encrypt → upload via SFTP/rsync
    - Se a API falhar, interrompa com erro claro. Não mantenha uma segunda fila/publicador legado em paralelo.

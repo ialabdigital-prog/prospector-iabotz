@@ -48,7 +48,7 @@ Revise o e-mail pronto contra CADA item; se falhar em qualquer um, reescreva ant
 
 ## Página-Capa (o que o cliente vê ao clicar)
 
-O link do e-mail leva à página-capa gerada no `/publicar` (template em `references/capa-proposta-template.html`): nome do cliente no topo, antes/depois lado a lado e a assinatura do usuário. Ela existe para dar credibilidade ao clique — o cliente vê o próprio negócio, não um link estranho. Exigências: servida em `https://`, personalizada com dados reais, sem pedido de dado pessoal nenhum.
+O link do e-mail leva à página-capa gerada pelo redesign em `sites/<slug>/proposta.html`, com os prints reais `assets/before.png` e `assets/after.png`. Antes de qualquer outreach, o sistema valida a página local, a publicação HTTPS e o carregamento público das duas imagens.
 
 ## Depois do Envio
 
