@@ -255,7 +255,7 @@ def validate_email(subject: str, body: str, lead: Optional[Dict] = None) -> List
 
 
 async def create_gmail_draft(lead: Dict, config: Dict) -> Dict:
-    """Cria rascunho: Composio Gmail se configurado, senão arquivo local em drafts/."""
+    """Create a reviewable local copy and sync a Gmail draft when available."""
     subject = generate_subject(lead)
     body = generate_email_body(lead, config)
     errors = validate_email(subject, body, lead=lead)
@@ -267,53 +267,56 @@ async def create_gmail_draft(lead: Dict, config: Dict) -> Dict:
     api_key = (composio_cfg.get("api_key") or os.getenv("COMPOSIO_API_KEY") or "").strip()
     entity_id = (composio_cfg.get("entity_id") or os.getenv("COMPOSIO_ENTITY_ID") or "").strip()
 
-    # Tenta Composio se houver chave
-    if api_key:
-        try:
-            # SDK opcional — se não instalado, cai no draft local
-            from composio import ComposioToolSet  # type: ignore
-            toolset = ComposioToolSet(api_key=api_key, entity_id=entity_id or None)
-            # Action name varies by Composio version; keep best-effort
-            result = toolset.execute_action(
-                action="GMAIL_CREATE_EMAIL_DRAFT",
-                params={
-                    "recipient_email": lead["email"],
-                    "subject": subject,
-                    "body": body,
-                    "is_html": True,
-                },
-            )
-            return {
-                "success": True,
-                "lead": lead["nome"],
-                "subject": subject,
-                "channel": "composio_gmail",
-                "result": str(result)[:500],
-                "message": "Rascunho criado no Gmail via Composio. Revise e envie.",
-            }
-        except Exception as e:
-            print(f"⚠️  Composio Gmail falhou ({e}) — salvando draft local")
-
     draft_dir = BASE_DIR / "drafts"
     draft_dir.mkdir(exist_ok=True)
     draft_file = draft_dir / f"draft_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{lead['slug']}.html"
+
+    gmail_result = None
+    composio_error = ""
+    if api_key:
+        try:
+            from app.composio_gmail import create_draft
+
+            gmail_result = create_draft(
+                api_key, entity_id, lead["email"], subject, body
+            )
+        except Exception as e:
+            composio_error = str(e)
+
+    status = "gmail_draft" if gmail_result else "local_draft"
+    mode_label = "Gmail + cópia local" if gmail_result else "Somente cópia local"
     html = f"""<!DOCTYPE html><html><head><meta charset=utf-8><title>{subject}</title></head>
 <body>
 <p><strong>Para:</strong> {lead['email']}<br>
 <strong>Assunto:</strong> {subject}<br>
-<strong>Modo:</strong> {envio.get('modo', 'rascunho')} (Composio não conectado — draft local)</p>
+<strong>Modo:</strong> {mode_label}</p>
 <hr>
 {body}
 </body></html>"""
     draft_file.write_text(html, encoding="utf-8")
-    return {
+    result = {
         "success": True,
         "lead": lead["nome"],
         "subject": subject,
         "draft_file": str(draft_file),
-        "channel": "local_draft",
-        "message": "Composio/Gmail não configurado. Draft salvo em drafts/ para copiar ao Gmail.",
+        "channel": "email",
+        "status": status,
+        "sent": False,
+        "location": "Gmail > Rascunhos" if gmail_result else "Painel > E-mails",
+        "message": (
+            "Rascunho criado no Gmail e disponível também no painel. Nenhum e-mail foi enviado."
+            if gmail_result
+            else "Rascunho salvo no painel. Nenhum e-mail foi enviado."
+        ),
     }
+    if gmail_result:
+        result["external_id"] = gmail_result.get("draft_id", "")
+        result["configured_user_mismatch"] = gmail_result.get("configured_user_mismatch", False)
+    elif composio_error:
+        result["fallback_reason"] = composio_error
+    elif not api_key:
+        result["fallback_reason"] = "Composio API key não configurada"
+    return result
 
 
 async def main():
@@ -371,21 +374,33 @@ async def main():
         result = await create_gmail_draft(lead, config)
         
         if result['success']:
-            print(f"✅ {lead['nome']}: rascunho criado")
+            where = "no Gmail" if result.get("status") == "gmail_draft" else "somente no painel"
+            print(f"✅ {lead['nome']}: rascunho criado {where}")
+            print("   Enviado: NÃO")
             print(f"   Assunto: {result['subject']}")
-            print(f"   Canal: {result.get('channel', 'local_draft')}")
+            print(f"   Local: {result.get('location', 'Painel > E-mails')}")
             if result.get('draft_file'):
-                print(f"   Arquivo: {result['draft_file']}")
+                print(f"   Cópia no painel: {Path(result['draft_file']).name}")
+            if result.get("fallback_reason"):
+                print(f"   Motivo do fallback: {result['fallback_reason']}")
             print(f"   {result.get('message', '')}")
+            try:
+                from app.outreach import log_outreach
+                log_outreach(
+                    lead["slug"], "email", result["status"], lead.get("email", ""), "",
+                    external_id=result.get("external_id", ""), error=result.get("fallback_reason", "")
+                )
+            except Exception:
+                pass
             mark_proposta(lead['slug'])
         else:
             print(f"❌ {lead['nome']}: erros de validação")
             for err in result.get('errors') or []:
                 print(f"   - {err}")
+        print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
     
     print(f"\n📧 {len(targets)} proposta(s) processada(s)")
-    print("💡 Com Composio: abra o rascunho no Gmail e envie.")
-    print("💡 Sem Composio: revise ./drafts/ e copie para o Gmail.")
+    print("💡 O job cria rascunhos para revisão; ele não envia e-mail automaticamente.")
     print("💡 Próximo: ./prospector followup (após 3+ dias sem resposta)")
 
 

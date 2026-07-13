@@ -19,6 +19,8 @@ def _parse_draft(path: Path) -> dict:
     text = path.read_text(encoding="utf-8", errors="replace")
     # Meta header we write in proposta.py
     to_m = re.search(r"<strong>Para:</strong>\s*([^<]+)", text, re.I)
+    if not to_m:
+        to_m = re.search(r"^Para:\s*(.+)$", text, re.I | re.M)
     sub_m = re.search(r"<strong>Assunto:</strong>\s*([^<]+)", text, re.I)
     if not sub_m:
         sub_m = re.search(r"<title>([^<]+)</title>", text, re.I)
@@ -40,6 +42,14 @@ def _parse_draft(path: Path) -> dict:
         # fallback: {slug}-proposta.txt
         if path.name.endswith("-proposta.txt"):
             slug = path.name.replace("-proposta.txt", "")
+        elif path.name.startswith("whatsapp_"):
+            wa_m = re.match(r"whatsapp_(\d{8})_(\d{6})_(.+)\.txt$", path.name)
+            if wa_m:
+                slug = wa_m.group(3)
+                try:
+                    created = datetime.strptime(f"{wa_m.group(1)}{wa_m.group(2)}", "%Y%m%d%H%M%S").isoformat(sep=" ")
+                except ValueError:
+                    created = None
 
     # Body after <hr> if present
     body = text
@@ -54,7 +64,8 @@ def _parse_draft(path: Path) -> dict:
         "slug": slug,
         "to": (to_m.group(1).strip() if to_m else ""),
         "subject": (sub_m.group(1).strip() if sub_m else path.stem),
-        "channel": (modo_m.group(1).strip() if modo_m else "local"),
+        "channel": "whatsapp" if path.name.startswith("whatsapp_") else "email",
+        "storage": (modo_m.group(1).strip() if modo_m else "local"),
         "created": created or datetime.fromtimestamp(path.stat().st_mtime).isoformat(sep=" "),
         "size": path.stat().st_size,
         "kind": "html" if path.suffix.lower() in (".html", ".htm") else "text",

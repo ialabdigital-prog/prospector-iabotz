@@ -3,8 +3,11 @@ from __future__ import annotations
 import importlib.util
 import json
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
+
+from app.composio_gmail import gmail_status
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,6 +79,30 @@ class ReleaseSafetyTests(unittest.TestCase):
         self.assertTrue(result["success"])
         self.assertEqual(captured["text"], "mensagem de teste")
         self.assertNotIn("textMessage", captured)
+
+    def test_composio_requires_an_active_gmail_account(self):
+        client = SimpleNamespace(
+            connected_accounts=SimpleNamespace(
+                list=lambda **_kwargs: SimpleNamespace(items=[])
+            )
+        )
+        with patch("app.composio_gmail._client", return_value=client):
+            status = gmail_status("test-key", "configured-user")
+        self.assertFalse(status["connected"])
+        self.assertIn("Nenhuma conta Gmail ACTIVE", status["reason"])
+
+    def test_composio_uses_the_only_active_account_on_legacy_id_mismatch(self):
+        account = SimpleNamespace(id="ca_test", user_id="actual-user")
+        client = SimpleNamespace(
+            connected_accounts=SimpleNamespace(
+                list=lambda **_kwargs: SimpleNamespace(items=[account])
+            )
+        )
+        with patch("app.composio_gmail._client", return_value=client):
+            status = gmail_status("test-key", "legacy-user")
+        self.assertTrue(status["connected"])
+        self.assertTrue(status["configured_user_mismatch"])
+        self.assertEqual(status["user_id"], "actual-user")
 
 
 if __name__ == "__main__":

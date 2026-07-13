@@ -5,7 +5,7 @@ const STATUS_LABEL = {
   novo: "Novo",
   redesenhado: "Redesenhado",
   publicado: "Publicado",
-  proposta: "Proposta",
+  proposta: "Preparar outreach",
   proposta_whatsapp: "Proposta WhatsApp",
   fechado: "Fechado",
   descartado: "Descartado",
@@ -124,7 +124,7 @@ const VIEWS = {
   overview: { title: "Funil", sub: "Do Maps ao contato e proposta" },
   prospect: { title: "Prospectar", sub: "Maps · nota · site fraco · canal configurado" },
   leads: { title: "Leads", sub: "Redesenhar → publicar → proposta" },
-  emails: { title: "E-mails", sub: "Rascunhos de proposta · drafts/" },
+  emails: { title: "Mensagens", sub: "E-mail e WhatsApp · rascunhos e envios" },
   outreach: { title: "Outreach", sub: "Histórico de e-mail e WhatsApp" },
   jobs: { title: "Jobs", sub: "Fila e histórico" },
   config: { title: "Config", sub: "LLM · Maps · aaPanel · Cloudflare · Gmail" },
@@ -205,7 +205,7 @@ function openDrawer(lead) {
       ? `<button class="btn ghost" data-run="publicar" data-slug="${esc(lead.slug)}">Publicar + DNS</button>`
       : ""}
     ${["publicado", "proposta"].includes(lead.status)
-      ? `<button class="btn ghost" data-run="proposta" data-slug="${esc(lead.slug)}">Proposta</button>`
+      ? `<button class="btn ghost" data-run="proposta" data-slug="${esc(lead.slug)}">Preparar outreach</button>`
       : ""}
     ${lead.urlNova ? `<a class="btn ghost" href="${esc(lead.urlNova)}" target="_blank" rel="noopener">Abrir site</a>` : ""}
   `;
@@ -657,10 +657,43 @@ function showJobSummary(job) {
 
   setStep("done");
   box.classList.remove("hidden");
+  if (job.type === "proposta" && Array.isArray(result.channels)) {
+    const statusLabel = {
+      gmail_draft: "NO GMAIL · NÃO ENVIADO",
+      local_draft: "RASCUNHO · NÃO ENVIADO",
+      sent: "ENVIADO",
+      failed_local_draft: "FALHOU · RASCUNHO SALVO",
+    };
+    const cards = result.channels.map((item) => {
+      const status = item.status || "failed";
+      const tone = item.sent ? "sent" : status.includes("failed") ? "failed" : "draft";
+      const channel = item.channel === "whatsapp" ? "WhatsApp" : "E-mail";
+      const icon = item.channel === "whatsapp" ? "WA" : "@";
+      return `<div class="channel-result">
+        <div class="channel-result-icon">${icon}</div>
+        <div>
+          <strong>${channel}</strong>
+          <span class="muted small">${esc(item.location || "Destino não informado")}</span>
+          ${item.fallback_reason || item.error ? `<span class="error small">${esc(item.fallback_reason || item.error)}</span>` : ""}
+        </div>
+        <span class="channel-result-status ${tone}">${esc(statusLabel[status] || status.toUpperCase())}</span>
+        ${status === "gmail_draft" ? '<a class="btn ghost sm" href="https://mail.google.com/mail/u/0/#drafts" target="_blank" rel="noopener">Abrir Gmail</a>' : ""}
+      </div>`;
+    }).join("");
+    box.innerHTML = `
+      <strong class="ok">Outreach preparado</strong>
+      <p class="muted">Confira abaixo exatamente o que aconteceu em cada canal.</p>
+      <div class="channel-results">${cards}</div>
+      <button class="btn primary" id="goto-drafts" type="button">Ver mensagens e rascunhos</button>
+      <button class="btn ghost" id="goto-leads" type="button">Ver lead</button>`;
+    $("#goto-drafts")?.addEventListener("click", () => { showView("emails"); renderEmails(); });
+    $("#goto-leads")?.addEventListener("click", () => { showView("leads"); renderLeads(); });
+    return;
+  }
   const labels = {
     redesenhar: "Site redesenhado. Próximo: Publicar + DNS.",
     publicar: "Publicado + DNS. Próximo: Proposta.",
-    proposta: "Rascunho gerado (Gmail/Composio ou drafts/).",
+    proposta: "Outreach processado. Consulte o log para confirmar cada canal.",
   };
   box.innerHTML = `
     <strong class="ok">Concluído</strong>
@@ -872,8 +905,8 @@ async function renderEmails() {
         </div>
         <div class="muted small">${esc(d.to || "—")} · ${esc(d.slug || "")}</div>
         <div class="email-item-meta">
-          <span class="pill proposta">rascunho</span>
-          <span class="muted small">${esc(d.channel || "local")}</span>
+          <span class="pill proposta">${d.channel === "whatsapp" ? "WhatsApp" : "E-mail"}</span>
+          <span class="muted small">${esc(d.storage || "local")}</span>
         </div>
       </button>`;
     })
@@ -888,7 +921,7 @@ async function renderEmails() {
       <td class="small">${esc(l.dataProposta || l.atualizado || "")}</td>
       <td class="row">
         ${l.urlNova ? `<a class="btn ghost sm" href="${esc(l.urlNova)}" target="_blank" rel="noopener">Site</a>` : ""}
-        <button class="btn primary sm" data-act="proposta" data-slug="${esc(l.slug)}">Crear outreach</button>
+        <button class="btn primary sm" data-act="proposta" data-slug="${esc(l.slug)}">Preparar outreach</button>
       </td>
     </tr>`
     )
@@ -898,17 +931,18 @@ async function renderEmails() {
     <div class="panel" style="margin-top:0">
       <div class="row between" style="margin-bottom:12px">
         <div>
-          <h3 style="margin:0">Rascunhos</h3>
-          <p class="muted small" style="margin:4px 0 0">Arquivos em <code>drafts/</code> · Composio cria no Gmail se estiver ligado</p>
+          <h3 style="margin:0">Mensagens e rascunhos</h3>
+          <p class="muted small" style="margin:4px 0 0">E-mail e WhatsApp salvos para revisão. O selo indica o canal; o resumo do job confirma se houve envio.</p>
         </div>
         <button class="btn ghost sm" type="button" id="refresh-emails">Atualizar</button>
+        <a class="btn ghost sm" href="https://mail.google.com/mail/u/0/#drafts" target="_blank" rel="noopener">Abrir Gmail</a>
       </div>
       <div class="email-layout">
         <div class="email-list">
-          ${list || `<div class="empty"><strong>Nenhum e-mail ainda</strong>Publique um lead e rode «Proposta».</div>`}
+          ${list || `<div class="empty"><strong>Nenhuma mensagem ainda</strong>Publique um lead e rode «Gerar outreach».</div>`}
         </div>
         <div class="email-preview" id="email-preview">
-          <div class="empty"><strong>Selecione um rascunho</strong>para ler o e-mail.</div>
+          <div class="empty"><strong>Selecione uma mensagem</strong>para visualizar o conteúdo.</div>
         </div>
       </div>
     </div>
@@ -1106,19 +1140,20 @@ async function loadOpenRouterModels(query = "") {
 
 async function renderOutreach() {
   const rows = await api("/api/outreach");
+  const outreachStatus = { sent: "Enviado", gmail_draft: "Rascunho no Gmail", local_draft: "Rascunho local", failed_local_draft: "Falhou · rascunho salvo", failed: "Falhou" };
   const body = rows.length
     ? rows.map((r) => `<tr>
         <td><strong>${esc(r.nome)}</strong><div class="muted small">${esc(r.lead_slug)}</div></td>
         <td>${esc(r.channel)}</td>
         <td>${esc(r.recipient || "—")}</td>
-        <td>${esc(r.status)}</td>
+        <td>${esc(outreachStatus[r.status] || r.status)}</td>
         <td class="small">${esc(r.created_at)}</td>
         <td class="small">${esc(r.error || "—")}</td>
       </tr>`).join("")
     : '<tr><td colspan="6" class="muted">Nenhuma tentativa de envio registrada.</td></tr>';
   $("#view-outreach").innerHTML = `
     <div class="panel stack">
-      <div class="row between"><div><h3 style="margin:0">Entregas</h3><p class="muted small" style="margin:4px 0 0">WhatsApp é registrado após cada chamada Evolution. E-mails permanecem disponíveis em E-mails.</p></div>
+      <div class="row between"><div><h3 style="margin:0">Histórico de outreach</h3><p class="muted small" style="margin:4px 0 0">Cada linha informa se houve envio ou apenas criação de rascunho.</p></div>
       <button class="btn ghost sm" id="refresh-outreach">Atualizar</button></div>
       <div style="overflow:auto"><table><thead><tr><th>Lead</th><th>Canal</th><th>Destino</th><th>Status</th><th>Quando</th><th>Erro</th></tr></thead><tbody>${body}</tbody></table></div>
     </div>`;
@@ -1143,6 +1178,7 @@ async function renderConfig() {
   const automation = c.automation || {};
   const redesign = c.redesign || {};
   const ready = Object.fromEntries((state.integrations?.funnel || []).map((f) => [f.id, f.ready]));
+  const gmailIntegration = (state.integrations?.funnel || []).find((f) => f.id === "gmail") || {};
   state.selectedProvider = state.selectedProvider || llm.default_provider || "openrouter";
 
   const tabs = [
@@ -1305,9 +1341,10 @@ async function renderConfig() {
 
     <div class="cfg-pane ${state.cfgTab === "gmail" ? "" : "hidden"}" data-pane="gmail">
       <div class="panel cfg-card stack">
-        <h3>Gmail via Composio <span class="tag ${ready.gmail ? "on" : "off"}">${ready.gmail ? "conectado" : "draft local"}</span></h3>
+        <h3>Gmail via Composio <span class="tag ${ready.gmail ? "on" : "off"}">${ready.gmail ? "conta ativa" : "não conectado"}</span></h3>
         <p class="muted small" style="margin:0">
-          Sem key → salva HTML em <code>drafts/</code>. Com key → tenta criar rascunho no Gmail.
+          ${esc(gmailIntegration.detail || "A conexão ainda não foi verificada.")}<br>
+          O sistema cria um rascunho no Gmail e mantém uma cópia visual no painel. Ele não envia o e-mail automaticamente.
         </p>
         <div class="row">
           <label style="flex:1">Composio API Key<input id="cfg-co-key" type="password" value="${esc(co.api_key || "")}" /></label>
@@ -1315,10 +1352,11 @@ async function renderConfig() {
           <label>Modo
             ${selectHtml("cfg-envio", [
               { value: "rascunho", label: "Rascunho (recomendado)" },
-              { value: "enviar", label: "Enviar direto" },
+              { value: "envio", label: "Envio habilitado (WhatsApp)" },
             ])}
           </label>
         </div>
+        <div class="row"><button class="btn ghost sm" type="button" id="test-composio">Testar Gmail conectado</button><span id="test-composio-msg" class="muted small"></span></div>
       </div>
     </div>
 
@@ -1334,10 +1372,10 @@ async function renderConfig() {
               { value: "both", label: "E-mail + WhatsApp" },
             ])}
           </label>
-          <label>Modo e-mail
-            ${selectHtml("cfg-envio", [
+          <label>Modo dos canais
+            ${selectHtml("cfg-outreach-mode", [
               { value: "rascunho", label: "Rascunho" },
-              { value: "enviar", label: "Enviar direto" },
+              { value: "envio", label: "Envio habilitado" },
             ])}
           </label>
           <label>Provedor WhatsApp
@@ -1435,6 +1473,7 @@ async function renderConfig() {
   if ($("#cfg-aa-sub")) $("#cfg-aa-sub").value = String(aa.usar_subdominio !== false);
   if ($("#cfg-aa-ssl")) $("#cfg-aa-ssl").value = String(aa.ssl_auto !== false);
   if ($("#cfg-envio")) $("#cfg-envio").value = envio.modo || "rascunho";
+  if ($("#cfg-outreach-mode")) $("#cfg-outreach-mode").value = envio.modo || "rascunho";
   if ($("#cfg-channel")) $("#cfg-channel").value = (envio.canais || ["email"]).length === 2 ? "both" : (envio.canais || ["email"])[0];
   if ($("#cfg-wa-provider")) $("#cfg-wa-provider").value = waCfg.provedor || "evolution_api";
   if ($("#cfg-redesign-direction")) $("#cfg-redesign-direction").value = redesign.direction || "auto";
@@ -1531,7 +1570,7 @@ async function renderConfig() {
         entity_id: val("#cfg-co-entity"),
       },
       envio: {
-        modo: val("#cfg-envio") || "rascunho",
+        modo: val("#cfg-outreach-mode") || val("#cfg-envio") || "rascunho",
         canais: val("#cfg-channel") === "both" ? ["email", "whatsapp"] : [val("#cfg-channel") || "email"],
         whatsapp: {
           provedor: val("#cfg-wa-provider") || "evolution_api",
@@ -1593,6 +1632,16 @@ async function renderConfig() {
     try {
       const r = await api("/api/config/whatsapp/test", { method: "POST", body: "{}" });
       el.textContent = r.message || (r.success ? "Conectado" : "Falhou");
+    } catch (e) { el.textContent = e.message; }
+  });
+  $("#test-composio")?.addEventListener("click", async () => {
+    const el = $("#test-composio-msg");
+    el.textContent = "Verificando SDK, projeto e conta Gmail…";
+    try {
+      const r = await api("/api/config/composio/test", { method: "POST", body: "{}" });
+      el.textContent = r.success
+        ? `${r.message}. ${r.accounts} conta(s) ativa(s).`
+        : `${r.message || "Falhou"}. Salve a configuração e reconecte o Gmail no Composio.`;
     } catch (e) { el.textContent = e.message; }
   });
   $("#test-kie")?.addEventListener("click", async () => {
