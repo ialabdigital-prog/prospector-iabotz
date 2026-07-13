@@ -13,6 +13,7 @@ from app.composio_gmail import gmail_status
 from app.followups import business_days_since
 from app.design_catalog import fallback_brief, normalize_llm_brief
 from app.proposal_readiness import check_proposal_readiness
+from app.discovery.qualify_site import is_lead_gold
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +36,9 @@ class ReleaseSafetyTests(unittest.TestCase):
         cls.whatsapp = load_module(
             "whatsapp_reference",
             "skills/proposta-whatsapp/references/proposta_whatsapp.py",
+        )
+        cls.redesign = load_module(
+            "redesign_reference", "skills/redesign-premium/references/redesign.py"
         )
 
     def test_public_subdomain_prefers_original_hostname(self):
@@ -187,6 +191,25 @@ class ReleaseSafetyTests(unittest.TestCase):
                 "<img src='assets/before.png'><img src='assets/after.png'>" + "x" * 2_000
             )
             self.assertTrue(check_proposal_readiness("lead-test", verify_public=False)["ready"])
+
+    def test_mature_site_without_quality_problems_is_not_a_lead(self):
+        prospect = {"site": "https://example.com", "nota": 4.9, "avaliacoes": 200, "telefone": "5511999999999"}
+        site = {"ok": True, "evaluable": True, "spa": False, "motivos": [], "email": "owner@example.com"}
+        accepted, reason = is_lead_gold(prospect, site, canais=["email", "whatsapp"])
+        self.assertFalse(accepted)
+        self.assertIn("bom o suficiente", reason)
+
+    def test_source_led_quality_gate_rejects_content_loss(self):
+        source = {
+            "source_strategy": "source-led",
+            "logo_url": "assets/logo.png",
+            "servicos": [{"titulo": "Direito Civil"}, {"titulo": "Direito Trabalhista"}, {"titulo": "Direito Tributário"}],
+            "artigos": [{"titulo": "Artigo A"}, {"titulo": "Artigo B"}],
+            "faq": [("Pergunta A?", "Resposta")],
+            "source_profile": {"word_count": 100},
+        }
+        weak = "<html><body><section><h1>Direito Civil</h1></section></body></html>"
+        self.assertFalse(self.redesign.evaluate_redesign_preservation(source, weak)["passed"])
 
 
 if __name__ == "__main__":

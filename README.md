@@ -14,6 +14,8 @@ O projeto foi desenhado para equipes que identificam negócios locais com presen
 - Briefing criativo selecionado por nicho, histórico e LLM, com fallback determinístico.
 - Identidade visual extraída do site original: logo, paleta CSS, imagens públicas e conteúdo factual.
 - Variação por marca e regeneração: composição, hero, superfície, densidade, ritmo e ênfase sem repetir `style + layout`.
+- Estratégia `source-led` para sites maduros: preserva navegação, áreas de atuação, conteúdo institucional, artigos, FAQ, endereço e fotografia original.
+- Quality gate bloqueia versões que perdem cobertura de serviços, artigos, FAQ, logo, conteúdo ou que falham no QA visual responsivo.
 - Geração de copy sem inventar credenciais, serviços, avaliações ou depoimentos.
 - Imagens novas via KIE para hero, editorial e detalhe, com manifesto de assets.
 - Renderização responsiva com efeitos SVG, movimento reduzido e CTA de WhatsApp.

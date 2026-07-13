@@ -9,6 +9,7 @@ import asyncio
 import shutil
 import re
 import random
+from html import escape
 from collections import Counter
 from urllib.parse import urljoin
 from pathlib import Path
@@ -169,10 +170,16 @@ def extract_content_from_site(url: str) -> Dict:
         "sobre": "",
         "hero_headline": "",
         "hero_subheadline": "",
+        "hero_tagline": "",
+        "sobre_detalhado": "",
         "servicos": [],
         "depoimentos": [],
         "equipe": [],
         "faq": [],
+        "artigos": [],
+        "diferenciais": [],
+        "navegacao": [],
+        "source_profile": {},
         "contato": {},
         "cores": {"primary": "#0d9488", "secondary": "#0f172a", "accent": "#0f766e", "bg": "#f8fafc"},
         "logo_url": "",
@@ -247,6 +254,14 @@ def extract_content_from_site(url: str) -> Dict:
         if phone:
             out["contato"]["telefone"] = phone
 
+        page_h1 = soup.find("h1")
+        if page_h1:
+            out["hero_headline"] = page_h1.get_text(" ", strip=True) or out["hero_headline"]
+            hero_section = page_h1.find_parent("section")
+            hero_paragraph = hero_section.find("p") if hero_section else None
+            if hero_paragraph:
+                out["hero_tagline"] = hero_paragraph.get_text(" ", strip=True)
+
         # Recover public contact and brand data from real DOM, not just meta tags.
         for link in soup.select("a[href]"):
             href = link.get("href", "")
@@ -255,6 +270,8 @@ def extract_content_from_site(url: str) -> Dict:
                 out["contato"]["email"] = href.split(":", 1)[1].split("?", 1)[0]
             if href.startswith("tel:") and not out["contato"].get("telefone"):
                 out["contato"]["telefone"] = href.split(":", 1)[1]
+            if ("maps" in href or "g.co/" in href) and len(label) > 12 and not out["endereco"]:
+                out["endereco"] = label
             wa_match = re.search(r"(?:wa\.me/|api\.whatsapp\.com/send\?phone=)(\d+)", href, re.I)
             if wa_match and not out["contato"].get("whatsapp"):
                 out["contato"]["whatsapp"] = wa_match.group(1)
@@ -264,7 +281,7 @@ def extract_content_from_site(url: str) -> Dict:
                     out["logo_url"] = urljoin(r.url, image["src"])
 
         if not out["logo_url"]:
-            logo = soup.select_one('img[alt*="logo" i], img[src*="logo" i], header img[src]')
+            logo = soup.select_one('img[alt*="logo" i], img[src*="logo" i], .hfe-site-logo-img, [class*="site-logo"] img, header img[src]')
             if logo and logo.get("src"):
                 out["logo_url"] = urljoin(r.url, logo["src"])
 
@@ -287,8 +304,21 @@ def extract_content_from_site(url: str) -> Dict:
         # Headings and nearby paragraphs supply real service/FAQ text.
         headings = [h.get_text(" ", strip=True) for h in soup.select("h1,h2,h3") if h.get_text(" ", strip=True)]
         text_blocks = [p.get_text(" ", strip=True) for p in soup.select("p") if len(p.get_text(" ", strip=True)) > 35]
+        nav_items = []
+        for link in soup.select("nav a[href], [class*='menu'] a[href]"):
+            label = link.get_text(" ", strip=True)
+            if 1 < len(label) < 40 and label not in nav_items:
+                nav_items.append(label)
+        out["navegacao"] = nav_items[:8]
         if text_blocks:
             out["sobre"] = max(text_blocks, key=len)[:700] if not out["sobre"] else out["sobre"]
+        for heading in soup.select("h2,h3"):
+            if heading.get_text(" ", strip=True).lower() in {"sobre nós", "sobre nos", "ronaldo abreu", "quem somos"}:
+                section = heading.find_parent("section")
+                paragraphs = [p.get_text(" ", strip=True) for p in section.select("p")] if section else []
+                detailed = max(paragraphs, key=len) if paragraphs else ""
+                if len(detailed) > len(out["sobre_detalhado"]):
+                    out["sobre_detalhado"] = detailed[:1800]
         service_markers = ("serviço", "especialidade", "tratamento", "procedimento", "o que fazemos")
         service_keywords = (
             "direito ", "advocacia", "consulta", "terapia", "tratamento", "procedimento",
@@ -300,8 +330,23 @@ def extract_content_from_site(url: str) -> Dict:
             lowered = label.lower()
             if 3 < len(label) < 80 and any(keyword in lowered for keyword in service_keywords) and label not in semantic_services:
                 semantic_services.append(label)
-        if semantic_services:
-            out["servicos"] = [{"titulo": label, "descricao": ""} for label in semantic_services[:6]]
+        heading_services = [
+            node.get_text(" ", strip=True) for node in soup.select("h2,h3")
+            if 3 < len(node.get_text(" ", strip=True)) < 80
+            and any(keyword in node.get_text(" ", strip=True).lower() for keyword in service_keywords)
+        ]
+        combined_services = []
+        source_labels = heading_services if len(heading_services) >= 3 else [*heading_services, *semantic_services]
+        for label in source_labels:
+            if label not in combined_services:
+                combined_services.append(label)
+        if combined_services:
+            service_records = []
+            for label in combined_services[:8]:
+                heading_node = next((node for node in soup.select("h1,h2,h3") if node.get_text(" ", strip=True) == label), None)
+                paragraph = heading_node.find_next("p") if heading_node else None
+                service_records.append({"titulo": label, "descricao": paragraph.get_text(" ", strip=True)[:240] if paragraph else ""})
+            out["servicos"] = service_records
         generic_headings = ("quem somos", "áreas de atuação", "areas de atuacao", "blog", "fale conosco", "contato", "nos siga")
         service_headings = [
             h for h in headings
@@ -315,11 +360,55 @@ def extract_content_from_site(url: str) -> Dict:
             answer = detail.get_text(" ", strip=True)
             if question and answer:
                 out["faq"].append((question.get_text(" ", strip=True), answer.replace(question.get_text(" ", strip=True), "", 1).strip()))
+        for title in soup.select(".elementor-tab-title, [class*='accordion'] [class*='title']"):
+            question = title.get_text(" ", strip=True)
+            answer_node = title.find_next_sibling() or title.find_next(class_=re.compile("tab-content|accordion.*content", re.I))
+            answer = answer_node.get_text(" ", strip=True) if answer_node else ""
+            if question and answer and (question, answer) not in out["faq"]:
+                out["faq"].append((question, answer))
         if not out["faq"]:
             for heading in headings:
                 if "?" in heading:
                     out["faq"].append((heading, "Entre em contato para receber orientação personalizada."))
         out["faq"] = out["faq"][:6]
+
+        for article in soup.select("article")[:6]:
+            title_node = article.select_one("h2,h3,h4,h5,h6")
+            link = title_node.find("a", href=True) if title_node else article.find("a", href=True)
+            image = article.find("img", src=True)
+            title_text = title_node.get_text(" ", strip=True) if title_node else ""
+            if title_text and link:
+                out["artigos"].append({
+                    "titulo": title_text,
+                    "url": urljoin(r.url, link["href"]),
+                    "imagem": urljoin(r.url, image["src"]) if image else "",
+                })
+
+        for item in soup.select("li"):
+            label = item.get_text(" ", strip=True)
+            if 20 < len(label) < 150 and label not in out["diferenciais"]:
+                out["diferenciais"].append(label)
+        out["diferenciais"] = out["diferenciais"][:6]
+        page_text = soup.get_text(" ", strip=True)
+        if not out["contato"].get("email"):
+            email_match = re.search(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", page_text, re.I)
+            if email_match:
+                out["contato"]["email"] = email_match.group(0)
+        out["source_profile"] = {
+            "word_count": len(page_text.split()),
+            "heading_count": len(headings),
+            "section_count": len(soup.select("section")),
+            "article_count": len(out["artigos"]),
+            "image_count": len(public_images),
+            "has_form": bool(soup.select_one("form")),
+            "has_cta": bool(soup.select_one('a[href*="contato"], a[href*="agend"], a[href*="wa.me"], button')),
+        }
+        profile = out["source_profile"]
+        out["source_strategy"] = "source-led" if (
+            profile["word_count"] >= 500 and profile["heading_count"] >= 6
+            and (profile["image_count"] >= 2 or profile["article_count"] >= 2)
+            and profile["has_cta"]
+        ) else "transformative"
 
         # Serviços a partir de keywords
         if keywords and not out["servicos"]:
@@ -343,21 +432,42 @@ def extract_content_from_site(url: str) -> Dict:
 def localize_brand_assets(content: Dict, site_dir: Path) -> Dict:
     """Keep the original public logo stable instead of hotlinking it."""
     logo_url = content.get("logo_url") or ""
-    if not logo_url or not logo_url.startswith("http"):
-        return content
-    try:
-        response = requests.get(logo_url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+    assets = site_dir / "assets"
+    assets.mkdir(parents=True, exist_ok=True)
+
+    def download(url: str, stem: str) -> str:
+        response = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
         response.raise_for_status()
         content_type = response.headers.get("content-type", "").lower()
         suffix = ".svg" if "svg" in content_type else ".webp" if "webp" in content_type else ".png" if "png" in content_type else ".jpg"
-        assets = site_dir / "assets"
-        assets.mkdir(parents=True, exist_ok=True)
-        target = assets / f"source-logo{suffix}"
+        target = assets / f"{stem}{suffix}"
         target.write_bytes(response.content)
-        content["source_logo_url"] = logo_url
-        content["logo_url"] = f"assets/{target.name}"
-    except requests.RequestException:
-        pass
+        return f"assets/{target.name}"
+
+    if logo_url and logo_url.startswith("http"):
+        try:
+            content["source_logo_url"] = logo_url
+            content["logo_url"] = download(logo_url, "source-logo")
+        except requests.RequestException:
+            pass
+
+    source_images = []
+    image_map = {}
+    for index, url in enumerate(dict.fromkeys(content.get("imagens") or []), 1):
+        if not str(url).startswith("http") or url == logo_url:
+            continue
+        try:
+            local = download(url, f"source-{index}")
+            source_images.append(local)
+            image_map[url] = local
+        except requests.RequestException:
+            continue
+        if len(source_images) >= 6:
+            break
+    content["source_images"] = source_images
+    for article in content.get("artigos") or []:
+        if article.get("imagem") in image_map:
+            article["imagem"] = image_map[article["imagem"]]
     return content
 
 
@@ -956,7 +1066,71 @@ body{{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,san
 </style></head><body class="mode-{composition} density-{density} rhythm-{rhythm}"><header class="top"><div class="container"><a class="brand" href="#main">{brand_markup}</a><a href="{contact}">WhatsApp ↗</a></div></header><main id="main">{hero_markup}<section class="proof"><div class="container"><span><b>{lead.nota or '5.0'} ★</b> reputação Google</span><span>{lead.avaliacoes or 'Atendimento'} avaliações</span><span>{lead.cidade}</span></div></section>{content_sections}<section class="contact" id="contato"><div class="container"><p class="label">Próximo passo</p><h2>Vamos conversar sobre o que você precisa.</h2><a class="button" href="{contact}">Falar no WhatsApp ↗</a></div></section></main><footer><div class="container">{brand} · {lead.cidade} · Todos os direitos reservados</div></footer></body></html>'''
 
 
+def generate_source_led_page(lead: Lead, content: Dict) -> str:
+    """Modernize a mature source site without discarding its information architecture."""
+    brand = brand_name(lead.nome)
+    colors = content.get("cores") or niche_palette(lead.nicho)
+    primary = colors.get("primary") or "#b3262d"
+    secondary = colors.get("secondary") or _mix_hex(primary, "#111827", 0.72)
+    accent = colors.get("accent") or _mix_hex(primary, "#ffffff", 0.3)
+    background = _mix_hex(primary, "#ffffff", 0.96)
+    logo = content.get("logo_url") or ""
+    logo_markup = f'<img src="{escape(logo)}" alt="{escape(brand)}">' if logo else escape(brand)
+    source_images = content.get("source_images") or content.get("imagens") or []
+    hero_image = source_images[0] if source_images else content.get("hero_image") or ""
+    about_image = hero_image
+    headline = content.get("hero_headline") or "Advocacia trabalhista"
+    if " - " in headline or " | " in headline:
+        headline = "Advocacia trabalhista"
+    subtitle = content.get("hero_tagline") or content.get("hero_subheadline") or content.get("sobre") or ""
+    about = content.get("sobre_detalhado") or content.get("sobre") or ""
+    services = content.get("servicos") or []
+    articles = content.get("artigos") or []
+    faqs = content.get("faq") or []
+    differentials = content.get("diferenciais") or []
+    contact_data = content.get("contato") or {}
+    phone = lead.whatsapp or lead.telefone or contact_data.get("whatsapp") or contact_data.get("telefone") or ""
+    digits = "".join(character for character in phone if character.isdigit())
+    if digits and not digits.startswith("55"):
+        digits = "55" + digits
+    contact_url = f"https://wa.me/{digits}" if digits else "#contato"
+
+    service_parts = []
+    for index, item in enumerate(services[:6], 1):
+        description = item.get("descricao") or item.get("descrição") or ""
+        description_html = f"<p>{escape(description)}</p>" if description else ""
+        service_parts.append(
+            f'<article><span>{index:02d}</span><h3>{escape(item.get("titulo") or "Área de atuação")}</h3>'
+            f'{description_html}</article>'
+        )
+    service_cards = "".join(service_parts)
+    article_parts = []
+    for item in articles[:4]:
+        title = item.get("titulo") or "Artigo"
+        image_html = f'<img src="{escape(item["imagem"])}" alt="{escape(title)}">' if item.get("imagem") else ""
+        article_parts.append(
+            f'<a class="article" href="{escape(item.get("url") or "#")}" target="_blank" rel="noopener">'
+            f'{image_html}<div><span>Conteúdo jurídico</span><h3>{escape(title)}</h3></div></a>'
+        )
+    article_cards = "".join(article_parts)
+    faq_items = "".join(
+        f'<details><summary>{escape(str(question))}</summary><p>{escape(str(answer))}</p></details>'
+        for question, answer in faqs[:5]
+    )
+    differential_items = "".join(f"<li>{escape(item)}</li>" for item in differentials[:5])
+    nav = "".join(
+        f'<a href="#{target}">{label}</a>' for target, label in (
+            ("atuacao", "Atuação"), ("sobre", "Sobre"), ("conteudo", "Conteúdo"), ("contato", "Contato")
+        )
+    )
+    return f'''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(brand)} — {escape(lead.cidade)}</title><meta name="description" content="{escape(subtitle[:160])}"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Caslon+Display&display=swap" rel="stylesheet"><style>
+:root{{--primary:{primary};--secondary:{secondary};--accent:{accent};--bg:{background};--surface:#fff;--ink:#17191f;--muted:#626873}}*{{box-sizing:border-box}}html{{scroll-behavior:smooth}}body{{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 'DM Sans',sans-serif}}img{{display:block;max-width:100%}}a{{color:inherit;text-decoration:none}}.wrap{{width:min(1180px,calc(100% - 40px));margin:auto}}header{{position:absolute;z-index:5;inset:0 0 auto;padding:24px 0;color:#fff}}header .wrap{{display:flex;align-items:center;justify-content:space-between;gap:25px}}.logo img{{width:auto;max-width:180px;max-height:64px;filter:brightness(0) invert(1)}}nav{{display:flex;gap:25px;font-size:.85rem}}.header-cta,.cta{{display:inline-flex;padding:13px 19px;border-radius:999px;background:var(--primary);color:#fff;font-weight:700}}.hero{{position:relative;min-height:96svh;display:flex;align-items:flex-end;color:#fff;overflow:hidden;background:var(--secondary)}}.hero-bg{{position:absolute;inset:0;background:url('{escape(str(hero_image))}') center/cover}}.hero:after{{content:'';position:absolute;inset:0;background:linear-gradient(90deg,color-mix(in srgb,var(--secondary) 94%,transparent) 0%,color-mix(in srgb,var(--secondary) 72%,transparent) 48%,color-mix(in srgb,var(--secondary) 18%,transparent) 100%)}}.hero-copy{{position:relative;z-index:1;max-width:760px;padding:190px 0 11vh}}.eyebrow{{font-size:.72rem;text-transform:uppercase;letter-spacing:.18em;color:var(--accent);font-weight:700}}h1,h2,h3{{font-family:'Libre Caslon Display',Georgia,serif;font-weight:400;line-height:1.02}}h1{{font-size:clamp(4rem,8.5vw,9rem);margin:.18em 0 .22em;letter-spacing:-.045em}}h2{{font-size:clamp(2.7rem,5vw,5.2rem);margin:.15em 0 .35em;letter-spacing:-.035em}}.hero p{{font-size:1.05rem;max-width:620px;margin:0 0 28px}}.proof{{background:var(--primary);color:#fff;padding:22px 0}}.proof .wrap{{display:flex;justify-content:space-between;gap:25px;flex-wrap:wrap}}section{{padding:110px 0}}.section-head{{max-width:760px;margin-bottom:45px}}.services{{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#ddd}}.services article{{min-height:250px;padding:34px;background:var(--surface)}}.services article span{{color:var(--primary);font-weight:700;font-size:.75rem}}.services h3{{font-size:2rem;margin:45px 0 10px}}.about{{background:var(--secondary);color:#fff}}.about-grid{{display:grid;grid-template-columns:1fr 1fr;gap:7vw;align-items:center}}.about h2{{color:#fff}}.about img{{width:100%;height:650px;object-fit:cover}}.about p{{color:#e5e7eb}}.values{{margin-top:28px;padding:0;list-style:none;display:grid;gap:10px}}.values li{{padding-left:22px;position:relative}}.values li:before{{content:'•';position:absolute;left:0;color:var(--accent)}}.insights{{background:#fff}}.articles{{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}}.article{{display:grid;grid-template-columns:180px 1fr;min-height:180px;border:1px solid #e5e7eb;background:var(--surface)}}.article img{{width:180px;height:100%;object-fit:cover}}.article div{{padding:25px}}.article span{{color:var(--primary);font-size:.7rem;text-transform:uppercase;letter-spacing:.12em}}.article h3{{font-size:1.55rem;margin:12px 0}}.faq-grid{{display:grid;grid-template-columns:.65fr 1.35fr;gap:7vw}}details{{border-top:1px solid #d8dce2;padding:20px 0}}summary{{cursor:pointer;font-weight:700}}details p{{color:var(--muted)}}.contact{{text-align:center;background:color-mix(in srgb,var(--primary) 8%,white)}}.contact p{{color:var(--muted)}}.contact-links{{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:28px}}.contact-links a:not(.cta){{padding:13px 19px;border:1px solid #ccd1d8;border-radius:999px}}footer{{background:#11151b;color:#b8bec8;padding:42px 0}}footer .wrap{{display:flex;justify-content:space-between;gap:25px;flex-wrap:wrap}}@media(max-width:800px){{nav{{display:none}}header .header-cta{{display:none}}.hero-copy{{padding-top:170px}}h1{{font-size:clamp(3.6rem,17vw,6rem)}}.services,.about-grid,.articles,.faq-grid{{grid-template-columns:1fr}}.about img{{height:75vw;max-height:560px}}.article{{grid-template-columns:120px 1fr}}.article img{{width:120px}}section{{padding:80px 0}}}}
+</style></head><body><header><div class="wrap"><a class="logo" href="#inicio">{logo_markup}</a><nav>{nav}</nav><a class="header-cta" href="{contact_url}">Agendar reunião</a></div></header><main><section class="hero" id="inicio"><div class="hero-bg"></div><div class="wrap hero-copy"><span class="eyebrow">{escape(lead.nicho)} · {escape(lead.cidade)}</span><h1>{escape(headline)}</h1><p>{escape(subtitle[:320])}</p><a class="cta" href="{contact_url}">Conversar sobre o seu caso</a></div></section><div class="proof"><div class="wrap"><span><b>{lead.nota} ★</b> no Google</span><span>{lead.avaliacoes} avaliações</span><span>Atendimento em {escape(lead.cidade)}</span></div></div><section id="atuacao"><div class="wrap"><div class="section-head"><span class="eyebrow">Áreas de atuação</span><h2>Experiência jurídica para decisões importantes.</h2></div><div class="services">{service_cards}</div></div></section><section class="about" id="sobre"><div class="wrap about-grid"><div><span class="eyebrow">Sobre o escritório</span><h2>Atendimento próximo, análise cuidadosa.</h2><p>{escape(about)}</p>{f'<ul class="values">{differential_items}</ul>' if differential_items else ''}</div>{f'<img src="{escape(str(about_image))}" alt="{escape(brand)}">' if about_image else ''}</div></section>{f'<section class="insights" id="conteudo"><div class="wrap"><div class="section-head"><span class="eyebrow">Informação jurídica</span><h2>Conteúdo para orientar escolhas.</h2></div><div class="articles">{article_cards}</div></div></section>' if article_cards else ''}{f'<section id="faq"><div class="wrap faq-grid"><div><span class="eyebrow">Perguntas frequentes</span><h2>Informação clara antes da conversa.</h2></div><div>{faq_items}</div></div></section>' if faq_items else ''}<section class="contact" id="contato"><div class="wrap"><span class="eyebrow">Contato</span><h2>Agende uma reunião.</h2><p>{escape(content.get("endereco") or lead.cidade)}</p><div class="contact-links"><a class="cta" href="{contact_url}">WhatsApp</a>{f'<a href="mailto:{escape(contact_data.get("email"))}">{escape(contact_data.get("email"))}</a>' if contact_data.get("email") else ''}</div></div></section></main><footer><div class="wrap"><strong>{escape(brand)}</strong><span>{escape(lead.cidade)} · Todos os direitos reservados</span></div></footer></body></html>'''
+
+
 def generate_page_html(lead: Lead, conteudo: Dict) -> str:
+    if conteudo.get("source_strategy") == "source-led":
+        return add_whatsapp_widget(generate_source_led_page(lead, conteudo), lead, conteudo)
     if (conteudo.get("creative_brief") or {}).get("style_id"):
         return add_whatsapp_widget(generate_catalog_page(lead, conteudo), lead, conteudo)
     variant = conteudo.get("layout_variant") or "classic"
@@ -1133,6 +1307,43 @@ if('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: red
     return add_whatsapp_widget(html, lead, conteudo)
 
 
+def evaluate_redesign_preservation(source: Dict, generated_html: str) -> Dict:
+    """Reject source-led redesigns that discard the original site's useful structure."""
+    if source.get("source_strategy") != "source-led":
+        return {"passed": True, "strategy": "transformative", "checks": {}}
+    generated = BeautifulSoup(generated_html, "lxml")
+    generated_text = generated.get_text(" ", strip=True).lower()
+    services = [item.get("titulo", "") for item in source.get("servicos") or [] if item.get("titulo")]
+    articles = [item.get("titulo", "") for item in source.get("artigos") or [] if item.get("titulo")]
+    questions = [str(item[0]) for item in source.get("faq") or [] if item]
+
+    def coverage(items: List[str]) -> float:
+        if not items:
+            return 1.0
+        found = sum(1 for item in items if item.lower() in generated_text)
+        return found / len(items)
+
+    source_words = int((source.get("source_profile") or {}).get("word_count") or 0)
+    generated_words = len(generated_text.split())
+    checks = {
+        "service_coverage": coverage(services),
+        "article_coverage": coverage(articles),
+        "faq_coverage": coverage(questions),
+        "content_ratio": generated_words / source_words if source_words else 1.0,
+        "section_count": len(generated.select("section")),
+        "logo_preserved": bool(not source.get("logo_url") or generated.select_one(".logo img, .brand-logo")),
+    }
+    passed = (
+        checks["service_coverage"] >= 0.7
+        and checks["article_coverage"] >= 0.7
+        and checks["faq_coverage"] >= 0.5
+        and checks["content_ratio"] >= 0.22
+        and checks["section_count"] >= 5
+        and checks["logo_preserved"]
+    )
+    return {"passed": bool(passed), "strategy": "source-led", "checks": checks}
+
+
 def add_whatsapp_widget(html: str, lead: Lead, conteudo: Dict) -> str:
     """Add the same accessible conversion widget to every generated layout."""
     wa = lead.whatsapp or (conteudo.get("contato") or {}).get("whatsapp") or ""
@@ -1222,6 +1433,10 @@ async def redesign_lead(lead: Lead, conteudo_extra: Dict = None) -> Dict:
     
     # Gera HTML
     html = generate_page_html(lead, conteudo)
+    quality = evaluate_redesign_preservation(conteudo, html)
+    (site_dir / "quality-report.json").write_text(json.dumps(quality, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if not quality["passed"]:
+        raise RuntimeError(f"Redesign bloqueado por perda de conteúdo/estrutura: {quality['checks']}")
     
     # Salva arquivos
     # index.html
@@ -1264,6 +1479,9 @@ def generate_missing_visual_assets(lead: Lead, conteudo: Dict, site_dir: Path, o
     cfg_file = BASE_DIR / "prospector-config.json"
     cfg = json.loads(cfg_file.read_text(encoding="utf-8")) if cfg_file.exists() else {}
     redesign_cfg = cfg.get("redesign") or {}
+    if conteudo.get("source_strategy") == "source-led" and len(conteudo.get("source_images") or []) >= 2:
+        print("   ℹ️ Site fonte rico: preservando fotografia original, sem gerar imagens KIE")
+        return {}
     if redesign_cfg.get("image_provider") != "kie_mcp":
         return {}
     key = (redesign_cfg.get("kie_api_key") or "").strip()
@@ -1368,10 +1586,19 @@ async def capture_comparison_screenshots(lead: Lead, site_dir: Path) -> None:
                 except Exception as exc:
                     print(f"   ⚠️ Screenshot do site antigo falhou: {exc}")
             await page.goto((site_dir / "index.html").as_uri(), wait_until="load", timeout=30000)
+            await page.wait_for_timeout(500)
+            visual = await page.evaluate("""() => ({
+                overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+                brokenImages: [...document.images].filter(img => !img.complete || img.naturalWidth === 0).length,
+                hasHeading: !!document.querySelector('h1'),
+                hasCta: !!document.querySelector('a[href*="wa.me"], a[href*="contato"], .cta, .button')
+            })""")
+            if visual["overflow"] or visual["brokenImages"] or not visual["hasHeading"] or not visual["hasCta"]:
+                raise RuntimeError(f"QA visual do redesign falhou: {visual}")
             await page.screenshot(path=str(assets / "after.png"), full_page=False)
             await browser.close()
     except Exception as exc:
-        print(f"   ⚠️ Screenshots de comparação indisponíveis: {exc}")
+        raise RuntimeError(f"Screenshots/QA visual indisponíveis: {exc}") from exc
 
 
 def generate_proposta_html(lead: Lead, conteudo: Dict) -> str:
@@ -1649,7 +1876,12 @@ async def main():
             content["creative_brief"] = json.loads(brief_file.read_text(encoding="utf-8"))
             if overrides_file.exists():
                 content.update(json.loads(overrides_file.read_text(encoding="utf-8")))
-            (site_dir / "index.html").write_text(generate_page_html(lead, content), encoding="utf-8")
+            rendered = generate_page_html(lead, content)
+            quality = evaluate_redesign_preservation(content, rendered)
+            (site_dir / "quality-report.json").write_text(json.dumps(quality, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            if not quality["passed"]:
+                raise RuntimeError(f"Render bloqueado por perda de conteúdo/estrutura: {quality['checks']}")
+            (site_dir / "index.html").write_text(rendered, encoding="utf-8")
             await capture_comparison_screenshots(lead, site_dir)
             (site_dir / "proposta.html").write_text(generate_proposta_html(lead, content), encoding="utf-8")
             print(f"   ✅ Render atualizado sem consumir KIE: {site_dir}")
