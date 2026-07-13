@@ -1,137 +1,245 @@
 # Prospector IA Botz
 
-Funil completo de prospecção → redesign → deploy → proposta para negócios locais com site fraco.
+Plataforma de prospecção comercial que reúne descoberta de negócios, qualificação de sites, criação de redesigns com IA, publicação e preparação de outreach em um único painel.
 
-Painel web: dispare jobs sem terminal (Google Places / Apify → qualify site → redesign → aaPanel).
+O projeto foi desenhado para equipes que identificam negócios locais com presença digital fraca e precisam transformar essa oportunidade em uma demonstração visual pronta para revisão. O envio de mensagens fica em **modo rascunho por padrão**: nenhuma automação deve contactar um lead sem configuração e decisão explícitas do operador.
 
-## Início rápido
+## Principais recursos
+
+- Descoberta de leads via Google Places e Apify, com deduplicação e complemento automático de resultados.
+- Qualificação de sites inexistentes, indisponíveis ou com sinais de baixa qualidade.
+- Catálogo com 32 direções visuais e múltiplas composições por estilo.
+- Briefing criativo selecionado por nicho, histórico e LLM, com fallback determinístico.
+- Geração de copy sem inventar credenciais, serviços, avaliações ou depoimentos.
+- Imagens novas via KIE para hero, editorial e detalhe, com manifesto de assets.
+- Renderização responsiva com efeitos SVG, movimento reduzido e CTA de WhatsApp.
+- Capturas de desktop e mobile para revisão visual.
+- Deploy em aaPanel, DNS via Cloudflare e validação de HTTPS.
+- Rascunhos de e-mail e WhatsApp; Evolution API disponível somente quando o modo de envio é habilitado.
+- Painel Flask com funil, métricas, jobs assíncronos, configurações e histórico de outreach.
+- Worker com lock de processo para impedir jobs duplicados e consumo duplicado de APIs.
+
+## Fluxo
+
+```text
+Descoberta -> Qualificação -> Direção criativa -> Redesign
+          -> QA visual -> Publicação -> Rascunhos de outreach
+```
+
+1. O motor busca candidatos e normaliza os dados públicos encontrados.
+2. A qualificação identifica oportunidades, inclusive sites inválidos ou fora do ar.
+3. O catálogo e o LLM escolhem uma direção visual não usada recentemente para o lead.
+4. O redesign preserva fatos verificáveis, gera assets e grava o site em `sites/<slug>/`.
+5. O Playwright produz screenshots para conferência em desktop e mobile.
+6. A publicação cria um hostname seguro, envia os arquivos e valida DNS/HTTPS.
+7. O outreach produz arquivos revisáveis em `drafts/`; o envio real exige `envio.modo: "envio"`.
+
+## Arquitetura
+
+```text
+app/
+  api/                 APIs do painel
+  discovery/           busca e qualificação
+  jobs/                fila e runners assíncronos
+  llm/                 roteamento de provedores
+  static/, templates/  interface web
+skills/
+  deploy-aapanel/       DNS, upload e HTTPS
+  proposta-email/      geração de e-mail e follow-up
+  proposta-whatsapp/   drafts e integração Evolution
+  redesign-premium/    catálogo, assets, render e screenshots
+scripts/               importadores e automação de deploy
+worker.py               consumidor da fila com lock exclusivo
+wsgi.py                 entrada do servidor web
+```
+
+O estado operacional é local e não é versionado:
+
+- `prospector-config.json`: chaves e configuração ativa.
+- `prospector.db`: banco SQLite.
+- `sites/`: páginas e imagens geradas.
+- `drafts/`: mensagens e e-mails preparados.
+- `logs/`: logs de execução.
+
+## Requisitos
+
+- Linux ou macOS.
+- Python 3.10 ou superior.
+- Chromium do Playwright.
+- Credencial de ao menos um mecanismo de descoberta: Google Maps ou Apify.
+- Provedor LLM configurado para variações e copy assistida.
+- Opcionais: KIE, aaPanel, Cloudflare, Evolution API e Composio.
+
+## Instalação
 
 ```bash
 git clone https://github.com/ialabdigital-prog/prospector-iabotz.git
 cd prospector-iabotz
 ./install.sh
 cp prospector-config.example.json prospector-config.json
-# preencha maps.google_maps_api_key (ou apify) + auth.secret_key
-
-./prospector setup   # CLI
-# ou painel:
-./venv/bin/gunicorn -b 127.0.0.1:8765 wsgi:app &
-./venv/bin/python worker.py &
-# http://localhost:8765  (admin / prospector2026 por padrão via env)
 ```
 
-## 📋 Comandos Principais
+Edite apenas o arquivo local `prospector-config.json`. Ele está no `.gitignore` e nunca deve ser commitado.
 
-| Comando | Descrição |
-|---------|-----------|
-| `./prospector` | Menu guiado interativo |
-| `./prospector prospectar` | Buscar leads no Google Maps |
-| `./prospector redesenhar` | Redesenhar sites dos leads |
-| `./prospector publicar` | Deploy no aapanel local |
-| `./prospector proposta` | Gerar/enviar propostas |
-| `./prospector dashboard` | Gerenciar dashboard |
-| `./prospector setup` | Configuração completa |
-| `./prospector leads` | Ver leads atuais |
+Para criar o primeiro administrador, defina credenciais explícitas:
 
-## 🏗️ Arquitetura
-
-```
-prospector-iabotz/
-├── prospector                 # Entry point (menu guiado)
-├── install.sh                 # Instalação automática
-├── prospector-config.json     # Configuração central
-├── leads.md                   # Leads locais (backup)
-├── prospector.db              # SQLite (dashboard)
-├── sites/                     # Sites gerados por slug
-├── venv/                      # Virtual environment
-├── skills/
-│   ├── prospeccao-playwright/ # Scraper Playwright (headless)
-│   ├── deploy-aapanel/        # Deploy aapanel local
-│   ├── redesign-premium/      # Redesign de sites
-│   ├── proposta-email/        # Propostas por e-mail
-│   ├── contrato-servico/      # Contratos
-│   └── dashboard-leads/       # Dashboard SQLite
-├── commands/                  # Comandos CLI
-└── references/                # Templates e scripts
+```bash
+export PROSPECTOR_ADMIN_USER='admin'
+export PROSPECTOR_ADMIN_PASS='use-uma-senha-longa-e-unica'
+export PROSPECTOR_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
 ```
 
-## 🔧 Configuração (prospector-config.json)
+Inicie web e worker em terminais separados:
+
+```bash
+./venv/bin/gunicorn -b 127.0.0.1:8765 -w 2 --timeout 120 wsgi:app
+./venv/bin/python worker.py
+```
+
+Abra `http://127.0.0.1:8765`.
+
+## Configuração
+
+O arquivo `prospector-config.example.json` contém somente placeholders seguros. As seções mais importantes são:
+
+| Seção | Finalidade |
+|---|---|
+| `prospeccao` | Nichos, cidade, limites e critérios mínimos |
+| `maps` | Credenciais Google Maps/Apify e engine |
+| `llm` | Provedor, modelo e chave do roteador |
+| `redesign` | Direção, KIE, modelo de imagem e efeitos |
+| `aapanel` | Endpoint, token, domínio e diretórios de deploy |
+| `cloudflare` | Zona, token DNS e proxy |
+| `envio` | Modo seguro, canais e Evolution API |
+| `composio` | Integração opcional com Gmail |
+| `auth` | Secret da sessão web |
+
+Exemplo mínimo para desenvolvimento:
 
 ```json
 {
-  "assinatura": { "nome": "", "apresentacao": "", "whatsapp": "" },
-  "prospeccao": { 
-    "nichos": ["nutricionistas", "psicologos"], 
-    "cidade": "São Paulo", 
-    "leadsPorBusca": 10 
+  "maps": {
+    "google_maps_api_key": "",
+    "apify_api_key": "",
+    "engine": "auto"
   },
-  "playwright": { "headless": true, "stealth": true },
-  "aapanel": { 
-    "url": "https://panel.iabotz.online",
-    "api_token": "", "usuario": "", "senha": "",
-    "dominio_base": "panel.iabotz.online",
-    "usar_subpasta": false,
-    "ssl_auto": true
+  "llm": {
+    "default_provider": "openrouter",
+    "openrouter_api_key": "",
+    "openrouter_model": "openai/gpt-4o-mini"
   },
-  "deploy_target": "aapanel"
+  "envio": {
+    "modo": "rascunho",
+    "canais": ["email"]
+  },
+  "auth": {
+    "secret_key": "substitua-em-producao"
+  }
 }
 ```
 
-## 🔄 Fluxo de Trabalho
-
-```
-1. PROSPECÇÃO (Playwright headless)
-   └── Google Maps → Filtros → Leads qualificados → Google Sheets + leads.md + Dashboard
-
-2. REDESIGN
-   └── Lead → Site premium → Editor visual → Comparador antes/depois
-
-3. DEPLOY (aapanel local)
-   └── Site → aapanel API → Subdomínio → SSL Let's Encrypt → HTTPS verificado
-
-4. PROPOSTA
-   └── Página-capa → E-mail com rapport → Rascunho Gmail → Follow-up automático
-```
-
-## 🌐 aapanel Local
-
-**Subdomínio por cliente (recomendado):**
-```
-https://nutricionista-joao.panel.iabotz.online/
-https://clinica-psicologia-sp.panel.iabotz.online/
-```
-
-**Requisitos do servidor:**
-- aapanel instalado em `https://panel.iabotz.online`
-- API habilitada (Configurações → API → Gerar token)
-- DNS wildcard `*.panel.iabotz.online` → IP do servidor
-- Usuário FTP/SSH com acesso a `/www/wwwroot/`
-- Porta 22 (SSH) e 443 (HTTPS) abertas
-
-## 📊 Dashboard
+## CLI
 
 ```bash
-# Iniciar dashboard
-./iniciar-dashboard.sh
-# Acessar: http://localhost:8765
+./prospector setup
+./prospector prospectar
+./prospector redesenhar <slug|todos>
+./prospector publicar <slug|todos>
+./prospector proposta <slug|todos>
+./prospector proposta-whatsapp <slug|todos>
+./prospector followup
+./prospector followup-whatsapp
+./prospector dashboard
 ```
 
-Funcionalidades:
-- Kanban drag-drop (novo → redesenhado → publicado → proposta → fechado)
-- Edição inline de leads
-- Filtros, busca, paginação
-- Funil de conversão
-- Financeiro (receita, MRR, projeção 12m)
-- Contratos (pendente/enviado/assinado/pago)
+Para reconstruir o HTML e as screenshots com o briefing e assets já existentes, sem consumir novos créditos KIE:
 
-## 🛠️ Tecnologias
+```bash
+./prospector redesenhar <slug> --render-only
+```
 
-- **Playwright** (Chromium headless) - Prospecção no Google Maps
-- **aapanel API** - Deploy, SSL, sites
-- **Flask + SQLite** - Dashboard local
-- **Paramiko/rsync** - Upload SFTP
-- **Python 3.10+**
+## Provedores
 
-## 📝 Licença
+### Descoberta
 
-Uso interno - IA Botz / IALab Digital
+`maps.engine` aceita `google`, `apify` ou `auto`. No modo `auto`, resultados insuficientes do Google podem ser complementados pelo Apify e deduplicados antes da qualificação.
+
+### LLM
+
+O roteador suporta os provedores configurados no projeto e usa fallback quando um CLI local solicitado não está disponível. Não coloque chaves em argumentos, logs ou arquivos versionados.
+
+### Imagens
+
+Com `redesign.image_provider: "kie_mcp"`, cada nova direção visual solicita assets versionados em três proporções. Use `--render-only` quando a intenção for apenas aplicar correções de renderização aos assets existentes.
+
+### Outreach
+
+O padrão é:
+
+```json
+{ "envio": { "modo": "rascunho" } }
+```
+
+Nesse modo, e-mails e WhatsApp são gravados em `drafts/` e nenhuma chamada de envio é feita. Para envio real, configure o provedor, revise o conteúdo e altere deliberadamente o modo para `envio`.
+
+## Deploy
+
+O deploy público usa variáveis e configuração do seu próprio ambiente. Nunca registre domínio, endereço do servidor ou credenciais no código.
+
+```bash
+export PROSPECTOR_DOMAIN='prospector.example.com'
+export PROSPECTOR_ADMIN_USER='admin'
+export PROSPECTOR_ADMIN_PASS='senha-forte'
+sudo -E ./scripts/deploy-panel.sh
+```
+
+Para sites de prospects, configure aaPanel e Cloudflare no arquivo local. O hostname público é derivado e validado separadamente do slug interno; rótulos DNS longos são encurtados de forma determinística.
+
+## Segurança
+
+- Segredos e estado local são ignorados pelo Git.
+- Não use valores reais em `prospector-config.example.json`, documentação, fixtures ou screenshots.
+- Mantenha `envio.modo` como `rascunho` em desenvolvimento e testes.
+- Use tokens com escopo mínimo para Cloudflare, aaPanel, Google, Apify, KIE e LLM.
+- Troque `PROSPECTOR_SECRET_KEY` e a senha inicial em cada ambiente.
+- Restrinja o painel atrás de HTTPS e de uma política de acesso apropriada.
+- Antes de publicar alterações, execute um scanner de segredos e revise `git diff --cached`.
+
+Se uma credencial já tiver sido commitada, removê-la do arquivo não basta: revogue-a imediatamente e limpe o histórico com uma ferramenta apropriada.
+
+## Verificação
+
+Validação básica do código:
+
+```bash
+./venv/bin/python -m compileall -q app skills worker.py wsgi.py
+node --check app/static/js/panel.js
+```
+
+Health check local:
+
+```bash
+curl --fail http://127.0.0.1:8765/health
+```
+
+Antes de um deploy, valide também:
+
+- Login e criação do primeiro administrador.
+- Descoberta com limite pequeno.
+- Redesign e screenshots em desktop/mobile.
+- Ausência de overflow e erros JavaScript.
+- Visibilidade da imagem hero e do CTA no mobile.
+- Geração de drafts sem envio de rede.
+- DNS, certificado e resposta HTTPS do site publicado.
+
+## Privacidade e uso responsável
+
+Dados de leads podem conter informações pessoais ou comerciais. Use apenas fontes permitidas, respeite os termos dos provedores, a legislação aplicável e pedidos de opt-out. A existência de uma integração de envio não autoriza spam nem contato sem base legal.
+
+## Contribuição
+
+1. Crie uma branch a partir de `main`.
+2. Mantenha alterações pequenas e testáveis.
+3. Não adicione dados reais ou arquivos locais ignorados.
+4. Execute as verificações e revise o diff.
+5. Abra um pull request descrevendo comportamento, testes e riscos operacionais.

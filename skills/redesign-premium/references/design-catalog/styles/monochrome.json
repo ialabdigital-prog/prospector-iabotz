@@ -1,0 +1,71 @@
+{
+  "id": "monochrome",
+  "name": "Monochrome",
+  "mode": "light",
+  "font_type": "serif",
+  "description": "A stark, editorial design system built on pure black and white. No accent colors—just dramatic contrast, oversized serif typography, and precise geometric layouts. Evokes high-end fashion editorials and architectural portfolios. Austere, sophisticated, unapologetically bold.",
+  "source_url": "https://designprompts.dev/monochrome",
+  "raw_prompt": "raw/monochrome.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "monochrome"
+    ],
+    [
+      "name",
+      "Monochrome"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "A stark, editorial design system built on pure black and white. No accent colors—just dramatic contrast, oversized serif typography, and precise geometric layouts. Evokes high-end fashion editorials and architectural portfolios. Austere, sophisticated, unapologetically bold."
+    ],
+    [
+      "hero",
+      "Full-width single column: badge with dot indicator, massive oversized headline (9xl), decorative thick rule with small bordered square, subheadline, dual CTAs, trust indicator. No images—pure typography as the hero element. Heavy 4px bottom border."
+    ],
+    [
+      "stats",
+      "Horizontal strip, inverted (black bg, white text). 4-column grid on desktop, 2-col on mobile. Stats separated by vertical dividers. Oversized numbers in display serif, small caps labels, trend info. Subtle vertical line texture overlay for depth."
+    ],
+    [
+      "productDetail",
+      "Two-column editorial spread with section label. Left: large headline. Right: body text with boxed drop cap (bordered square containing first letter) on first paragraph. Grid pattern overlay for texture. Heavy 4px bottom border."
+    ],
+    [
+      "features",
+      "Dense 3-column grid with 1px gaps filled with black. Each feature card has bordered icon box + numbered label, headline, description. Cards invert colors on hover (100ms transition). Heavy 4px bottom border."
+    ],
+    [
+      "howItWorks",
+      "3-column centered layout. Bordered square boxes with large step numbers, connected by horizontal lines. Headline + description below each. Diagonal line texture overlay. Heavy 4px bottom border."
+    ],
+    [
+      "benefits",
+      "Checklist format with oversized checkmarks (custom SVG, not icons). Benefits as bold headlines with supporting text. Alternating alignment for visual interest."
+    ],
+    [
+      "pricing",
+      "3-column grid with 1px gaps. Highlighted tier is inverted (black bg) AND elevated vertically on desktop (-my-8, py-16) with subtle shadow. Non-highlighted tiers have hover bg change. Badge, name, price, description, feature list, CTA button. Heavy 4px bottom border."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "luxury",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "health"
+  ]
+}

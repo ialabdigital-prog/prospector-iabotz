@@ -1,0 +1,72 @@
+{
+  "id": "art-deco",
+  "name": "Art Deco",
+  "mode": "dark",
+  "font_type": "serif",
+  "description": "1920s Gatsby elegance, geometric precision, metallic gold accents, architectural symmetry, luxury heritage",
+  "source_url": "https://designprompts.dev/art-deco",
+  "raw_prompt": "raw/art-deco.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "art-deco"
+    ],
+    [
+      "name",
+      "Art Deco"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "1920s Gatsby elegance, geometric precision, metallic gold accents, architectural symmetry, luxury heritage"
+    ],
+    [
+      "hero",
+      "Centered symmetrical composition with massive uppercase serif headline. Radial sunburst gradient emanates from center. Vertical gold line divider adds architectural height. CTAs arranged horizontally with sharp borders and glow effects."
+    ],
+    [
+      "stats",
+      "Four-column grid with bordered boxes featuring stepped corner decorations. Large gold numbers with uppercase labels. Subtle hover state intensifies gold borders."
+    ],
+    [
+      "productDetail",
+      "Centered heading with two-column text layout below. Left-border accent on paragraphs. Contained in darker card background for depth separation."
+    ],
+    [
+      "features",
+      "Three-column responsive grid. Cards feature rotated diamond icon containers, corner decorative elements, and lift-on-hover micro-interaction. Icons rotate back on hover for theatrical effect."
+    ],
+    [
+      "blog",
+      "Three-column grid. Images with double-frame treatment (outer border + inner inset border). Grayscale images with gold overlay on hover. Film noir aesthetic with high contrast typography."
+    ],
+    [
+      "howItWorks",
+      "Vertical timeline with central gold divider line. Diamond-shaped step markers with Roman numerals. Alternating left-right text layout creates visual rhythm. Steps use geometric precision."
+    ],
+    [
+      "benefits",
+      "Two-column grid with large bordered cards. Corner flourishes (top-left, bottom-right). Rotated diamond checkmarks. Background darkens slightly on hover for depth."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "luxury",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "creative"
+  ]
+}

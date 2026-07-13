@@ -21,7 +21,7 @@ def create_job(
             (job_type, json.dumps(payload or {}, ensure_ascii=False), provider, created_by),
         )
         job_id = cur.lastrowid
-        conn.execute(
+        claimed = conn.execute(
             "INSERT INTO job_events (job_id, level, message) VALUES (?, 'info', ?)",
             (job_id, f"Job {job_type} enfileirado"),
         )
@@ -79,11 +79,15 @@ def claim_next_job() -> dict | None:
         ).fetchone()
         if not row:
             return None
-        conn.execute(
+        claimed = conn.execute(
             """UPDATE jobs SET status='running', started_at=datetime('now','localtime')
                WHERE id=? AND status='queued'""",
             (row["id"],),
         )
+        # More than one worker may wake up at once. Only the worker that
+        # successfully changed queued -> running owns this job.
+        if claimed.rowcount != 1:
+            return None
         return row_to_dict(
             conn.execute("SELECT * FROM jobs WHERE id=?", (row["id"],)).fetchone()
         )

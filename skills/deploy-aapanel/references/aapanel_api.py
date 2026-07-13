@@ -179,7 +179,7 @@ def build_deploy_config(config: Dict, slug: str) -> Dict:
     """Gera configuração de deploy para um slug"""
     aapanel = config.get('aapanel', {})
     usar_subdominio = aapanel.get('usar_subdominio', True)
-    dominio_base = aapanel.get('dominio_base', 'panel.iabotz.online')
+    dominio_base = aapanel.get('dominio_base', 'example.com')
     pasta_base = aapanel.get('pasta_base', 'clientes')
     php_version = aapanel.get('php_version', '82')
     ssl_auto = aapanel.get('ssl_auto', True)
@@ -365,11 +365,11 @@ if __name__ == '__main__':
     import asyncio
     config = {
         'aapanel': {
-            'url': 'https://panel.iabotz.online',
+            'url': 'https://panel.example.com',
             'api_token': 'SEU_TOKEN_AQUI',
             'usuario': 'root',
             'senha': 'senha_ssh',
-            'dominio_base': 'panel.iabotz.online',
+            'dominio_base': 'example.com',
             'pasta_base': 'clientes',
             'usar_subdominio': True,
             'ssl_auto': True,

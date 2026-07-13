@@ -1,0 +1,69 @@
+{
+  "id": "cyberpunk",
+  "name": "Cyberpunk",
+  "mode": "dark",
+  "font_type": "mono",
+  "description": "High contrast neon on black, glitch animations, terminal/monospace fonts, tech-oriented decorations. A dystopian digital aesthetic inspired by 80s sci-fi and hacker culture.",
+  "source_url": "https://designprompts.dev/cyberpunk",
+  "raw_prompt": "raw/cyberpunk.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "cyberpunk"
+    ],
+    [
+      "name",
+      "Cyberpunk"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "mono"
+    ],
+    [
+      "description",
+      "High contrast neon on black, glitch animations, terminal/monospace fonts, tech-oriented decorations. A dystopian digital aesthetic inspired by 80s sci-fi and hacker culture."
+    ],
+    [
+      "hero",
+      "Full-bleed dark canvas with massive glitched headline (text-5xl to text-8xl) featuring chromatic aberration and neon glow shadows. Asymmetric 60/40 split with terminal-style subheadline with typing cursor on left, holographic HUD display with animated panels on right. Grid background with radial gradient mask. Scanline overlay across entire page."
+    ],
+    [
+      "stats",
+      "Horizontal 2x2 grid on mobile, 4-column on desktop. Each stat in bordered section with monospace labels, large display numbers, and upward trend indicators. Subtle background glow. Border separators between stats."
+    ],
+    [
+      "productDetails",
+      "Centered holographic card with circuit grid background. Terminal-style label, large heading, and paragraphs prefixed with >> symbols. Authenticated session indicator at bottom with pulsing dot."
+    ],
+    [
+      "features",
+      "Three-column grid (stacks on mobile) with chamfered corner cards. Icon in bordered square that transitions to accent background on hover. Card titles change color on hover. Radial gradient background accent. Section header with overline label and gradient accent bars."
+    ],
+    [
+      "blog",
+      "Three-column grid of terminal-style cards with VHS scanline overlay on images. Stream ID badges on images. ISO date format, author name, and access link with arrow. Entire card lifts on hover with border glow."
+    ],
+    [
+      "howItWorks",
+      "Vertical timeline with center line. Diamond-shaped step markers (rotated squares) with neon glow. Steps alternate left/right on desktop, stack left on mobile. Terminal-style step numbers (STEP_01, etc)."
+    ],
+    [
+      "benefits",
+      "Two-column split - left has list of benefits with checkboxes that fill on hover, right has full syntax-highlighted code editor mockup with terminal window chrome (traffic lights), line numbers, and blinking cursor."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": []
+}

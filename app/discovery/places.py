@@ -163,9 +163,19 @@ class GooglePlacesService:
         for page in range(3):
             p = dict(params)
             if page_token:
-                time.sleep(1.2)
+                # Google activates legacy Places tokens asynchronously. A 1.2s
+                # wait regularly returns INVALID_REQUEST and silently stopped
+                # pagination after the first 20 results.
+                time.sleep(2.2)
                 p["pagetoken"] = page_token
             data = self._get(base_url, p)
+            if page_token and data.get("status") == "INVALID_REQUEST":
+                # Retry the pending token before treating the page as exhausted.
+                for _ in range(3):
+                    time.sleep(1.5)
+                    data = self._get(base_url, p)
+                    if data.get("status") != "INVALID_REQUEST":
+                        break
             status = data.get("status")
             if status == "REQUEST_DENIED":
                 raise RuntimeError(

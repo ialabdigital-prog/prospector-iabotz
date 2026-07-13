@@ -1,0 +1,69 @@
+{
+  "id": "swiss-minimalist",
+  "name": "Swiss",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "A rigorous implementation of the International Typographic Style (1950s). Characterized by objective typography, sans-serif fonts (Inter), mathematical grids with subtle texture patterns, and a strict black/white/red palette. Prioritizes readability, precision, asymmetrical organization, and visual depth through layered patterns.",
+  "source_url": "https://designprompts.dev/swiss-minimalist",
+  "raw_prompt": "raw/swiss-minimalist.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "swiss-minimalist"
+    ],
+    [
+      "name",
+      "Swiss"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A rigorous implementation of the International Typographic Style (1950s). Characterized by objective typography, sans-serif fonts (Inter), mathematical grids with subtle texture patterns, and a strict black/white/red palette. Prioritizes readability, precision, asymmetrical organization, and visual depth through layered patterns."
+    ],
+    [
+      "hero",
+      "Split screen composition with asymmetric 8:4 grid ratio. Left: massive typography (text-6xl to text-[10rem]) with geometric accent bar and functional CTAs. Right: geometric abstract composition with grid pattern overlay, featuring basic shapes (circles, rectangles, lines) in black/red on muted background."
+    ],
+    [
+      "stats",
+      "Horizontal strip divided by visible borders. 2x2 grid on mobile, 1x4 on desktop. Massive numbers with hover scale animation, rotating plus icons, and color inversion on hover (black → red). No decorative icons, pure data presentation."
+    ],
+    [
+      "productDetail",
+      "Split 7:5 grid. Left: 2x2 visual grid of geometric compositions with texture overlays (dots, diagonals, grid patterns). Right: large typographic headline with body text. Mobile stacks vertically."
+    ],
+    [
+      "features",
+      "Asymmetric two-column layout. Left: sticky header with dots pattern overlay and numbered label (01. System). Right: stacked feature cards with thick borders, numbered indicators, diagonal arrow icons, and full hover state color inversion."
+    ],
+    [
+      "howItWorks",
+      "Three-column grid with visible borders and black background. Each step features giant watermark numbers (text-8xl at 10% opacity), red accent border on left, and white text on black."
+    ],
+    [
+      "benefits",
+      "Asymmetric 5:7 grid split. Left: diagonal pattern overlay with section header. Right: stacked list items with numbered box indicators, hover state inverts to black background with red accent numbers."
+    ],
+    [
+      "testimonials",
+      "Three-column responsive grid (1 col mobile, 2 col tablet, 3 col desktop). Large red quotation mark, bold uppercase quote text, thick top border that changes to red on hover, subtle upward translation on hover."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "luxury",
+    "geometric"
+  ],
+  "best_for": [
+    "creative"
+  ]
+}

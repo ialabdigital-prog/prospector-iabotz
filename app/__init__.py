@@ -1,6 +1,8 @@
 """Prospector IA Botz — painel admin Flask."""
 from __future__ import annotations
 
+import os
+
 from flask import Flask
 
 from app.config import BASE_DIR, load_config
@@ -15,7 +17,11 @@ def create_app() -> Flask:
         static_url_path="/static",
     )
     cfg = load_config()
-    secret = cfg.get("auth", {}).get("secret_key") or "prospector-dev-change-me"
+    secret = (
+        os.environ.get("PROSPECTOR_SECRET_KEY")
+        or cfg.get("auth", {}).get("secret_key")
+        or "prospector-dev-change-me"
+    )
     app.secret_key = secret
     app.config["PROSPECTOR_CONFIG"] = cfg
 
@@ -29,6 +35,8 @@ def create_app() -> Flask:
     from app.api.stats import stats_bp
     from app.api.ui import ui_bp
     from app.api.emails import emails_bp
+    from app.api.outreach import outreach_bp
+    from app.api.maps import maps_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(leads_bp)
@@ -38,6 +46,8 @@ def create_app() -> Flask:
     app.register_blueprint(stats_bp)
     app.register_blueprint(ui_bp)
     app.register_blueprint(emails_bp)
+    app.register_blueprint(outreach_bp)
+    app.register_blueprint(maps_bp)
 
     @app.get("/health")
     def health():

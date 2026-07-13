@@ -1,0 +1,69 @@
+{
+  "id": "kinetic",
+  "name": "Kinetic",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "Motion-first design where typography is the primary visual medium. Features infinite marquees, viewport-scaled text, scroll-triggered animations, and aggressive uppercase styling. High contrast, brutalist energy with rhythmic movement.",
+  "source_url": "https://designprompts.dev/kinetic",
+  "raw_prompt": "raw/kinetic.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "kinetic"
+    ],
+    [
+      "name",
+      "Kinetic"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Motion-first design where typography is the primary visual medium. Features infinite marquees, viewport-scaled text, scroll-triggered animations, and aggressive uppercase styling. High contrast, brutalist energy with rhythmic movement."
+    ],
+    [
+      "hero",
+      "Full viewport height (90vh) with massive text using clamp() for responsive scaling (clamp(3rem,12vw,14rem)). Split headlines across lines with contrasting accent color. Add scroll-triggered scale (1.0→1.2) and opacity (1.0→0) transforms via Framer Motion. Center content with max-w-[95vw]."
+    ],
+    [
+      "stats",
+      "Infinite horizontal marquee on full-width accent background (py-8). Display huge numbers (6xl-8xl) paired with uppercase labels and decorative symbols (✦). Use react-fast-marquee with speed 80, no gradients—raw, continuous motion with border-y dividers."
+    ],
+    [
+      "productDetail",
+      "Two-column grid on desktop with massive heading (5xl-8xl uppercase). Each column has left border-l-4 with massive background numbers (6rem-8rem) positioned absolutely. Paragraphs in muted color with generous line-height. Numbers change color on hover."
+    ],
+    [
+      "features",
+      "Sticky scroll cards (top-24/top-32) that stack vertically as user scrolls. Display massive index numbers (6xl-8xl) in muted tones. Feature titles in accent color at 3xl-6xl uppercase. Sharp 2px borders that highlight on hover. Cards use p-8/p-12 with responsive flex layout."
+    ],
+    [
+      "blog",
+      "2-3 column grid (md:grid-cols-2 lg:grid-cols-3) with gap-px hairline dividers. Each card shows massive background number (3rem-4rem), uppercase title with translate-x-4 hover effect. Author and date in footer with border-top. Hover transitions to muted background."
+    ],
+    [
+      "howItWorks",
+      "Three-column grid with gap-px hairline dividers creating connected cards. Massive step numbers (8rem-12rem) at top, content at bottom. Full card color inversion on hover (background to accent, text to black). Min-height 500-600px for dramatic scale."
+    ],
+    [
+      "benefits",
+      "Full-width list with border-b dividers. Massive titles (4xl-7xl) that translate horizontally on hover (translate-x-4/translate-x-8). Descriptions fade in on hover (opacity-0→100) on desktop, always visible on mobile. Text-right alignment for descriptions on desktop."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "fitness"
+  ]
+}

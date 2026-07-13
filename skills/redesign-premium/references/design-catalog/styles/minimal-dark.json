@@ -1,0 +1,68 @@
+{
+  "id": "minimal-dark",
+  "name": "Simple Dark",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "An atmospheric dark mode design system built on deep slate tones with warm amber accents. Features ambient glow effects, glass-like translucent cards, geometric typography, and generous breathing room. Ethereal yet grounded—like a premium app at midnight.",
+  "source_url": "https://designprompts.dev/minimal-dark",
+  "raw_prompt": "raw/minimal-dark.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "minimal-dark"
+    ],
+    [
+      "name",
+      "Simple Dark"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "An atmospheric dark mode design system built on deep slate tones with warm amber accents. Features ambient glow effects, glass-like translucent cards, geometric typography, and generous breathing room. Ethereal yet grounded—like a premium app at midnight."
+    ],
+    [
+      "hero",
+      "Centered layout with massive headline. Ambient glow behind text creates depth. Trust badge floats above with subtle glow and pulsing dot. CTAs side by side with amber glow effect on primary button hover. Background has very subtle radial gradient warmth."
+    ],
+    [
+      "stats",
+      "Horizontal strip with glass-effect background. Stats separated by subtle vertical dividers (1px, low opacity). Numbers in display font with amber accent. Subtle top/bottom borders."
+    ],
+    [
+      "productDetail",
+      "Two-column layout. Left side has ambient glow orb decoration. Text content right-aligned on left column. Right column has floating glass card with abstract UI mockup inside."
+    ],
+    [
+      "features",
+      "Clean 3-column grid of glass cards. Icons in amber-tinted circles. Hover reveals subtle glow. First feature can span 2 columns for emphasis. Consistent card heights."
+    ],
+    [
+      "howItWorks",
+      "Horizontal numbered steps. Large circled numbers with amber fill. Connecting line between steps (subtle, dashed). Cards below each with glass effect."
+    ],
+    [
+      "benefits",
+      "Split layout with large ambient orb on left side. Benefits as a clean list on right with amber checkmarks. Generous spacing between items."
+    ],
+    [
+      "pricing",
+      "3-column glass cards. Highlighted tier has amber border glow, 'Popular' badge, and is slightly larger (scale-105 + translate-y-4 on desktop for prominence). Prices large in display font. Feature lists with subtle checkmarks."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "luxury",
+    "geometric",
+    "dark"
+  ],
+  "best_for": []
+}

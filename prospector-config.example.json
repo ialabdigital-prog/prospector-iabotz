@@ -13,7 +13,34 @@
     "avaliacoesMinimas": 40
   },
   "envio": {
-    "modo": "rascunho"
+    "modo": "rascunho",
+    "canais": ["email"],
+    "whatsapp": {
+      "provedor": "evolution_api",
+      "evolution_api": {
+        "url": "http://localhost:8080",
+        "api_key": "",
+        "instance": "prospector"
+      },
+      "evolution_go": {
+        "url": "http://localhost:3100",
+        "api_key": "",
+        "instance": "prospector"
+      }
+    }
+  },
+  "automation": {
+    "enabled": false,
+    "redesign": true,
+    "publish": true,
+    "outreach": false
+  },
+  "redesign": {
+    "direction": "auto",
+    "image_provider": "source",
+    "image_model": "",
+    "kie_api_key": "",
+    "parallax": true
   },
   "composio": {
     "api_key": "",

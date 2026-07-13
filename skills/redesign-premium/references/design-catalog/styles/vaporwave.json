@@ -1,0 +1,69 @@
+{
+  "id": "vaporwave",
+  "name": "Vaporwave",
+  "mode": "dark",
+  "font_type": "mono",
+  "description": "A nostalgic, neon-drenched journey into 80s retro-futurism. High-contrast neon pinks and cyans against deep void purples. Digital grids, glowing horizons, surreal sunset gradients, and CRT scanline overlays create an immersive synthetic world.",
+  "source_url": "https://designprompts.dev/vaporwave",
+  "raw_prompt": "raw/vaporwave.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "vaporwave"
+    ],
+    [
+      "name",
+      "Vaporwave"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "mono"
+    ],
+    [
+      "description",
+      "A nostalgic, neon-drenched journey into 80s retro-futurism. High-contrast neon pinks and cyans against deep void purples. Digital grids, glowing horizons, surreal sunset gradients, and CRT scanline overlays create an immersive synthetic world."
+    ],
+    [
+      "hero",
+      "Full-screen immersive perspective grid floor with floating neon sun gradient backdrop. Massive glowing headline split across two lines with gradient text effect. Skewed neon-bordered CTAs with transforming hover states. Version badge with skewed container."
+    ],
+    [
+      "stats",
+      "Dashboard row with bordered stat containers featuring gradient top accent bars. Hover states trigger cyan glow and color transitions. Grid layout adapts from 4 columns to stacked on mobile."
+    ],
+    [
+      "productDetail",
+      "Terminal window interface with cyan borders and window control dots. Split layout with content on left and visual placeholder on right. Command-line styled text prefixes."
+    ],
+    [
+      "features",
+      "Grid of glass-morphic cards with cyan laser top borders and pink side borders. Rotating diamond icon containers that spin on hover. Cards lift upward on hover with smooth transitions."
+    ],
+    [
+      "blog",
+      "Grid of retro data tape/file cards with duotone gradient overlays on images. Hover triggers cyan border glow and card shadow expansion."
+    ],
+    [
+      "howItWorks",
+      "Vertical timeline with alternating left-right steps. Central pink checkpoint dots with glow effects. Bordered step containers with corner accent decorations. Background dot pattern overlay."
+    ],
+    [
+      "benefits",
+      "Windows 95-inspired file explorer window with title bar and status bar. Grid of file icons with centered layouts. Hover states change background to pink tint."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": []
+}

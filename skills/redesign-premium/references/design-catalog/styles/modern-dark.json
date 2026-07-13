@@ -1,0 +1,69 @@
+{
+  "id": "modern-dark",
+  "name": "Modern Dark",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "A cinematic, high-precision dark mode design featuring layered ambient lighting through animated gradient blobs, mouse-tracking spotlight effects, and meticulously crafted micro-interactions that feel like premium software.",
+  "source_url": "https://designprompts.dev/modern-dark",
+  "raw_prompt": "raw/modern-dark.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "modern-dark"
+    ],
+    [
+      "name",
+      "Modern Dark"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A cinematic, high-precision dark mode design featuring layered ambient lighting through animated gradient blobs, mouse-tracking spotlight effects, and meticulously crafted micro-interactions that feel like premium software."
+    ],
+    [
+      "hero",
+      "Centered cinematic hero with parallax scroll effects, gradient headline treatment, and floating announcement badge with ping animation. Trust indicators displayed as overlapping avatars below CTAs."
+    ],
+    [
+      "stats",
+      "Bold 4-column grid with gradient text for numbers, trend badges, and subtle hover glow effects. Numbers use massive typography (text-7xl) with gradient fills."
+    ],
+    [
+      "productDetail",
+      "Split 2-column layout with text content on left and mock interface visual on right. Mock interface includes macOS-style window controls and abstract UI components with accent highlights."
+    ],
+    [
+      "features",
+      "Asymmetric 6-column bento grid with varying card sizes. Hero feature card spans 4 columns and 2 rows with integrated data visualization. Cards use mouse-tracking spotlight effects."
+    ],
+    [
+      "blog",
+      "Magazine-style 3-column grid with hover-zoom images, gradient overlays on hover, and clean metadata presentation. Images have subtle opacity transitions."
+    ],
+    [
+      "howItWorks",
+      "3-column grid with numbered cards featuring glowing accent borders. Step numbers displayed in large format with glow effects. Connection line spans across cards on desktop."
+    ],
+    [
+      "benefits",
+      "Sticky left column with scrolling right column. Right side features stacked cards with checkmark icons and hover border accent effects."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "dark"
+  ],
+  "best_for": [
+    "technology"
+  ]
+}

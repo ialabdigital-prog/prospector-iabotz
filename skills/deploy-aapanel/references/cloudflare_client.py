@@ -8,6 +8,7 @@ Cria/atualiza CNAME records para subdomínios de prospects
 import os
 import json
 import time
+import re
 from typing import Dict, List, Optional, Any
 from cloudflare import Cloudflare
 
@@ -20,7 +21,7 @@ class CloudflareClient:
         api_token: str = None,
         api_key: str = None,
         api_email: str = None,
-        zone_name: str = "iabotz.online"
+        zone_name: str = "example.com"
     ):
         """
         Inicializa cliente Cloudflare.
@@ -33,7 +34,7 @@ class CloudflareClient:
             api_token: API Token scoped (formato novo)
             api_key: Global API Key (32+ chars, formato antigo)
             api_email: Email da conta Cloudflare (obrigatório com api_key)
-            zone_name: Nome da zona DNS (ex: iabotz.online)
+            zone_name: Nome da zona DNS (ex: example.com)
         """
         self.zone_name = zone_name
         self._zone_id = None
@@ -106,23 +107,38 @@ class CloudflareClient:
                 }
         return None
 
-    def create_cname(self, subdomain: str, target: str = "panel.iabotz.online", proxied: bool = True, ttl: int = 1) -> Dict:
+    def create_cname(self, subdomain: str, target: str, proxied: bool = True, ttl: int = 1) -> Dict:
         """Cria ou atualiza CNAME. subdomain = relativo à zona (ex.: 'cliente' ou 'cliente.panel')."""
+        labels = subdomain.strip(".").split(".")
+        if not labels or any(not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label) for label in labels):
+            raise ValueError(f"Subdomínio DNS inválido: {subdomain}")
         zone_id = self._get_zone_id()
         name = subdomain
         existing = self.get_record(subdomain)
         if existing:
             return self.update_cname(existing["id"], existing["name"], target, proxied)
 
-        record = self.client.dns.records.create(
-            zone_id=zone_id,
-            type="CNAME",
-            name=name,
-            content=target,
-            proxied=proxied,
-            ttl=ttl,
-        )
-        return {"success": True, "id": record.id, "record": record}
+        try:
+            record = self.client.dns.records.create(
+                zone_id=zone_id,
+                type="CNAME",
+                name=name,
+                content=target,
+                proxied=proxied,
+                ttl=ttl,
+            )
+            return {"success": True, "id": record.id, "record": record}
+        except Exception as exc:
+            # A parallel deploy can create the same record after our initial
+            # lookup. Cloudflare then returns 81053; retry the lookup and use
+            # the record that won the race instead of failing the deploy.
+            if "81053" not in str(exc):
+                raise
+            time.sleep(1)
+            existing = self.get_record(subdomain)
+            if existing:
+                return self.update_cname(existing["id"], existing["name"], target, proxied)
+            raise
 
     def update_cname(self, record_id: str, name: str, target: str, proxied: bool = True) -> Dict:
         """Atualiza registro CNAME existente"""
@@ -170,7 +186,7 @@ def get_cloudflare_client(config: Dict) -> Optional[CloudflareClient]:
     api_token = cf_config.get('api_token')
     api_key = cf_config.get('api_key')
     api_email = cf_config.get('email')
-    zone = cf_config.get('zone', 'iabotz.online')
+    zone = cf_config.get('zone') or 'example.com'
 
     # Se tem api_key + email, usa Global API Key
     # Se tem api_token, usa API Token
@@ -188,7 +204,7 @@ def create_prospect_dns(slug: str, config: Dict) -> Dict:
         return {'success': False, 'error': 'Cloudflare não configurado'}
 
     subdomain = f"{slug}.panel"
-    target = "panel.iabotz.online"
+    target = (config.get("aapanel") or {}).get("dns_target") or "origin.example.com"
 
     return cf.create_cname(subdomain, target, proxied=True)
 
@@ -207,40 +223,3 @@ def verify_dns_ready(slug: str, config: Dict, max_wait: int = 60) -> bool:
             return True
         time.sleep(5)
     return False
-
-
-if __name__ == '__main__':
-    # Teste rápido
-    import json
-    with open('/home/clawd/workspace/prospector-iabotz/prospector-config.json') as f:
-        config = json.load(f)
-
-    cf_config = config.get('cloudflare', {})
-    print('Config Cloudflare:')
-    print(f'  Email: {cf_config.get("email")}')
-    print(f'  Zone: {cf_config.get("zone")}')
-    print(f'  Token: {"***" if cf_config.get("api_token") else "VAZIO"}')
-    print(f'  API Key: {"***" if cf_config.get("api_key") else "VAZIO"}')
-
-    if cf_config.get('api_token'):
-        # Se tem api_token, usa como API Token (scoped)
-        cf = CloudflareClient(api_token=cf_config['api_token'], zone_name='iabotz.online')
-    elif cf_config.get('api_key') and cf_config.get('email'):
-        # Se tem api_key + email, usa Global API Key
-        cf = CloudflareClient(
-            api_key=cf_config['api_key'],
-            api_email=cf_config['email'],
-            zone_name=cf_config.get('zone', 'iabotz.online')
-        )
-    else:
-        print("⚠️  Cloudflare não configurado")
-        exit(0)
-
-    try:
-        print('\nTestando conexão...')
-        records = cf.list_records()
-        print(f'✅ Cloudflare conectado! {len(records)} registros CNAME')
-        for r in records[:5]:
-            print(f'  {r["name"]} -> {r["content"]} (proxied: {r["proxied"]})')
-    except Exception as e:
-        print(f'❌ Erro: {e}')

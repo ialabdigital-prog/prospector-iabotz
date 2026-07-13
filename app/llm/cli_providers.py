@@ -55,7 +55,9 @@ def codex_available() -> Tuple[bool, str]:
         )
         raw = (p.stdout or p.stderr or "").strip()
         ver = raw.splitlines()[0][:100] if raw else "ok"
-        return p.returncode == 0, f"{ver} · {path}"
+        if p.returncode != 0 or "codex" not in raw.lower():
+            return False, f"binário incompatível em {path}"
+        return True, f"{ver} · {path}"
     except Exception as e:
         return False, str(e)
 

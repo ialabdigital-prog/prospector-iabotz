@@ -1,0 +1,70 @@
+{
+  "id": "newsprint",
+  "name": "Newsprint",
+  "mode": "light",
+  "font_type": "serif",
+  "description": "Stark black and white, high contrast, tight grids, newspaper aesthetic, sharp lines, editorial depth.",
+  "source_url": "https://designprompts.dev/newsprint",
+  "raw_prompt": "raw/newsprint.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "newsprint"
+    ],
+    [
+      "name",
+      "Newsprint"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "Stark black and white, high contrast, tight grids, newspaper aesthetic, sharp lines, editorial depth."
+    ],
+    [
+      "hero",
+      "Split 8-col/4-col grid. Main column has massive headline (5xl → 9xl), drop-cap intro paragraph, and CTA buttons. Side column contains stats box and ad placeholder with borders."
+    ],
+    [
+      "stats",
+      "Full-width black background ticker with horizontal marquee. Monospace labels, bold values, red accent badges."
+    ],
+    [
+      "features",
+      "4-column top grid with icons in bordered boxes, 3-column bottom grid with bullet points. All cells separated by black borders (collapsed grid style)."
+    ],
+    [
+      "blog",
+      "3-column grid with bordered card style. Grayscale images with sepia hover, date/author metadata in monospace, underline on hover."
+    ],
+    [
+      "howItWorks",
+      "Dark inverted section (black bg, white text). 3-column grid with numbered red boxes, horizontal connecting line, vertical layout breakdown."
+    ],
+    [
+      "benefits",
+      "Editorial 5-col/7-col split. Left has illustration placeholder, right has numbered list in 2-column text layout."
+    ],
+    [
+      "testimonials",
+      "2-column grid with large quote marks, serif quotes, bordered author cards with grayscale images."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "legal",
+    "food"
+  ]
+}

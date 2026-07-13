@@ -1,0 +1,68 @@
+{
+  "id": "aurora-mesh",
+  "name": "Aurora Mesh",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "Flowing mesh gradients, aurora effects, vibrant color transitions, modern startup aesthetic inspired by Stripe and Vercel",
+  "source_url": "https://designprompts.dev/aurora-mesh",
+  "raw_prompt": "raw/aurora-mesh.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "aurora-mesh"
+    ],
+    [
+      "name",
+      "Aurora Mesh"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Flowing mesh gradients, aurora effects, vibrant color transitions, modern startup aesthetic inspired by Stripe and Vercel"
+    ],
+    [
+      "hero",
+      "Full-height hero with animated mesh gradient background. Split layout with headline left (massive typography with gradient text fill), floating 3D-ish card mockup right with aurora glow underneath. CTAs have pill shapes with gradient borders."
+    ],
+    [
+      "stats",
+      "Horizontal strip with glass-morphic stat cards floating over a subtle aurora wave. Each stat has a glowing accent bar on top indicating its category color."
+    ],
+    [
+      "features",
+      "Asymmetric bento grid with varying card sizes. Cards have dark glass backgrounds with colored gradient borders that pulse subtly. Icons sit in gradient orbs."
+    ],
+    [
+      "howItWorks",
+      "Vertical timeline with a glowing gradient line connecting steps. Each step card has a mesh gradient corner accent. Numbers are oversized with gradient fills."
+    ],
+    [
+      "benefits",
+      "Two-column layout with benefit cards stacked. Each card has an aurora streak across the top edge. Checkmark icons with gradient fills."
+    ],
+    [
+      "pricing",
+      "Three cards with the featured card elevated and wrapped in an animated gradient border. Background has slow-moving mesh gradient. Prices use gradient text."
+    ],
+    [
+      "testimonials",
+      "Carousel or masonry of quote cards with avatar images having gradient ring borders. Quote marks are oversized with aurora gradient fills."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "geometric",
+    "dark"
+  ],
+  "best_for": []
+}

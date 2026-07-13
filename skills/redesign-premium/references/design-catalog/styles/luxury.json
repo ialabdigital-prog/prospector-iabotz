@@ -1,0 +1,71 @@
+{
+  "id": "luxury",
+  "name": "Luxury",
+  "mode": "light",
+  "font_type": "serif",
+  "description": "Elegant serif typography with monochromatic palette and gold accents. Ultra-slow animations, generous white space, and architectural precision. High-end fashion magazine editorial aesthetic with depth through subtle shadows and layering.",
+  "source_url": "https://designprompts.dev/luxury",
+  "raw_prompt": "raw/luxury.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "luxury"
+    ],
+    [
+      "name",
+      "Luxury"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "Elegant serif typography with monochromatic palette and gold accents. Ultra-slow animations, generous white space, and architectural precision. High-end fashion magazine editorial aesthetic with depth through subtle shadows and layering."
+    ],
+    [
+      "hero",
+      "Asymmetric 12-column grid with text content in left 7 columns (bottom-aligned) and hero image in right 5 columns. Decorative horizontal line and 'Est. 2024' label. Massive type scale (text-5xl to text-9xl). Vertical writing mode label on image. Hero image has shadow and inner border."
+    ],
+    [
+      "stats",
+      "Horizontal strip with 2-4 column grid. Vertical left border on each stat. Large italic Playfair numerals with tiny uppercase labels. Responsive: 2 cols mobile, 4 cols desktop."
+    ],
+    [
+      "productDetail",
+      "Two-column asymmetric layout (5/6 split with offset). Headline on left with gold italic accent. Body text on right with drop cap on first paragraph."
+    ],
+    [
+      "features",
+      "Alternating image-text layout with offset columns. Images 3:4 aspect ratio with shadow, grayscale default. Text in 4 columns offset from edges. Numbered labels (01, 02) in gold. 'Read More' link buttons."
+    ],
+    [
+      "howItWorks",
+      "Dark section with inverted palette. Grid of cards with 1px gap simulated borders. Each card has numbered step label, title, and description. Hover effect darkens background."
+    ],
+    [
+      "benefits",
+      "Dark section with horizontal line dividers above each benefit (hover turns gold). 3-column grid. Section header split across columns."
+    ],
+    [
+      "pricing",
+      "Minimalist cards with top border only. Featured tier has 4px gold top border and 'Most Popular' badge. Subtle shadows that deepen on hover. Check mark list with gold icons."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "luxury",
+    "dark"
+  ],
+  "best_for": [
+    "health",
+    "legal",
+    "creative"
+  ]
+}

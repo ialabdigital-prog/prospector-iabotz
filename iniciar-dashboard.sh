@@ -7,4 +7,7 @@ else
   ./venv/bin/gunicorn -b 127.0.0.1:8765 -w 2 --timeout 120 wsgi:app &
   ./venv/bin/python worker.py &
 fi
-echo "Painel: https://prospector.iabotz.online/  (local :8765)"
+echo "Painel local: http://127.0.0.1:8765"
+if [ -n "${PROSPECTOR_PUBLIC_URL:-}" ]; then
+  echo "Painel público: ${PROSPECTOR_PUBLIC_URL}"
+fi

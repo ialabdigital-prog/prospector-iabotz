@@ -71,7 +71,7 @@ def generate_followup_body(lead: Dict, config: Dict) -> str:
     apresentacao = assinatura.get('apresentacao', '')
     whatsapp = assinatura.get('whatsapp', '')
     
-    url_capa = f"https://{lead['slug']}.panel.iabotz.online/proposta.html"
+    url_capa = f"{(lead.get('urlNova') or '').rstrip('/')}/proposta.html"
     
     return f"""<!DOCTYPE html>
 <html>
@@ -81,7 +81,7 @@ def generate_followup_body(lead: Dict, config: Dict) -> str:
     <p>Só passando pra saber se conseguiu dar uma olhada na nova versão do site que te mandei.</p>
     
     <p style="text-align: center; margin: 24px 0;">
-        <a href="https://{lead['slug']}.panel.iabotz.online/proposta.html" style="display: inline-block; background: #1e40af; color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none;">
+        <a href="{url_capa}" style="display: inline-block; background: #1e40af; color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none;">
             Ver a proposta →
         </a>
     </p>

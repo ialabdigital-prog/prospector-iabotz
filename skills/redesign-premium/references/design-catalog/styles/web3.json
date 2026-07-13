@@ -1,0 +1,70 @@
+{
+  "id": "web3",
+  "name": "Crypto",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "A bold, futuristic aesthetic inspired by Bitcoin and decentralized finance. Deep void backgrounds with Bitcoin orange accents, golden highlights, glowing elements, and precision data visualization.",
+  "source_url": "https://designprompts.dev/web3",
+  "raw_prompt": "raw/web3.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "web3"
+    ],
+    [
+      "name",
+      "Crypto"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A bold, futuristic aesthetic inspired by Bitcoin and decentralized finance. Deep void backgrounds with Bitcoin orange accents, golden highlights, glowing elements, and precision data visualization."
+    ],
+    [
+      "hero",
+      "Split layout with 60/40 ratio. Left: Massive headline with Bitcoin orange gradient text and trust badge. Right: Floating animated 3D orb with spinning orbital rings and floating stat cards. Background features subtle grid pattern with radial gradient blur effects."
+    ],
+    [
+      "stats",
+      "Horizontal grid of four key metrics with monospace numbers, uppercase labels, and subtle trend indicators. Dark surface background with top/bottom borders for ticker-tape feel."
+    ],
+    [
+      "productDetail",
+      "Two-column layout with mockup on left, content on right. Abstract UI mockup with glass morphism, grid backgrounds, and holographic gradients."
+    ],
+    [
+      "features",
+      "Three-column grid of elevated cards with background icon watermarks, glowing accent borders on hover, and icon containers with gradient backgrounds."
+    ],
+    [
+      "blog",
+      "Three-column grid of image-led cards. Full-bleed images with gradient overlays, date badges, and hover scale effects that increase contrast."
+    ],
+    [
+      "howItWorks",
+      "Vertical timeline with centered connection line. Alternating left/right content cards with numbered nodes on the centerline. Cards have corner accent borders."
+    ],
+    [
+      "benefits",
+      "Three-column grid of cards with check icons in glowing circles. Gradient borders appear on hover."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "technology"
+  ]
+}

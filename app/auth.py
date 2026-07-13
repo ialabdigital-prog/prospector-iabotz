@@ -13,13 +13,15 @@ auth_bp = Blueprint("auth", __name__)
 
 
 def ensure_admin_user() -> None:
-    """Create admin from env or defaults if no users exist."""
+    """Create the first admin only from explicit environment credentials."""
     with db() as conn:
         n = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         if n > 0:
             return
-        username = os.environ.get("PROSPECTOR_ADMIN_USER", "admin")
-        password = os.environ.get("PROSPECTOR_ADMIN_PASS", "prospector2026")
+        username = (os.environ.get("PROSPECTOR_ADMIN_USER") or "").strip()
+        password = os.environ.get("PROSPECTOR_ADMIN_PASS") or ""
+        if not username or not password:
+            raise RuntimeError("Defina PROSPECTOR_ADMIN_USER e PROSPECTOR_ADMIN_PASS antes do primeiro acesso")
         conn.execute(
             "INSERT INTO users (username, password_hash) VALUES (?, ?)",
             (username, generate_password_hash(password)),

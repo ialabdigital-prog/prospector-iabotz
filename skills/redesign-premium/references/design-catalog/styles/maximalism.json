@@ -1,0 +1,70 @@
+{
+  "id": "maximalism",
+  "name": "Maximalism",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "Clashing patterns, dense layouts, oversaturated colors, intentional visual clutter. MORE IS MORE.",
+  "source_url": "https://designprompts.dev/maximalism",
+  "raw_prompt": "raw/maximalism.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "maximalism"
+    ],
+    [
+      "name",
+      "Maximalism"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Clashing patterns, dense layouts, oversaturated colors, intentional visual clutter. MORE IS MORE."
+    ],
+    [
+      "hero",
+      "Full-viewport explosion with overlapping elements, floating animated shapes (stars, sparkles, emoji), massive background typography bleeding off edges, stacked multi-color text shadows, and chaotic visual layers with pattern overlays."
+    ],
+    [
+      "stats",
+      "Full-width chaotic mosaic grid (2x2 on mobile, 4 columns on desktop) with each stat in a different vibrant background color. Pattern dot overlays, rotated numbers with layered text shadows, and star decorations that rotate on hover."
+    ],
+    [
+      "productDetails",
+      "Two-column layout with animated concentric spinning circles on left (visual chaos with floating icons at cardinal points). Right side features layered container with offset shadow layer, multi-shadow card, and bordered paragraphs alternating colors."
+    ],
+    [
+      "features",
+      "3-column grid with alternating vertical offsets (staggered layout). Each card has colored icon container with rotation on hover, colored header backgrounds with transparency, and multi-layered hard shadows that intensify on hover."
+    ],
+    [
+      "blog",
+      "3-column grid with middle card offset vertically. Overlapping card stack with dramatic hover lift effects, colored date badges, gradient image overlays, and scale/rotation transitions."
+    ],
+    [
+      "howItWorks",
+      "3-step layout with horizontal connecting gradient line, numbered circles with different accent colors, cards offset vertically on alternating steps, and centered content."
+    ],
+    [
+      "benefits",
+      "Two-column asymmetric layout with left column containing title/CTA and right column with stacked benefit cards. Each card has colored border, icon circle, and transforms on hover (translate + scale)."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "creative"
+  ]
+}

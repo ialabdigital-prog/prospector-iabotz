@@ -1,0 +1,71 @@
+{
+  "id": "playful-geometric",
+  "name": "Playful Geometric",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "A vibrant, high-energy aesthetic that combines a stable structural grid with whimsical geometric decorations. It relies on bright solid colors, simple primitive shapes (circles, triangles, squiggles), and tactile interactions to create a friendly, optimistic vibe reminiscent of modern Memphis design.",
+  "source_url": "https://designprompts.dev/playful-geometric",
+  "raw_prompt": "raw/playful-geometric.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "playful-geometric"
+    ],
+    [
+      "name",
+      "Playful Geometric"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A vibrant, high-energy aesthetic that combines a stable structural grid with whimsical geometric decorations. It relies on bright solid colors, simple primitive shapes (circles, triangles, squiggles), and tactile interactions to create a friendly, optimistic vibe reminiscent of modern Memphis design."
+    ],
+    [
+      "hero",
+      "Centralized or split layout where the main headline is framed by floating geometric primitives (3D-looking flat shapes). The CTA button sits on a 'blob' or irregular shape background. Background features a subtle dot pattern."
+    ],
+    [
+      "stats",
+      "Row of colorful distinct shapes (circle, square, triangle, hexagon) acting as containers for the numbers. The containers vibrate or rotate slightly on hover."
+    ],
+    [
+      "productDetail",
+      "Two-column layout. Image side has a 'collage' feel with offset colored rectangles behind the main product image. Text side uses substantial padding and colorful bullets."
+    ],
+    [
+      "features",
+      "Bento-box style grid, but each cell has a different playful background color (very light tints) or border radius strategy (some fully round, some leaf-shaped). Icons are solid, colorful circles."
+    ],
+    [
+      "blog",
+      "Masonry or grid where featured images are clipped into interesting shapes (arch, pill, circle). Titles use a chunky display font. Tags look like little stickers."
+    ],
+    [
+      "howItWorks",
+      "Horizontal or vertical timeline connected by a literal dashed SVG line that loops and squiggles between steps. Step numbers are inside solid colored stars or bursts."
+    ],
+    [
+      "benefits",
+      "Alternating layout. Each benefit text block is paired with a large, abstract geometric composition (e.g., a square balancing on a circle) representing the concept."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "food",
+    "family"
+  ]
+}

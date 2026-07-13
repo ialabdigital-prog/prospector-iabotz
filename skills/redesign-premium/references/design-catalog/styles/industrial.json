@@ -1,0 +1,68 @@
+{
+  "id": "industrial",
+  "name": "Industrial",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "A high-fidelity industrial skeuomorphism aesthetic inspired by Dieter Rams and Teenage Engineering. Features tactile neumorphic elements, matte plastic surfaces, and safety-orange accents. Every component mimics physical hardware with realistic lighting, mechanical interactions, and manufacturing details like screws, vents, and LED indicators.",
+  "source_url": "https://designprompts.dev/industrial",
+  "raw_prompt": "raw/industrial.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "industrial"
+    ],
+    [
+      "name",
+      "Industrial"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A high-fidelity industrial skeuomorphism aesthetic inspired by Dieter Rams and Teenage Engineering. Features tactile neumorphic elements, matte plastic surfaces, and safety-orange accents. Every component mimics physical hardware with realistic lighting, mechanical interactions, and manufacturing details like screws, vents, and LED indicators."
+    ],
+    [
+      "hero",
+      "Asymmetric split layout with control panel interface (text/CTAs) on left, and massive interactive 'Device' visualization on right featuring bezels, CRT-style scanlines, power indicators, and physical hardware buttons."
+    ],
+    [
+      "stats",
+      "Full-width dark LED readout strip with inset shadow depth, resembling a digital dashboard display. Glowing monospace numbers with color-coded shadows."
+    ],
+    [
+      "features",
+      "3-column grid of ventilated hardware modules. Each card has corner screws (CSS gradients), vent slots, recessed icon housings, and hover elevation effects."
+    ],
+    [
+      "howItWorks",
+      "Horizontal process flow with large circular neumorphic step indicators connected by physical cylindrical pipes (3D shadow effect)."
+    ],
+    [
+      "benefits",
+      "Split-panel control board with dark technical background. Left side has checklist with tactile toggle switches, right side features radar/sonar screen visualization with animated sweep."
+    ],
+    [
+      "pricing",
+      "Metal dog-tag style cards with hanging holes at top. Center card elevated with accent ring. Monospace pricing and recessed checkmark icons."
+    ],
+    [
+      "testimonials",
+      "Rotated paper note cards pinned to surface with red push-pins. Grayscale avatars and serif quote typography for authenticity."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "dark"
+  ],
+  "best_for": []
+}
