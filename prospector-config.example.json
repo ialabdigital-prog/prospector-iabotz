@@ -33,7 +33,10 @@
     "enabled": false,
     "redesign": true,
     "publish": true,
-    "outreach": false
+    "outreach": false,
+    "followup_enabled": false,
+    "response_check_enabled": true,
+    "followup_hour": 9
   },
   "redesign": {
     "direction": "auto",

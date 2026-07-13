@@ -20,7 +20,7 @@ Escreva e envie proposta por e-mail seguindo a skill `proposta-email`.
      - [ ] 1 link só (a página-capa). Dois no máximo se incluir o site antigo — nunca mais que isso.
      - [ ] Sem encurtador de URL (bit.ly etc. = spam na certa). Link é o domínio real, com `https://`.
      - [ ] Link como âncora HTML com texto visível limpo: `<a href="https://[domínio]/[pastaBase]/[slug]/proposta.html">https://[domínio]/[pastaBase]/[slug]/proposta.html</a>` — texto visível = a URL limpa montada a partir do config (nunca copiada de outro e-mail). O redirect do Google fica só no href invisível, como em qualquer e-mail do Gmail. Depois de criar, confira o rascunho: o texto visível deve começar em `https://[domínio do config]`.
-     - [ ] Domínio limpo e humano. Se o domínio do config for subdomínio técnico/temporário (cheio de números, tipo `nome1783367206076.1711244.meusitehostgator.com.br`), **PARE antes de enviar qualquer proposta**: link assim parece golpe e mata a confiança que a capa constrói. Oriente o usuário a ativar o domínio próprio (grátis no plano da HostGator: cPanel → Domains, ou registro em registro.br) e atualizar o campo `dominio` nas Configurações do dashboard. Proposta só sai com domínio apresentável.
+     - [ ] Domínio limpo e humano. Se o domínio for técnico ou temporário, pare e configure um domínio próprio apresentável.
      - [ ] Sem palavras-gatilho: grátis, promoção, imperdível, oferta, desconto, clique aqui, 100%, garantido, urgente.
      - [ ] Sem CAIXA ALTA no assunto, sem "!!", sem emoji no assunto.
      - [ ] Texto simples — corpo HTML minimalista (só parágrafos e a âncora do link; zero cores, botões, imagens ou anexos) (anexo de desconhecido aumenta score de spam E medo de abrir; a capa no link substitui o preview).

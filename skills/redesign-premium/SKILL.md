@@ -97,7 +97,7 @@ Página standalone que carrega o `index.html` em `<iframe>` + toolbar lateral:
 Ao concluir:
 - `leads.md`: status → `redesenhado`
 - Dashboard SQLite: `UPDATE leads SET status='redesenhado' WHERE slug=...`
-- Regenerar `dashboard.html` snapshot
+- Atualizar o lead no SQLite; o painel lê a mudança pela API
 
 ## Boas Práticas
 

@@ -87,6 +87,35 @@ body {
 .channel-result-status.draft { color: #725111; background: #fff0c9; }
 .channel-result-status.failed { color: #9b2d2d; background: #ffe0e0; }
 
+.kanban-toolbar { margin-bottom: 14px; }
+.kanban-toolbar p { margin: 0; }
+.kanban-board { display: grid; grid-template-columns: repeat(7, minmax(250px, 1fr)); gap: 12px; overflow-x: auto; padding: 2px 2px 18px; scroll-snap-type: x proximity; }
+.kanban-column { min-height: 520px; padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.025); scroll-snap-align: start; transition: border-color .16s, background .16s; }
+.kanban-column.drop-target { border-color: var(--accent); background: rgba(255,122,26,.08); }
+.kanban-column > header { display: flex; justify-content: space-between; align-items: center; padding: 5px 4px 12px; font-size: .82rem; font-weight: 700; }
+.kanban-column > header b { min-width: 24px; padding: 3px 7px; text-align: center; border-radius: 999px; color: var(--ink-2); background: var(--panel-2); }
+.kanban-cards { display: grid; gap: 9px; }
+.kanban-card { display: grid; gap: 9px; padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-solid); box-shadow: 0 10px 24px -20px #000; cursor: grab; }
+.kanban-card.dragging { opacity: .45; }
+.kanban-card strong { font-size: .88rem; line-height: 1.25; }
+.kanban-rating { font-size: .78rem; color: #ffbe47; }
+.kanban-rating span { color: var(--muted); }
+.kanban-alert, .kanban-prepared { width: fit-content; padding: 4px 7px; border-radius: 999px; font-size: .66rem; font-weight: 700; }
+.kanban-alert { color: #1c1010; background: #ffb7a6; }
+.kanban-prepared { color: #1d3557; background: #cfe3ff; }
+.kanban-response { margin: 0; padding: 8px; border-radius: 8px; color: #bcebd0; background: rgba(43,209,126,.09); font-size: .75rem; }
+.kanban-move { min-width: 0; max-width: 132px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink-2); background: var(--bg-3); font: 500 .72rem var(--font-body); }
+.kanban-empty { padding: 24px 8px; text-align: center; color: var(--muted); font-size: .76rem; border: 1px dashed var(--line); border-radius: 10px; }
+.followup-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 24px; border: 1px solid rgba(255,176,32,.24); border-radius: 18px; background: linear-gradient(135deg, rgba(255,176,32,.12), rgba(255,122,26,.04)); }
+.followup-hero h2 { margin: 5px 0 8px; font-family: var(--font-body); font-size: 1.45rem; font-weight: 700; }
+.followup-hero p { max-width: 660px; margin: 0; color: var(--muted); font-size: .86rem; }
+.eyebrow { color: var(--warn); font: 700 .68rem var(--font-mono); letter-spacing: .12em; }
+.followup-list { display: grid; gap: 10px; margin-top: 14px; }
+.followup-card { display: grid; grid-template-columns: minmax(220px,1fr) minmax(220px,1fr) auto; align-items: center; gap: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.followup-card p { margin: 5px 0 0; }
+.followup-channels { display: flex; flex-wrap: wrap; gap: 7px; }
+.followup-channels span { padding: 6px 8px; border-radius: 8px; color: var(--ink-2); background: rgba(255,255,255,.06); font-size: .73rem; }
+
 h1, h2 {
   font-family: var(--font-display);
   font-weight: 400;
@@ -374,6 +403,7 @@ textarea { resize: vertical; min-height: 72px; }
 .pill.redesenhado { color: var(--warn); border-color: rgba(255, 176, 32, 0.35); background: rgba(255, 176, 32, 0.1); }
 .pill.publicado, .pill.succeeded { color: var(--ok); border-color: rgba(43, 209, 126, 0.35); background: rgba(43, 209, 126, 0.1); }
 .pill.proposta { color: var(--accent-2); border-color: rgba(255, 122, 26, 0.4); background: rgba(255, 122, 26, 0.12); }
+.pill.respondeu { color: #63d9c1; border-color: rgba(99,217,193,.35); background: rgba(99,217,193,.1); }
 .pill.fechado { color: var(--purple); border-color: rgba(142, 108, 255, 0.35); background: rgba(142, 108, 255, 0.1); }
 .pill.failed, .pill.descartado { color: var(--danger); }
 .pill.queued, .pill.running { color: var(--warn); }
@@ -778,6 +808,9 @@ textarea { resize: vertical; min-height: 72px; }
   .email-list { max-height: 220px; }
   .channel-result { grid-template-columns: 38px 1fr; }
   .channel-result-status, .channel-result .btn { grid-column: 2; justify-self: start; }
+  .kanban-board { grid-template-columns: repeat(7, minmax(82vw, 1fr)); }
+  .followup-hero { align-items: flex-start; flex-direction: column; }
+  .followup-card { grid-template-columns: 1fr; }
 }
 
 code {

@@ -20,7 +20,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'redesign-p
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'proposta-email', 'references'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'proposta-whatsapp', 'references'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'contrato-servico', 'references'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'dashboard-leads', 'references'))
 
 # ============================================================
 # CORES E FORMATAÇÃO
@@ -592,8 +591,8 @@ def menu_dashboard():
         webbrowser.open('http://localhost:8765')
 
     if confirm("Iniciar servidor do dashboard agora?"):
-        subprocess.Popen([sys.executable, 'dashboard-server.py'],
-                        cwd=os.path.dirname(__file__))
+        subprocess.Popen(['./venv/bin/gunicorn', '-b', '127.0.0.1:8765', '-w', '2', '--timeout', '120', 'wsgi:app'],
+                         cwd=os.path.dirname(__file__))
         print_success("Servidor iniciado em background")
         print_info("Acesse http://localhost:8765")
 

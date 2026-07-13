@@ -3,6 +3,7 @@ from __future__ import annotations
 from flask import Blueprint, jsonify
 
 from app.db import db
+from app.followups import followup_candidates
 
 stats_bp = Blueprint("stats", __name__, url_prefix="/api/stats")
 
@@ -23,6 +24,9 @@ def stats():
             "proposta": c.execute(
                 "SELECT COUNT(*) FROM leads WHERE status='proposta'"
             ).fetchone()[0],
+            "respondeu": c.execute(
+                "SELECT COUNT(*) FROM leads WHERE status='respondeu'"
+            ).fetchone()[0],
             "fechado": c.execute(
                 "SELECT COUNT(*) FROM leads WHERE status='fechado'"
             ).fetchone()[0],
@@ -42,4 +46,5 @@ def stats():
                 "SELECT COUNT(*) FROM jobs WHERE status='queued'"
             ).fetchone()[0],
         }
+    out["followups_due"] = len(followup_candidates())
     return jsonify(out)

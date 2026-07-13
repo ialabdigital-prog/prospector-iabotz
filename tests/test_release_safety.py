@@ -4,10 +4,13 @@ import importlib.util
 import json
 import unittest
 from types import SimpleNamespace
+from datetime import datetime, timedelta
+from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest.mock import patch
 
 from app.composio_gmail import gmail_status
+from app.followups import business_days_since
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -103,6 +106,33 @@ class ReleaseSafetyTests(unittest.TestCase):
         self.assertTrue(status["connected"])
         self.assertTrue(status["configured_user_mismatch"])
         self.assertEqual(status["user_id"], "actual-user")
+
+    def test_followup_waits_three_business_days(self):
+        self.assertEqual(
+            business_days_since("2026-07-10T10:00:00", datetime(2026, 7, 15, 10, 0, 0)),
+            3,
+        )
+
+    def test_followup_is_created_only_once_per_channel(self):
+        import app.db as database
+        from app.followups import followup_candidates, mark_followup
+
+        with TemporaryDirectory() as folder:
+            db_path = Path(folder) / "test.db"
+            with patch.object(database, "DB_FILE", db_path), patch.object(
+                database, "LEADS_FILE", Path(folder) / "missing.md"
+            ):
+                database.init_db()
+                sent = (datetime.now() - timedelta(days=7)).isoformat(timespec="seconds")
+                with database.db() as conn:
+                    conn.execute(
+                        """INSERT INTO leads (slug,nome,email,status,emailSentAt)
+                           VALUES ('lead-test','Lead Test','lead@example.com','proposta',?)""",
+                        (sent,),
+                    )
+                self.assertTrue(followup_candidates("lead-test")[0]["due_email"])
+                mark_followup("lead-test", "email")
+                self.assertEqual(followup_candidates("lead-test"), [])
 
 
 if __name__ == "__main__":

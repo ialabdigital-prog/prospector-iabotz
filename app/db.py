@@ -41,6 +41,9 @@ def init_db() -> None:
               status TEXT DEFAULT 'novo', urlNova TEXT, dataProposta TEXT, valor REAL, obs TEXT,
               contratoStatus TEXT DEFAULT 'pendente', contratoEm TEXT, manutencao REAL, pago INTEGER DEFAULT 0,
               docCliente TEXT, endCliente TEXT, placeId TEXT, engine TEXT,
+              proposalPreparedAt TEXT, emailSentAt TEXT, whatsappSentAt TEXT,
+              respondedAt TEXT, responseSummary TEXT,
+              followupEmailAt TEXT, followupWhatsAppAt TEXT,
               atualizado TEXT DEFAULT (datetime('now','localtime'))
             );
 
@@ -110,6 +113,12 @@ def init_db() -> None:
             c.execute("ALTER TABLE leads ADD COLUMN engine TEXT")
         if "dataWhatsApp" not in cols:
             c.execute("ALTER TABLE leads ADD COLUMN dataWhatsApp TEXT")
+        for name in (
+            "proposalPreparedAt", "emailSentAt", "whatsappSentAt",
+            "respondedAt", "responseSummary", "followupEmailAt", "followupWhatsAppAt",
+        ):
+            if name not in cols:
+                c.execute(f"ALTER TABLE leads ADD COLUMN {name} TEXT")
 
         c.execute("SELECT COUNT(*) FROM leads")
         if c.fetchone()[0] == 0:

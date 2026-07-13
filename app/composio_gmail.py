@@ -81,3 +81,27 @@ def create_draft(
         "user_id": status["user_id"],
         "configured_user_mismatch": status.get("configured_user_mismatch", False),
     }
+
+
+def search_messages(api_key: str, user_id: str, query: str, limit: int = 10) -> list[dict]:
+    status = gmail_status(api_key, user_id)
+    if not status.get("connected"):
+        raise RuntimeError(status.get("reason") or "Gmail não conectado")
+    composio = _client(api_key)
+    tool = composio.tools.get_raw_composio_tool_by_slug("GMAIL_FETCH_EMAILS")
+    result = composio.tools.execute(
+        slug="GMAIL_FETCH_EMAILS",
+        version=tool.version,
+        user_id=status["user_id"],
+        connected_account_id=status["connected_account_id"],
+        arguments={
+            "query": query,
+            "max_results": limit,
+            "include_payload": False,
+            "verbose": False,
+        },
+    )
+    if not result.get("successful"):
+        raise RuntimeError(str(result.get("error") or "Falha ao consultar Gmail"))
+    data = result.get("data") or {}
+    return data.get("messages") or []

@@ -105,7 +105,7 @@ curl -sSf --max-time 10 "https://{dominio}/proposta.html"
 #### F. Atualizar status
 - `leads.md`: status `publicado` + URL
 - Dashboard SQLite: `status='publicado'`, `url_nova='https://...'`
-- Regenerar `dashboard.html`
+- Atualizar o lead no SQLite; o painel lê a mudança pela API
 
 ### 3. Saída
 Listar por cliente:
@@ -146,7 +146,7 @@ Próximo passo sugerido: `/proposta` para enviar e-mails.
 
 ## Compatibilidade com Publicador Local
 
-O publicador local existente (`fila-publicacao.txt`, `publicar-agora.bat/.ps1`, `instalar-publicador.bat`) continua funcionando — só mudar o destino no `fila-publicacao.txt`:
+O deploy é executado diretamente por `references/deploy.py`; não existe fila paralela de publicação.
 
 ```
 # Antes (HostGator)

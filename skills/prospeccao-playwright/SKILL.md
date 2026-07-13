@@ -97,12 +97,12 @@ Retornar **link da planilha** ao usuário.
 ### 2. Cópia local `leads.md` (mesmas colunas)
 Controle de status — o conector Drive não edita células.
 Status possíveis: `novo`, `redesenhado`, `publicado`, `proposta enviada`, `descartado`.
-Quando status mudar (redesenhar/publicar/proposta), regenerar planilha Google com dados acumulados + atualizar `dashboard.html` (skill `dashboard-leads`).
+Quando o status mudar, atualize o SQLite; o painel Flask reflete os dados pela API.
 **Nunca sobrescrever leads antigos** — apenas acrescentar e atualizar.
 
 ### 3. Dashboard SQLite (`prospector.db`) — skill `dashboard-leads`
 Upsert na tabela `leads` (ver schema na skill `dashboard-leads`).
-Regenerar snapshot JSON no `dashboard.html`.
+Não gere snapshot HTML separado.
 
 ## Boas Práticas
 

@@ -1,24 +1,15 @@
 ---
-description: Follow-up automático para leads que não responderam à proposta — envia e-mail curto e gentil após 3+ dias úteis
-argument-hint: "[nome do cliente ou todos]"
+description: Verifica respostas e prepara um único follow-up por canal após 3 dias úteis.
+argument-hint: "[slug|todos]"
 ---
 
-Follow-up de proposta seguindo a skill `proposta-email`.
+# Follow-up
 
-## Regras
+1. Verifique respostas no Gmail antes de preparar qualquer mensagem.
+2. Selecione leads em `proposta` há pelo menos três dias úteis.
+3. Ignore leads em `respondeu`, `fechado` ou `descartado`.
+4. Crie no máximo um follow-up por canal usando os campos persistentes do SQLite.
+5. Em modo `rascunho`, crie drafts no Gmail/painel sem enviar.
+6. Em modo `envio`, apenas o WhatsApp usa envio direto pela Evolution; e-mail continua como draft revisável.
 
-- **1 único follow-up por lead** — após 3+ dias úteis sem resposta ao e-mail original.
-- Curto, gentil: "Oi [Nome], conseguiste dar uma olhada na página que te mandei? Qualquer dúvida tô à disposição."
-- Mesmo thread do e-mail original (reply) se possível; senão novo e-mail com assunto "Re: [assunto original]".
-- Modo rascunho (padrão) ou envio direto — igual à proposta original.
-- Registre no `leads.md` + dashboard: data do follow-up.
-
-## Execução
-
-1. Determine alvos: `$ARGUMENTS` ou leads com status `proposta enviada` há ≥ 3 dias úteis sem status `respondeu`/`fechado`.
-2. Para cada um, crie/envi e-mail de follow-up.
-3. Atualize registros.
-
-## Saída
-
-Liste follow-ups criados/enviados. Sugira `/respostas` para checar replies.
+O painel oferece execução individual, em lote e rotina diária opcional em `Config > Canais`.
