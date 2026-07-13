@@ -50,12 +50,12 @@ case "${1:-menu}" in
         shift
         python3 skills/proposta-whatsapp/references/followup_whatsapp.py "$@"
         ;;
-    editor)
+    respostas)
         shift
-        python3 skills/redesign-premium/references/editor.py "$@"
+        python3 scripts/check_responses.py "${1:-todos}"
         ;;
     dashboard)
-        python3 dashboard-server.py
+        exec gunicorn -b 127.0.0.1:8765 -w 2 --timeout 120 wsgi:app
         ;;
     test-aapanel)
         python3 -c "
@@ -117,11 +117,11 @@ except Exception as e:
         ./install.sh
         ;;
     logs)
-        tail -f publicador-log.txt 2>/dev/null || echo "Log não encontrado"
+        latest="$(find logs -maxdepth 1 -type f -name '*.log' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)"
+        [ -n "$latest" ] && tail -f "$latest" || echo "Log não encontrado"
         ;;
     clean)
         rm -f playwright-state.json
-        rm -f fila-publicada-*.txt
         echo "Cache limpo"
         ;;
     help|--help|-h)
@@ -148,15 +148,16 @@ COMANDOS DIRETOS:
   ./prospector followup     # Follow-up leads sem resposta (3+ dias)
   ./prospector followup-whatsapp [slug|todos]
                           # Follow-up via WhatsApp
-  ./prospector editor       # Editor visual de páginas
-  ./prospector dashboard    # Regenerar dashboard.html
+  ./prospector respostas [slug|todos]
+                          # Detectar envios e respostas no Gmail
+  ./prospector dashboard    # Iniciar painel Flask
 
 TESTES E DIAGNÓSTICO:
   ./prospector test-aapanel   # Testar conexão API aapanel
   ./prospector test-playwright # Testar Playwright/Chromium
   ./prospector test-sftp      # Testar SFTP/SSH servidor
-  ./prospector logs          # Ver logs do publicador
-  ./prospector clean         # Limpar cache (playwright-state, filas antigas)
+  ./prospector logs          # Ver log mais recente
+  ./prospector clean         # Limpar cache local
 
 MANUTENÇÃO:
   ./prospector install      # Reinstalar dependências
@@ -175,24 +176,23 @@ CONFIGURAÇÃO:
   - prospeccao: nichos, cidade, leadsPorBusca, filtros
   - playwright: headless, stealth, proxy, delays
   - aapanel: url, api_token, usuario, senha, dominio_base, usar_subpasta
-  - deploy_target: "aapanel" (ou "hostgator" para legacy)
+  - deploy_target: "aapanel"
 
 DASHBOARD LOCAL:
   ./iniciar-dashboard.sh      # Inicia em http://localhost:8765
   Requer Python + Flask. Modo edição = banco SQLite.
-  Sem Python = abre dashboard.html modo leitura.
 
 ARQUIVOS IMPORTANTES:
   prospector-config.json   # Config principal (NUNCA commite senhas!)
   leads.md                 # Backup local dos leads
   prospector.db            # Banco SQLite (dashboard)
   sites/                   # Sites gerados (por slug)
-  fila-publicacao.txt      # Fila do publicador local
-  publicador-log.txt       # Log do publicador
+  drafts/                  # Rascunhos locais
+  logs/                    # Logs operacionais
   playwright-state.json    # Estado persistente (cookies, login)
 
 DOCUMENTAÇÃO:
-  manual.html              # Manual do usuário completo
+  README.md                # Manual público
   skills/*/SKILL.md        # Documentação técnica de cada skill
 EOF
         ;;

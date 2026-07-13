@@ -84,14 +84,14 @@ def load_leads() -> List[Dict]:
     return leads
 
 
-def mark_proposta(slug: str) -> None:
+def mark_prepared(slug: str) -> None:
     db_file = BASE_DIR / "prospector.db"
     if not db_file.exists():
         return
     import sqlite3
     conn = sqlite3.connect(db_file)
     conn.execute(
-        """UPDATE leads SET status='proposta', dataProposta=date('now','localtime'),
+        """UPDATE leads SET proposalPreparedAt=datetime('now','localtime'),
            atualizado=datetime('now','localtime') WHERE slug=?""",
         (slug,),
     )
@@ -392,7 +392,7 @@ async def main():
                 )
             except Exception:
                 pass
-            mark_proposta(lead['slug'])
+            mark_prepared(lead['slug'])
         else:
             print(f"❌ {lead['nome']}: erros de validação")
             for err in result.get('errors') or []:

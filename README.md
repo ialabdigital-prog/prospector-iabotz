@@ -2,6 +2,8 @@
 
 Plataforma de prospecção comercial que reúne descoberta de negócios, qualificação de sites, criação de redesigns com IA, publicação e preparação de outreach em um único painel.
 
+O fluxo foi inspirado no projeto público [PROSPECTOR-DE-SITES](https://github.com/ArrecheNeto/PROSPECTOR-DE-SITES). Esta implementação substitui o dashboard estático e os comandos orientativos originais por uma aplicação Flask, API autenticada, fila persistente, worker, integrações e acompanhamento operacional próprios.
+
 O projeto foi desenhado para equipes que identificam negócios locais com presença digital fraca e precisam transformar essa oportunidade em uma demonstração visual pronta para revisão. O envio de mensagens fica em **modo rascunho por padrão**: nenhuma automação deve contactar um lead sem configuração e decisão explícitas do operador.
 
 ## Principais recursos
@@ -17,13 +19,16 @@ O projeto foi desenhado para equipes que identificam negócios locais com presen
 - Deploy em aaPanel, DNS via Cloudflare e validação de HTTPS.
 - Rascunhos de e-mail e WhatsApp; Evolution API disponível somente quando o modo de envio é habilitado.
 - Painel Flask com funil, métricas, jobs assíncronos, configurações e histórico de outreach.
+- Kanban drag-and-drop com etapas `novo`, `redesenhado`, `publicado`, `proposta`, `respondeu`, `fechado` e `descartado`.
+- Detecção de mensagens enviadas e respostas no Gmail via Composio.
+- Follow-up único por canal após três dias úteis, com verificação prévia de respostas.
 - Worker com lock de processo para impedir jobs duplicados e consumo duplicado de APIs.
 
 ## Fluxo
 
 ```text
 Descoberta -> Qualificação -> Direção criativa -> Redesign
-          -> QA visual -> Publicação -> Rascunhos de outreach
+          -> QA visual -> Publicação -> Outreach -> Resposta/Follow-up
 ```
 
 1. O motor busca candidatos e normaliza os dados públicos encontrados.
@@ -33,6 +38,8 @@ Descoberta -> Qualificação -> Direção criativa -> Redesign
 5. O Playwright produz screenshots para conferência em desktop e mobile.
 6. A publicação cria um hostname seguro, envia os arquivos e valida DNS/HTTPS.
 7. O outreach produz arquivos revisáveis em `drafts/`; o envio real exige `envio.modo: "envio"`.
+8. O Gmail confirma envios/respostas e o Kanban mantém o estágio comercial.
+9. Após três dias úteis sem resposta, o sistema prepara no máximo um follow-up por canal.
 
 ## Arquitetura
 
@@ -149,6 +156,7 @@ Exemplo mínimo para desenvolvimento:
 ./prospector proposta-whatsapp <slug|todos>
 ./prospector followup
 ./prospector followup-whatsapp
+./prospector respostas [slug|todos]
 ./prospector dashboard
 ```
 
@@ -181,6 +189,19 @@ O padrão é:
 ```
 
 Nesse modo, e-mails e WhatsApp são gravados em `drafts/` e nenhuma chamada de envio é feita. Para envio real, configure o provedor, revise o conteúdo e altere deliberadamente o modo para `envio`.
+
+### Kanban e follow-up
+
+O painel possui uma tela `Pipeline` com drag-and-drop. Mover manualmente um lead para `Proposta` confirma que o contato foi enviado e inicia o prazo de três dias úteis. A detecção de uma resposta move o lead para `Respondeu` e cancela novos follow-ups.
+
+A tela `Follow-ups` permite:
+
+- Ver os leads elegíveis e os dias úteis transcorridos.
+- Verificar respostas no Gmail antes de contactar novamente.
+- Preparar follow-up individual ou em lote.
+- Ativar uma rotina diária opcional em `Config > Canais`.
+
+Cada canal recebe no máximo um follow-up. Com `envio.modo: "rascunho"`, a rotina automática apenas cria drafts e nunca envia mensagens.
 
 ## Deploy
 

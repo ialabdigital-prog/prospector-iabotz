@@ -5,8 +5,9 @@ const STATUS_LABEL = {
   novo: "Novo",
   redesenhado: "Redesenhado",
   publicado: "Publicado",
-  proposta: "Preparar outreach",
+  proposta: "Proposta",
   proposta_whatsapp: "Proposta WhatsApp",
+  respondeu: "Respondeu",
   fechado: "Fechado",
   descartado: "Descartado",
   queued: "Na fila",
@@ -20,8 +21,9 @@ const JOB_LABEL = {
   prospectar: "Prospecção",
   redesenhar: "Redesign",
   publicar: "Publicar + DNS",
-  proposta: "Proposta",
+  proposta: "Preparar outreach",
   followup: "Follow-up",
+  respostas: "Verificar respostas",
   contrato: "Contrato",
 };
 
@@ -30,6 +32,7 @@ const PIPELINE = [
   { status: "redesenhado", label: "Redesenhado", next: "publicar", nextLabel: "Publicar + DNS" },
   { status: "publicado", label: "Publicado", next: "proposta", nextLabel: "Gerar proposta" },
   { status: "proposta", label: "Proposta", next: null, nextLabel: "Aguardar resposta" },
+  { status: "respondeu", label: "Respondeu", next: null, nextLabel: "Negociar e fechar" },
   { status: "fechado", label: "Fechado", next: null, nextLabel: "—" },
 ];
 
@@ -122,8 +125,10 @@ function selectHtml(id, options, attrs = "") {
 
 const VIEWS = {
   overview: { title: "Funil", sub: "Do Maps ao contato e proposta" },
+  kanban: { title: "Pipeline", sub: "Arraste os leads entre as etapas comerciais" },
   prospect: { title: "Prospectar", sub: "Maps · nota · site fraco · canal configurado" },
   leads: { title: "Leads", sub: "Redesenhar → publicar → proposta" },
+  followups: { title: "Follow-ups", sub: "3 dias úteis · uma tentativa por canal" },
   emails: { title: "Mensagens", sub: "E-mail e WhatsApp · rascunhos e envios" },
   outreach: { title: "Outreach", sub: "Histórico de e-mail e WhatsApp" },
   jobs: { title: "Jobs", sub: "Fila e histórico" },
@@ -143,6 +148,8 @@ $$(".nav").forEach((btn) =>
   btn.addEventListener("click", () => {
     showView(btn.dataset.view);
     if (btn.dataset.view === "leads") renderLeads();
+    if (btn.dataset.view === "kanban") renderKanban();
+    if (btn.dataset.view === "followups") renderFollowups();
     if (btn.dataset.view === "emails") renderEmails();
     if (btn.dataset.view === "outreach") renderOutreach();
     if (btn.dataset.view === "jobs") renderJobs();
@@ -165,7 +172,7 @@ function openDrawer(lead) {
   $("#drawer-title").textContent = lead.nome || lead.slug;
   $("#drawer-status").innerHTML = statusPill(lead.status);
 
-  const stages = ["novo", "redesenhado", "publicado", "proposta", "fechado"];
+  const stages = ["novo", "redesenhado", "publicado", "proposta", "respondeu", "fechado"];
   const idx = stages.indexOf(lead.status);
   const mini = stages
     .map((s, i) => {
@@ -271,6 +278,7 @@ function renderOverview(stats) {
     { key: "redesenhado", label: "Redesenhados", hint: "Prontos p/ aaPanel", filter: "redesenhado" },
     { key: "publicado", label: "Publicados", hint: "DNS no ar", filter: "publicado" },
     { key: "proposta", label: "Propostas", hint: "Rascunho / Gmail", filter: "proposta" },
+    { key: "respondeu", label: "Responderam", hint: "Em negociação", filter: "respondeu" },
     { key: "fechado", label: "Fechados", hint: "Clientes", filter: "fechado" },
   ];
 
@@ -362,6 +370,118 @@ function renderOverview(stats) {
     showView("config");
     renderConfig();
   });
+}
+
+async function renderKanban() {
+  state.leads = await api("/api/leads");
+  const dueData = await api("/api/followups").catch(() => ({ leads: [] }));
+  const due = new Map((dueData.leads || []).map((lead) => [lead.slug, lead]));
+  const columns = ["novo", "redesenhado", "publicado", "proposta", "respondeu", "fechado", "descartado"];
+  const cardsByStatus = Object.fromEntries(columns.map((status) => [status, []]));
+  state.leads.forEach((lead) => (cardsByStatus[lead.status] || cardsByStatus.novo).push(lead));
+
+  const board = columns.map((status) => {
+    const cards = cardsByStatus[status].map((lead) => {
+      const pending = due.get(lead.slug);
+      const followupBadge = pending
+        ? `<span class="kanban-alert">Follow-up ${Math.max(pending.email_days || 0, pending.whatsapp_days || 0)}d</span>`
+        : "";
+      const prepared = lead.proposalPreparedAt && !lead.dataProposta
+        ? '<span class="kanban-prepared">Outreach preparado</span>' : "";
+      return `<article class="kanban-card" draggable="true" data-kanban-card="${esc(lead.slug)}">
+        <div class="row between"><strong>${esc(lead.nome)}</strong>${followupBadge}</div>
+        <div class="muted small">${esc(lead.nicho || "Sem nicho")} · ${esc(lead.cidade || "—")}</div>
+        ${lead.nota ? `<div class="kanban-rating">★ ${esc(lead.nota)} <span>${esc(lead.avaliacoes || 0)} avaliações</span></div>` : ""}
+        ${prepared}
+        ${lead.responseSummary ? `<p class="kanban-response">${esc(lead.responseSummary)}</p>` : ""}
+        <div class="row">
+          <button class="btn ghost sm" type="button" data-kanban-open="${esc(lead.slug)}">Ver lead</button>
+          <select class="kanban-move" data-kanban-move="${esc(lead.slug)}" aria-label="Mover ${esc(lead.nome)}">
+            ${columns.map((option) => `<option value="${option}" ${option === lead.status ? "selected" : ""}>${esc(STATUS_LABEL[option] || option)}</option>`).join("")}
+          </select>
+        </div>
+      </article>`;
+    }).join("");
+    return `<section class="kanban-column" data-kanban-status="${status}">
+      <header><span>${esc(STATUS_LABEL[status] || status)}</span><b>${cardsByStatus[status].length}</b></header>
+      <div class="kanban-cards">${cards || '<div class="kanban-empty">Solte aqui</div>'}</div>
+    </section>`;
+  }).join("");
+
+  $("#view-kanban").innerHTML = `
+    <div class="row between kanban-toolbar">
+      <p class="muted small">Arraste para atualizar a etapa. ` +
+      `Mover para <strong>Proposta</strong> marca o contato como enviado manualmente; <strong>Respondeu</strong> interrompe follow-ups.</p>
+      <button class="btn ghost sm" id="refresh-kanban" type="button">Atualizar</button>
+    </div>
+    <div class="kanban-board">${board}</div>`;
+
+  let dragged = null;
+  $$('[data-kanban-card]').forEach((card) => {
+    card.addEventListener("dragstart", () => { dragged = card.dataset.kanbanCard; card.classList.add("dragging"); });
+    card.addEventListener("dragend", () => { dragged = null; card.classList.remove("dragging"); });
+  });
+  $$('[data-kanban-status]').forEach((column) => {
+    column.addEventListener("dragover", (event) => { event.preventDefault(); column.classList.add("drop-target"); });
+    column.addEventListener("dragleave", () => column.classList.remove("drop-target"));
+    column.addEventListener("drop", async (event) => {
+      event.preventDefault(); column.classList.remove("drop-target");
+      if (!dragged) return;
+      const status = column.dataset.kanbanStatus;
+      if (status === "proposta" && !confirm("Confirma que a proposta foi realmente enviada? Isso inicia a contagem de 3 dias úteis para follow-up.")) return;
+      const update = { status };
+      if (status === "fechado") {
+        const value = prompt("Valor fechado (opcional):", "");
+        if (value && !Number.isNaN(Number(value.replace(",", ".")))) update.valor = Number(value.replace(",", "."));
+      }
+      await api(`/api/leads/${encodeURIComponent(dragged)}`, { method: "PUT", body: JSON.stringify(update) });
+      toast(`Lead movido para ${STATUS_LABEL[status] || status}`);
+      await renderKanban();
+    });
+  });
+  $$('[data-kanban-open]').forEach((button) => button.addEventListener("click", () => {
+    const lead = state.leads.find((item) => item.slug === button.dataset.kanbanOpen);
+    if (lead) openDrawer(lead);
+  }));
+  $$('[data-kanban-move]').forEach((select) => select.addEventListener("change", async () => {
+    const status = select.value;
+    if (status === "proposta" && !confirm("Confirma que a proposta foi realmente enviada? Isso inicia a contagem para follow-up.")) {
+      await renderKanban(); return;
+    }
+    await api(`/api/leads/${encodeURIComponent(select.dataset.kanbanMove)}`, { method: "PUT", body: JSON.stringify({ status }) });
+    toast(`Lead movido para ${STATUS_LABEL[status] || status}`);
+    await renderKanban();
+  }));
+  $("#refresh-kanban")?.addEventListener("click", renderKanban);
+}
+
+async function renderFollowups() {
+  const data = await api("/api/followups");
+  const cards = (data.leads || []).map((lead) => `
+    <article class="followup-card">
+      <div>
+        <div class="row"><strong>${esc(lead.nome)}</strong>${statusPill(lead.status)}</div>
+        <p class="muted small">Proposta: ${esc(lead.dataProposta || lead.emailSentAt || lead.whatsappSentAt || "—")}</p>
+      </div>
+      <div class="followup-channels">
+        ${lead.due_email ? `<span>@ E-mail · ${lead.email_days} dias úteis</span>` : ""}
+        ${lead.due_whatsapp ? `<span>WA WhatsApp · ${lead.whatsapp_days} dias úteis</span>` : ""}
+      </div>
+      <button class="btn primary sm" data-followup="${esc(lead.slug)}" type="button">Preparar follow-up</button>
+    </article>`).join("");
+  $("#view-followups").innerHTML = `
+    <div class="followup-hero">
+      <div><span class="eyebrow">ACOMPANHAMENTO</span><h2>${data.count || 0} follow-up(s) pendente(s)</h2>
+      <p>Antes de criar qualquer mensagem, o sistema verifica respostas no Gmail. Cada canal recebe no máximo um follow-up.</p></div>
+      <div class="row">
+        <button class="btn ghost" id="check-replies" type="button">Verificar respostas</button>
+        <button class="btn primary" id="run-all-followups" type="button" ${data.count ? "" : "disabled"}>Preparar todos</button>
+      </div>
+    </div>
+    <div class="followup-list">${cards || '<div class="empty"><strong>Nada pendente</strong>Nenhum lead completou 3 dias úteis sem resposta.</div>'}</div>`;
+  $$('[data-followup]').forEach((button) => button.addEventListener("click", () => startJob("followup", button.dataset.followup)));
+  $("#run-all-followups")?.addEventListener("click", () => startJob("followup", "todos"));
+  $("#check-replies")?.addEventListener("click", () => startJob("respostas", "todos"));
 }
 
 function renderProspectForm(activeJobType = "prospectar") {
@@ -657,12 +777,13 @@ function showJobSummary(job) {
 
   setStep("done");
   box.classList.remove("hidden");
-  if (job.type === "proposta" && Array.isArray(result.channels)) {
+  if (["proposta", "followup"].includes(job.type) && Array.isArray(result.channels)) {
     const statusLabel = {
       gmail_draft: "NO GMAIL · NÃO ENVIADO",
       local_draft: "RASCUNHO · NÃO ENVIADO",
       sent: "ENVIADO",
       failed_local_draft: "FALHOU · RASCUNHO SALVO",
+      not_due: "AINDA NÃO DEVIDO",
     };
     const cards = result.channels.map((item) => {
       const status = item.status || "failed";
@@ -681,13 +802,23 @@ function showJobSummary(job) {
       </div>`;
     }).join("");
     box.innerHTML = `
-      <strong class="ok">Outreach preparado</strong>
+      <strong class="ok">${job.type === "followup" ? "Follow-up processado" : "Outreach preparado"}</strong>
       <p class="muted">Confira abaixo exatamente o que aconteceu em cada canal.</p>
       <div class="channel-results">${cards}</div>
       <button class="btn primary" id="goto-drafts" type="button">Ver mensagens e rascunhos</button>
       <button class="btn ghost" id="goto-leads" type="button">Ver lead</button>`;
     $("#goto-drafts")?.addEventListener("click", () => { showView("emails"); renderEmails(); });
     $("#goto-leads")?.addEventListener("click", () => { showView("leads"); renderLeads(); });
+    return;
+  }
+  if (job.type === "respostas") {
+    const replied = result.responded || [];
+    const sent = result.sent_detected || [];
+    box.innerHTML = `<strong class="ok">Gmail verificado</strong>
+      <p><strong>${result.checked || 0}</strong> lead(s) consultado(s) · <strong>${replied.length}</strong> resposta(s) · <strong>${sent.length}</strong> envio(s) detectado(s)</p>
+      ${replied.length ? `<p class="ok">Movidos para Respondeu: ${replied.map(esc).join(", ")}</p>` : '<p class="muted">Nenhuma resposta nova.</p>'}
+      <button class="btn primary" id="goto-followups" type="button">Voltar aos follow-ups</button>`;
+    $("#goto-followups")?.addEventListener("click", () => { showView("followups"); renderFollowups(); });
     return;
   }
   const labels = {
@@ -785,6 +916,7 @@ async function renderLeads() {
     { id: "redesenhado", label: "A publicar" },
     { id: "publicado", label: "Publicados" },
     { id: "proposta", label: "Propostas" },
+    { id: "respondeu", label: "Responderam" },
     { id: "fechado", label: "Fechados" },
     { id: "todos", label: "Todos" },
   ];
@@ -819,7 +951,7 @@ async function renderLeads() {
         <td class="small">${esc(l.email || "—")}</td>
         <td onclick="event.stopPropagation()">
           <div class="row">
-            <button class="btn ghost sm" data-act="redesenhar" data-slug="${esc(l.slug)}">Nueva dirección visual</button>
+            <button class="btn ghost sm" data-act="redesenhar" data-slug="${esc(l.slug)}">Nova direção visual</button>
             ${!next.disabled && next.type
               ? `<button class="btn primary sm" data-act="${esc(next.type)}" data-slug="${esc(l.slug)}">${esc(next.label)}</button>`
               : `<button class="btn ghost sm" data-open-btn="${esc(l.slug)}">Detalhe</button>`}
@@ -845,7 +977,7 @@ async function renderLeads() {
         </div>
         <button class="btn ghost sm" id="refresh-leads" type="button">Atualizar</button>
       </div>
-      <p class="muted small" style="margin:0 0 14px">“Nueva dirección visual” genera otro estilo, composición e imágenes KIE. “Crear outreach” prepara e-mail y WhatsApp, pero no modifica el sitio.</p>
+      <p class="muted small" style="margin:0 0 14px">“Nova direção visual” gera outro estilo, composição e imagens. “Preparar outreach” cria e-mail e WhatsApp, mas não altera o site.</p>
       ${
         rows
           ? `<table class="table">
@@ -1390,6 +1522,15 @@ async function renderConfig() {
           <label><input id="cfg-auto-publish" type="checkbox" ${automation.publish !== false ? "checked" : ""} /> Publicar após redesign</label>
           <label><input id="cfg-auto-outreach" type="checkbox" ${automation.outreach ? "checked" : ""} /> Enviar após publicar</label>
         </div>
+        <div class="panel" style="margin:0">
+          <h4 style="margin:0 0 8px">Acompanhamento automático</h4>
+          <p class="muted small">Uma vez por dia: verifica respostas no Gmail e prepara um único follow-up por canal após 3 dias úteis. Em modo rascunho, nada é enviado automaticamente.</p>
+          <div class="row">
+            <label><input id="cfg-followup-enabled" type="checkbox" ${automation.followup_enabled ? "checked" : ""} /> Ativar rotina diária</label>
+            <label><input id="cfg-response-check" type="checkbox" ${automation.response_check_enabled !== false ? "checked" : ""} /> Verificar respostas antes</label>
+            <label>Executar após<input id="cfg-followup-hour" type="number" min="0" max="23" value="${esc(automation.followup_hour ?? 9)}" style="width:90px" /> horas</label>
+          </div>
+        </div>
       </div>
       <div class="panel cfg-card stack">
         <h3>Evolution API / Go</h3>
@@ -1583,6 +1724,9 @@ async function renderConfig() {
         redesign: true,
         publish: $("#cfg-auto-publish")?.checked || false,
         outreach: $("#cfg-auto-outreach")?.checked || false,
+        followup_enabled: $("#cfg-followup-enabled")?.checked || false,
+        response_check_enabled: $("#cfg-response-check")?.checked !== false,
+        followup_hour: Number(val("#cfg-followup-hour") || 9),
       },
       redesign: {
         direction: val("#cfg-redesign-direction") || "auto",

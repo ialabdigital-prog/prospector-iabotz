@@ -75,14 +75,14 @@ def load_leads() -> List[Dict]:
     return leads
 
 
-def mark_proposta(slug: str) -> None:
+def mark_prepared(slug: str) -> None:
     db_file = BASE_DIR / "prospector.db"
     if not db_file.exists():
         return
     import sqlite3
     conn = sqlite3.connect(db_file)
     conn.execute(
-        """UPDATE leads SET status='proposta', dataWhatsApp=date('now','localtime'),
+        """UPDATE leads SET proposalPreparedAt=datetime('now','localtime'),
            atualizado=datetime('now','localtime') WHERE slug=?""",
         (slug,),
     )
@@ -292,6 +292,7 @@ async def main():
                 log_outreach(lead["slug"], "whatsapp", "local_draft", lead.get("whatsapp", ""), text)
             except Exception:
                 pass
+            mark_prepared(lead["slug"])
             print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
             continue
 
@@ -310,7 +311,8 @@ async def main():
                 "location": "Evolution API",
                 "external_id": key.get("id") or key.get("ID") or "",
             })
-            mark_proposta(lead["slug"])
+            from app.followups import mark_contact_sent
+            mark_contact_sent(lead["slug"], "whatsapp")
         else:
             print(f"⚠️  {lead['nome']}: {result.get('error', 'erro desconhecido')}")
             draft_file = save_draft(lead, text)

@@ -28,7 +28,7 @@ Pergunte se o usuário já tem o aapanel instalado e acessível.
 
 - **Se ainda não tem**: explique brevemente que ele precisa de um VPS/servidor com aapanel instalado (gratuito), domínio próprio apontado para o servidor, e que depois de configurado deve voltar e rodar `/setup` de novo. Salve o config parcial e encerre.
 - **Se já tem**: **NÃO colete nenhum dado do aapanel pelo chat** (nem URL, nem token, nem usuário SSH — e JAMAIS a senha). Tudo vai num lugar só, a aba Configurações do dashboard:
-  1. Instrua: abra o dashboard (`python3 dashboard-server.py` na pasta conectada) → aba **Configurações** → seção **Conexão aapanel**.
+  1. Instrua: abra o painel (`./iniciar-dashboard.sh`) → aba **Configurações** → seção **Publicar**.
   2. Lá ele preenche os 5 campos + senha SSH: URL do painel (ex.: `https://panel.seudominio.com:8888`), Token API (Painel → API → Gerar token), Domínio base (ex.: `seudominio.com`), Usuário SSH, Senha SSH. Clica em "Salvar conexão" → tudo vai do navegador direto pro `prospector-config.json` no computador dele, sem passar pelo chat.
   3. Peça para ele avisar quando salvar ("salvei") — aí você LÊ o config (verificando que os campos estão preenchidos, sem nunca exibir a senha/token) e roda o teste de conexão.
 
@@ -75,12 +75,12 @@ Se os dados do aapanel/Cloudflare foram informados, teste as conexões seguindo 
 
 ## 8. Dashboard inicial
 
-Siga a seção "Setup" da skill `dashboard-leads`: copie `dashboard-server.py` e `iniciar-dashboard.sh` para a raiz da pasta conectada, crie o banco `prospector.db` (schema da skill) e gere o `dashboard.html` do template. Explique ao usuário: executar `iniciar-dashboard.sh` abre o painel completo em http://localhost:8765 com edição/exclusão salvando no banco (requer Python no servidor; sem ele, o dashboard.html abre no modo leitura).
+Siga a seção "Inicialização" da skill `dashboard-leads`: execute `./iniciar-dashboard.sh` para abrir o painel Flask completo em `http://127.0.0.1:8765`.
 
 ## 9. Entregar o manual e os scripts
 
-Copie da pasta do plugin para a pasta conectada (sobrescrevendo versões antigas): `manual.html` (manual do usuário) e os arquivos do publicador aapanel (`publicar-aapanel.py`, `instalar-publicador.sh`) — mais o iniciador do dashboard certo (`iniciar-dashboard.sh`). Peça UM comando para instalar o publicador (registra no systemd/cron — única vez na vida; o teste de conexão do item 7 pode usar esse fluxo). Apresente o `manual.html` ao usuário com a frase: "Esse é o seu manual — guarda ele que responde 90% das dúvidas."
+Use `README.md` como manual e `scripts/deploy-panel.sh` para instalar o painel como serviço. O deploy dos sites usa somente `skills/deploy-aapanel/references/deploy.py`.
 
 ## 10. Encerrar
 
-Confirme o que foi salvo e explique o ciclo (guiando **SEMPRE** o próximo passo ao fim de cada comando): `/prospectar` → `/redesenhar` → `/publicar` → `/proposta`, com `/editor` opcional para ajustes manuais e o `dashboard.html` como painel de controle de tudo.
+Confirme o que foi salvo e explique o ciclo: prospectar → redesenhar → publicar → preparar outreach → acompanhar resposta/follow-up no Kanban.

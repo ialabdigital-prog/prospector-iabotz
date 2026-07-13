@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 from app.db import init_db
 from app.jobs import queue as jq
 from app.jobs.runners import run_job
+from app.automation import enqueue_scheduled_outreach
 
 
 def main():
@@ -26,7 +27,17 @@ def main():
         return
     init_db()
     print("Prospector worker started", flush=True)
+    last_schedule_check = 0.0
     while True:
+        now = time.monotonic()
+        if now - last_schedule_check >= 60:
+            try:
+                created = enqueue_scheduled_outreach()
+                if created:
+                    print(f"Scheduled outreach jobs: {created}", flush=True)
+            except Exception as exc:
+                print(f"Scheduler check failed: {exc}", flush=True)
+            last_schedule_check = now
         job = jq.claim_next_job()
         if not job:
             time.sleep(2)

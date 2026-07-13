@@ -37,6 +37,7 @@ def create_app() -> Flask:
     from app.api.emails import emails_bp
     from app.api.outreach import outreach_bp
     from app.api.maps import maps_bp
+    from app.api.followups import followups_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(leads_bp)
@@ -48,6 +49,7 @@ def create_app() -> Flask:
     app.register_blueprint(emails_bp)
     app.register_blueprint(outreach_bp)
     app.register_blueprint(maps_bp)
+    app.register_blueprint(followups_bp)
 
     @app.get("/health")
     def health():

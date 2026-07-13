@@ -30,6 +30,13 @@ ALLOWED = [
     "endCliente",
     "placeId",
     "engine",
+    "proposalPreparedAt",
+    "emailSentAt",
+    "whatsappSentAt",
+    "respondedAt",
+    "responseSummary",
+    "followupEmailAt",
+    "followupWhatsAppAt",
 ]
 
 
@@ -86,6 +93,10 @@ def update_lead(slug: str):
     sets.append("atualizado=datetime('now','localtime')")
     vals.append(slug)
     with db() as conn:
+        if data.get("status") == "proposta" and "dataProposta" not in data:
+            sets.append("dataProposta=COALESCE(dataProposta,date('now','localtime'))")
+        if data.get("status") == "respondeu" and "respondedAt" not in data:
+            sets.append("respondedAt=COALESCE(respondedAt,datetime('now','localtime'))")
         conn.execute(f"UPDATE leads SET {','.join(sets)} WHERE slug=?", vals)
     return jsonify({"success": True})
 

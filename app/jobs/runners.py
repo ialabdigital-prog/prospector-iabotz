@@ -53,11 +53,10 @@ def run_job(job: dict) -> None:
         elif job_type == "proposta":
             result = _run_proposta(payload, log, provider)
         elif job_type == "followup":
-            result = _run_script(
-                "skills/proposta-email/references/followup.py",
-                payload.get("slug") or "todos",
-                log,
-            )
+            result = _run_followup(payload, log)
+        elif job_type == "respostas":
+            from app.gmail_tracking import sync_gmail_replies
+            result = sync_gmail_replies(payload.get("slug") or "todos", on_progress=log)
         elif job_type == "contrato":
             result = _run_contrato(payload, log)
         else:
@@ -137,6 +136,27 @@ def _run_proposta(payload: dict, log, provider: str | None) -> dict:
     if not results:
         raise RuntimeError("Nenhum resultado de outreach foi produzido para os canais ativos")
     return {"slug": slug, "channels": results, "exit": 0}
+
+
+def _run_followup(payload: dict, log) -> dict:
+    slug = payload.get("slug") or "todos"
+    config = load_config()
+    channels = (config.get("envio") or {}).get("canais") or ["email"]
+    results = []
+    if "email" in channels:
+        try:
+            from app.gmail_tracking import sync_gmail_replies
+            tracking = sync_gmail_replies(slug, on_progress=log)
+            if tracking.get("responded"):
+                log(f"Respostas detectadas antes do follow-up: {len(tracking['responded'])}", "success")
+        except Exception as exc:
+            log(f"Não foi possível verificar respostas no Gmail: {exc}", "warn")
+        output = _run_script("skills/proposta-email/references/followup.py", slug, log)
+        results.extend(output.get("results") or [])
+    if "whatsapp" in channels:
+        output = _run_script("skills/proposta-whatsapp/references/followup_whatsapp.py", slug, log)
+        results.extend(output.get("results") or [])
+    return {"slug": slug, "channels": results, "kind": "followup", "exit": 0}
 
 
 def _enqueue_automation(job_type: str, result: dict, provider: str | None, log) -> None:
