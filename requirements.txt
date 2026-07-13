@@ -9,3 +9,4 @@ flask>=3.0.0
 flask-cors>=4.0.0
 gunicorn>=22.0.0
 werkzeug>=3.0.0
+composio==0.17.1

@@ -9,7 +9,6 @@ from pathlib import Path
 from app.config import BASE_DIR, load_config
 from app.discovery import run_prospecting
 from app.jobs import queue as jq
-from app.llm.router import complete as llm_complete
 
 
 def run_job(job: dict) -> None:
@@ -108,55 +107,36 @@ def _run_script(rel_path: str, slug: str, log, provider=None, enrich=False) -> d
         text=True,
     )
     assert proc.stdout is not None
+    results = []
     for line in proc.stdout:
         line = line.rstrip()
-        if line:
+        if line.startswith("RESULT_JSON:"):
+            try:
+                results.append(json.loads(line.removeprefix("RESULT_JSON:")))
+            except json.JSONDecodeError:
+                log("Resultado estruturado inválido", "warn")
+        elif line:
             log(line)
     code = proc.wait()
     if code != 0:
         raise RuntimeError(f"Script exit {code}")
-    return {"slug": slug, "exit": code}
+    return {"slug": slug, "exit": code, "results": results}
 
 
 def _run_proposta(payload: dict, log, provider: str | None) -> dict:
     slug = payload.get("slug") or "todos"
-    if provider and slug != "todos":
-        try:
-            from app.db import db
-
-            with db() as conn:
-                lead = conn.execute("SELECT * FROM leads WHERE slug=?", (slug,)).fetchone()
-            if lead:
-                log("Gerando texto de proposta via LLM…")
-                text = llm_complete(
-                    provider,
-                    system=(
-                        "Você escreve e-mails curtos de proposta de redesign de site. "
-                        "120-180 palavras, rapport específico, sem preço, 1 CTA, pt-BR."
-                    ),
-                    prompt=(
-                        f"Lead: {lead['nome']}, nota {lead['nota']} ({lead['avaliacoes']} aval.). "
-                        f"Site atual: {lead['siteAntigo']}. Motivo: {lead['motivo']}. "
-                        f"URL nova: {lead['urlNova']}. Escreva assunto + corpo."
-                    ),
-                )
-                drafts = BASE_DIR / "drafts"
-                drafts.mkdir(exist_ok=True)
-                (drafts / f"{slug}-proposta.txt").write_text(text, encoding="utf-8")
-                log(f"Rascunho LLM salvo em drafts/{slug}-proposta.txt")
-        except Exception as e:
-            log(f"LLM proposta falhou (seguindo script): {e}", "warn")
+    log("Preparando outreach nos canais configurados…")
     canais = (load_config().get("envio") or {}).get("canais") or ["email"]
-    completed = []
+    results = []
     if "email" in canais:
-        _run_script("skills/proposta-email/references/proposta.py", slug, log)
-        completed.append("email")
+        output = _run_script("skills/proposta-email/references/proposta.py", slug, log)
+        results.extend(output.get("results") or [])
     if "whatsapp" in canais:
-        _run_script("skills/proposta-whatsapp/references/proposta_whatsapp.py", slug, log)
-        completed.append("whatsapp")
-    if not completed:
-        raise RuntimeError("Nenhum canal de envio ativo")
-    return {"slug": slug, "channels": completed, "exit": 0}
+        output = _run_script("skills/proposta-whatsapp/references/proposta_whatsapp.py", slug, log)
+        results.extend(output.get("results") or [])
+    if not results:
+        raise RuntimeError("Nenhum resultado de outreach foi produzido para os canais ativos")
+    return {"slug": slug, "channels": results, "exit": 0}
 
 
 def _enqueue_automation(job_type: str, result: dict, provider: str | None, log) -> None:

@@ -139,6 +139,12 @@ def integrations_status():
     composio = cfg.get("composio") or {}
     llm = cfg.get("llm") or {}
     envio = cfg.get("envio") or {}
+    from app.composio_gmail import gmail_status
+
+    gmail = gmail_status(
+        (composio.get("api_key") or "").strip(),
+        (composio.get("entity_id") or "").strip(),
+    )
     return jsonify(
         {
             "funnel": [
@@ -169,14 +175,11 @@ def integrations_status():
                 {
                     "id": "gmail",
                     "label": "5. Gmail (Composio)",
-                    "ready": bool(composio.get("api_key")),
+                    "ready": bool(gmail.get("connected")),
                     "detail": (
                         f"Modo envio: {envio.get('modo') or 'rascunho'}"
-                        + (
-                            " · Composio conectado"
-                            if composio.get("api_key")
-                            else " · sem Composio → draft local em drafts/"
-                        )
+                        + f" · {gmail.get('reason') or 'não verificado'}"
+                        + (" · User ID configurado não corresponde; conta única será usada" if gmail.get("configured_user_mismatch") else "")
                     ),
                 },
                 {
@@ -196,6 +199,24 @@ def integrations_status():
             ]
         }
     )
+
+
+@config_bp.post("/composio/test")
+def test_composio():
+    from app.composio_gmail import gmail_status
+    from app.config import load_config
+
+    composio = load_config().get("composio") or {}
+    result = gmail_status(
+        (composio.get("api_key") or "").strip(),
+        (composio.get("entity_id") or "").strip(),
+    )
+    return jsonify({
+        "success": bool(result.get("connected")),
+        "message": result.get("reason"),
+        "accounts": result.get("accounts", 0),
+        "configured_user_mismatch": result.get("configured_user_mismatch", False),
+    })
 
 
 @config_bp.post("/cloudflare/test")

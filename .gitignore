@@ -30,3 +30,4 @@ sites/*/
 # Temp
 /tmp/
 *.pid
+.prospector-worker.lock

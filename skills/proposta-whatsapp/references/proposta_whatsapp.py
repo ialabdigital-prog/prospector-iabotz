@@ -275,7 +275,24 @@ async def main():
         if draft_only:
             draft_file = save_draft(lead, text)
             print(f"✅ {lead['nome']}: rascunho WhatsApp criado")
-            print(f"   → Mensagem salva em: {draft_file}")
+            print("   Enviado: NÃO")
+            print("   Local: Painel > E-mails e Outreach")
+            print(f"   Arquivo: {Path(draft_file).name}")
+            result = {
+                "success": True,
+                "channel": "whatsapp",
+                "status": "local_draft",
+                "sent": False,
+                "location": "Painel > E-mails e Outreach",
+                "draft_file": draft_file,
+                "message": "Mensagem pronta para revisão; nenhuma mensagem foi enviada.",
+            }
+            try:
+                from app.outreach import log_outreach
+                log_outreach(lead["slug"], "whatsapp", "local_draft", lead.get("whatsapp", ""), text)
+            except Exception:
+                pass
+            print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
             continue
 
         result = send_whatsapp(lead, config)
@@ -283,11 +300,31 @@ async def main():
 
         if result["success"]:
             print(f"✅ {lead['nome']}: WhatsApp enviado com sucesso")
+            print("   Enviado: SIM")
+            response = result.get("result") or {}
+            key = response.get("key") or response.get("data", {}).get("Info", {}) or {}
+            result.update({
+                "channel": "whatsapp",
+                "status": "sent",
+                "sent": True,
+                "location": "Evolution API",
+                "external_id": key.get("id") or key.get("ID") or "",
+            })
             mark_proposta(lead["slug"])
         else:
             print(f"⚠️  {lead['nome']}: {result.get('error', 'erro desconhecido')}")
             draft_file = save_draft(lead, text)
-            print(f"   → Mensagem salva em: {draft_file}")
+            print("   Enviado: NÃO")
+            print(f"   Arquivo: {Path(draft_file).name}")
+            result.update({
+                "channel": "whatsapp",
+                "status": "failed_local_draft",
+                "sent": False,
+                "location": "Painel > E-mails e Outreach",
+                "draft_file": draft_file,
+            })
+
+        print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
 
         time.sleep(5)
 

@@ -732,7 +732,7 @@ def config_cloudflare(config: Dict):
 def config_email(config: Dict):
     print_header("📧 E-mail & Propostas")
     envio = config.get('envio', {})
-    envio['modo'] = 'rascunho' if confirm("Modo: criar rascunho no Gmail (recomendado)?", envio.get('modo') == 'rascunho') else 'enviar'
+    envio['modo'] = 'rascunho' if confirm("Modo seguro: criar rascunhos sem enviar?", envio.get('modo') == 'rascunho') else 'envio'
     envio['canais'] = config_canais(envio.get('canais', ['email']))
     config['envio'] = envio
     save_config(config)
