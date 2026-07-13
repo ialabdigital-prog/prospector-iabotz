@@ -1,0 +1,71 @@
+{
+  "id": "neo-brutalism",
+  "name": "Neo-brutalism",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "A raw, high-contrast aesthetic that mimics print design and DIY punk culture. Characterized by cream backgrounds, thick black borders (4px), hard offset shadows with zero blur, clashing vibrant colors (Hot Red, Vivid Yellow, Soft Violet), and Space Grotesk typography at heavy weights. Embraces asymmetry, rotation, sticker-like layering, and organized visual chaos.",
+  "source_url": "https://designprompts.dev/neo-brutalism",
+  "raw_prompt": "raw/neo-brutalism.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "neo-brutalism"
+    ],
+    [
+      "name",
+      "Neo-brutalism"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A raw, high-contrast aesthetic that mimics print design and DIY punk culture. Characterized by cream backgrounds, thick black borders (4px), hard offset shadows with zero blur, clashing vibrant colors (Hot Red, Vivid Yellow, Soft Violet), and Space Grotesk typography at heavy weights. Embraces asymmetry, rotation, sticker-like layering, and organized visual chaos."
+    ],
+    [
+      "hero",
+      "Asymmetric split with massive rotated headline text blocks. Left side has border-boxed text with different colors and rotations. Right side features a 'visual chaos' container with overlapping shapes and badges. CTAs use brutalist shadows that translate on hover. Fully responsive with stacked layout on mobile."
+    ],
+    [
+      "stats",
+      "4-column brutalist grid (2 columns on tablet, 1 on mobile) with thick white borders on black background. Hover inverts to accent color. Each stat has oversized numbers (text-7xl), uppercase labels, and decorative bars. No icons, just raw numerical data."
+    ],
+    [
+      "features",
+      "3-column grid (1 on mobile) of cards with thick black borders and 8px offset shadows. Icons enclosed in bordered, colored accent boxes. Card headers have numbered badges and border separators. Hover lifts cards upward with deeper shadows."
+    ],
+    [
+      "howItWorks",
+      "3 centered boxes (stacked on mobile) connected by dashed line on desktop. Each step has a large rotated number badge at top with accent background and thick border. Hover rotates the badge further. Process badge at top with pill shape."
+    ],
+    [
+      "benefits",
+      "Split 2-column (stacked on mobile). Left: vibrant red accent with radial dot pattern overlay, massive white text with text shadow, rotated white card for subtitle. Right: clean cream background with bold list items using square bullets that change color on hover."
+    ],
+    [
+      "pricing",
+      "3-column card grid (1 on mobile) with massive hard shadows (12-16px). Highlighted plan scales up slightly and uses black header with white text. Price numbers are huge (text-6xl). Features use custom checkbox bullets. Decorative pattern border at top."
+    ],
+    [
+      "testimonials",
+      "Infinite horizontal marquee (react-fast-marquee) with gradient fade edges. Cards are white with thick borders and large shadows. 5-star ratings as large text. Author section has bordered avatar and separate background."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "fitness"
+  ]
+}

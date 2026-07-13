@@ -1,0 +1,72 @@
+{
+  "id": "bold-typography",
+  "name": "Bold Typography",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "Type-driven design that treats massive typography as the primary visual element. Ultra-large headlines, extreme contrast, and dramatic negative space create poster-like compositions where words become art.",
+  "source_url": "https://designprompts.dev/bold-typography",
+  "raw_prompt": "raw/bold-typography.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "bold-typography"
+    ],
+    [
+      "name",
+      "Bold Typography"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Type-driven design that treats massive typography as the primary visual element. Ultra-large headlines, extreme contrast, and dramatic negative space create poster-like compositions where words become art."
+    ],
+    [
+      "hero",
+      "Full-viewport hero with massive H1 (text-4xl to text-8xl responsive) occupying 60%+ of viewport. Stacked layout with headline, subhead, CTAs in strict vertical rhythm. Decorative oversized number in background (hidden on mobile). Typography IS the hero."
+    ],
+    [
+      "stats",
+      "Responsive grid (1 col mobile, 2 cols tablet, 4 cols desktop) with huge numbers (text-4xl to text-7xl) and tiny all-caps labels. Numbers in accent color for dramatic pop. Elevated background for section depth."
+    ],
+    [
+      "productDetail",
+      "Asymmetric two-column grid (1.2fr / 0.8fr). Left: headline + multi-paragraph description with max-width constraint. Right: typographic card with grade display (A+) featuring layered text shadow for depth and accent top border."
+    ],
+    [
+      "features",
+      "Responsive grid (1-2-3 columns) with gap-px border separator technique. Each feature card has icon, title, description. Hover state changes background. Compact on mobile (p-6) expanding to spacious on desktop (p-8)."
+    ],
+    [
+      "blog",
+      "Magazine-style responsive grid (1-2-3 columns). Each post has image with subtle hover scale, metadata in monospace, oversized titles that change color on hover. Featured badge on first post."
+    ],
+    [
+      "howItWorks",
+      "Vertical stepped list with massive step numbers (text-6xl to text-8xl) in border color that transitions to accent on hover. Three-column grid on desktop (number | title | description) collapses to stacked on mobile."
+    ],
+    [
+      "benefits",
+      "Two-column layout (header left, list right on desktop, stacked mobile). Each benefit has oversized accent number + title/description. Generous spacing between items."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "luxury",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "fitness"
+  ]
+}

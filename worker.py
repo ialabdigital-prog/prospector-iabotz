@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import time
+import fcntl
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -16,6 +17,13 @@ from app.jobs.runners import run_job
 
 
 def main():
+    lock_path = ROOT / ".prospector-worker.lock"
+    lock_file = lock_path.open("w")
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("Prospector worker already running; exiting duplicate", flush=True)
+        return
     init_db()
     print("Prospector worker started", flush=True)
     while True:

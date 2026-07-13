@@ -1,0 +1,69 @@
+{
+  "id": "retro",
+  "name": "Retro",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "Ugly-cool 90s nostalgia aesthetic with Windows 95 beveled UI, system fonts, bright primary colors, marquee scrolling text, and maximum visual chaos.",
+  "source_url": "https://designprompts.dev/retro",
+  "raw_prompt": "raw/retro.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "retro"
+    ],
+    [
+      "name",
+      "Retro"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Ugly-cool 90s nostalgia aesthetic with Windows 95 beveled UI, system fonts, bright primary colors, marquee scrolling text, and maximum visual chaos."
+    ],
+    [
+      "hero",
+      "Centered layout with animated rainbow text headline (4s color cycle), dual colored horizontal bars as dividers, full-width CTA buttons with arrow decorations, and retro hit counter display at bottom."
+    ],
+    [
+      "stats",
+      "Table-style grid (2x2 on mobile, 1x4 on desktop) with visible cell borders, alternating white/gray backgrounds, inset beveled frame container, and monospace labels."
+    ],
+    [
+      "features",
+      "Two-column table layout with 80px colored icon cells (alternating navy/teal backgrounds) and text description cells, thick visible borders between rows, alternating row backgrounds."
+    ],
+    [
+      "howItWorks",
+      "Vertical step list with large beveled yellow numbered badges (48px-64px), gray content panels with outset bevels, groove HR dividers between steps."
+    ],
+    [
+      "benefits",
+      "2-column grid of beveled panels on navy background, each with lime green asterisk bullet and gray panel containing title and description."
+    ],
+    [
+      "pricing",
+      "3-column card grid with highlighted center tier (yellow header, red border, pulsing badge), beveled window-style cards with title bars, feature lists with green asterisk bullets."
+    ],
+    [
+      "testimonials",
+      "Horizontal auto-scrolling marquee (30px/s speed) with fixed-width cards (350px), Windows 95 title bar gradients, yellow inset content panels with 5-star ratings."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "dark"
+  ],
+  "best_for": [
+    "food"
+  ]
+}

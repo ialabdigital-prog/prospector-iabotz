@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from app.config import BASE_DIR
+from app.config import BASE_DIR, load_config
 from app.discovery import run_prospecting
 from app.jobs import queue as jq
 from app.llm.router import complete as llm_complete
@@ -64,6 +64,8 @@ def run_job(job: dict) -> None:
         else:
             raise RuntimeError(f"Tipo de job desconhecido: {job_type}")
 
+        _enqueue_automation(job_type, result, provider, log)
+
         jq.update_job(job_id, status="succeeded", progress=1.0, result=result)
         log("Concluído com sucesso", "success")
     except Exception as e:
@@ -82,6 +84,10 @@ def _run_prospectar(payload: dict, log) -> dict:
         nota_min=float(payload.get("notaMinima") or 4.7),
         aval_min=int(payload.get("avaliacoesMinimas") or 40),
         raio_km=int(payload.get("raioKm") or 15),
+        lat=float(payload["lat"]) if payload.get("lat") not in (None, "") else None,
+        lng=float(payload["lng"]) if payload.get("lng") not in (None, "") else None,
+        candidate_limit=int(payload.get("candidateLimit") or 0) or None,
+        quality_mode=payload.get("siteQuality") or None,
         engine=payload.get("engine"),
         on_progress=log,
     )
@@ -140,7 +146,39 @@ def _run_proposta(payload: dict, log, provider: str | None) -> dict:
                 log(f"Rascunho LLM salvo em drafts/{slug}-proposta.txt")
         except Exception as e:
             log(f"LLM proposta falhou (seguindo script): {e}", "warn")
-    return _run_script("skills/proposta-email/references/proposta.py", slug, log)
+    canais = (load_config().get("envio") or {}).get("canais") or ["email"]
+    completed = []
+    if "email" in canais:
+        _run_script("skills/proposta-email/references/proposta.py", slug, log)
+        completed.append("email")
+    if "whatsapp" in canais:
+        _run_script("skills/proposta-whatsapp/references/proposta_whatsapp.py", slug, log)
+        completed.append("whatsapp")
+    if not completed:
+        raise RuntimeError("Nenhum canal de envio ativo")
+    return {"slug": slug, "channels": completed, "exit": 0}
+
+
+def _enqueue_automation(job_type: str, result: dict, provider: str | None, log) -> None:
+    """Encadeia o funil somente quando o piloto automático estiver explicitamente ativo."""
+    automation = load_config().get("automation") or {}
+    if not automation.get("enabled"):
+        return
+
+    if job_type == "prospectar" and automation.get("redesign", True):
+        for lead in result.get("qualified") or []:
+            jq.create_job("redesenhar", {"slug": lead["slug"]}, provider=provider)
+            log(f"Autopilot: redesign enfileirado para {lead['nome']}")
+    elif job_type == "redesenhar" and automation.get("publish", True):
+        slug = result.get("slug")
+        if slug and slug != "todos":
+            jq.create_job("publicar", {"slug": slug}, provider=provider)
+            log(f"Autopilot: publicação enfileirada para {slug}")
+    elif job_type == "publicar" and automation.get("outreach", False):
+        slug = result.get("slug")
+        if slug and slug != "todos":
+            jq.create_job("proposta", {"slug": slug}, provider=provider)
+            log(f"Autopilot: proposta enfileirada para {slug}")
 
 
 def _run_contrato(payload: dict, log) -> dict:

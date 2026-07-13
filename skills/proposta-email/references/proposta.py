@@ -105,7 +105,7 @@ def public_url(slug: str, config: Dict | None = None) -> str:
         cf = BASE_DIR / "prospector-config.json"
         if cf.exists():
             cfg = json.loads(cf.read_text(encoding="utf-8"))
-    base = (cfg.get("aapanel") or {}).get("dominio_base") or "iabotz.online"
+    base = (cfg.get("aapanel") or {}).get("dominio_base") or "example.com"
     return f"https://{slug}.{base}/"
 
 

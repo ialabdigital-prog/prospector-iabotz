@@ -1,0 +1,2216 @@
+{
+  "schema_version": 1,
+  "source": {
+    "site": "https://designprompts.dev",
+    "bundle": "https://designprompts.dev/assets/index-FHds4wvP.js",
+    "hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+    "imported_at": "2026-07-13T01:53:57.090525+00:00"
+  },
+  "license_note": "Source attribution is retained. Review upstream terms before redistributing raw prompt text.",
+  "styles": [
+    {
+      "id": "academia",
+      "name": "Academia",
+      "mode": "dark",
+      "font_type": "serif",
+      "description": "University aesthetic, old libraries, warm paper textures, traditional serifs, gold/crimson accents.",
+      "source_url": "https://designprompts.dev/academia",
+      "raw_prompt": "raw/academia.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "academia"
+        ],
+        [
+          "name",
+          "Academia"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "University aesthetic, old libraries, warm paper textures, traditional serifs, gold/crimson accents."
+        ],
+        [
+          "hero",
+          "Asymmetric two-column layout (7/5 split) with ornate decorative corner flourishes. Left column contains brass accent line with establishment date, large serif headline with first word highlighted in brass, drop-cap paragraph, and dual CTAs. Right column features arch-topped sepia image with brass border overlay."
+        ],
+        [
+          "stats",
+          "Full-width horizontal band with four equal columns separated by vertical borders. Each stat features large brass numbers in Cinzel, small uppercase labels, and subtle hover interactions that scale numbers and change background opacity."
+        ],
+        [
+          "productDetail",
+          "Centered content within ornate frame. Brass horizontal lines flanking 'Proclamation' label, large serif headline, ornate divider, and multi-paragraph body text with drop cap on first paragraph."
+        ],
+        [
+          "features",
+          "Three-column grid of cards with corner flourishes. Each card has circular icon container with brass border, Roman numeral label in Cinzel, serif heading, and body text. Cards lift on hover with brass border tint."
+        ],
+        [
+          "benefits",
+          "Three-column grid with gradient dividers above each item. Roman numeral labels, serif headings, and body text. Dividers animate from wood-grain to full brass on hover."
+        ],
+        [
+          "howItWorks",
+          "Alternating timeline layout with vertical brass connector line and medallions. Content alternates left/right with Roman numeral medallions centered. Each step features serif heading and description."
+        ],
+        [
+          "pricing",
+          "Three-column card layout with highlighted tier featuring brass border and ring. Wax seal badges on featured plans positioned at top-right. Cards include tier name, large price in Cormorant, feature list with check icons, and CTA button."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "luxury",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "health",
+        "legal"
+      ]
+    },
+    {
+      "id": "art-deco",
+      "name": "Art Deco",
+      "mode": "dark",
+      "font_type": "serif",
+      "description": "1920s Gatsby elegance, geometric precision, metallic gold accents, architectural symmetry, luxury heritage",
+      "source_url": "https://designprompts.dev/art-deco",
+      "raw_prompt": "raw/art-deco.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "art-deco"
+        ],
+        [
+          "name",
+          "Art Deco"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "1920s Gatsby elegance, geometric precision, metallic gold accents, architectural symmetry, luxury heritage"
+        ],
+        [
+          "hero",
+          "Centered symmetrical composition with massive uppercase serif headline. Radial sunburst gradient emanates from center. Vertical gold line divider adds architectural height. CTAs arranged horizontally with sharp borders and glow effects."
+        ],
+        [
+          "stats",
+          "Four-column grid with bordered boxes featuring stepped corner decorations. Large gold numbers with uppercase labels. Subtle hover state intensifies gold borders."
+        ],
+        [
+          "productDetail",
+          "Centered heading with two-column text layout below. Left-border accent on paragraphs. Contained in darker card background for depth separation."
+        ],
+        [
+          "features",
+          "Three-column responsive grid. Cards feature rotated diamond icon containers, corner decorative elements, and lift-on-hover micro-interaction. Icons rotate back on hover for theatrical effect."
+        ],
+        [
+          "blog",
+          "Three-column grid. Images with double-frame treatment (outer border + inner inset border). Grayscale images with gold overlay on hover. Film noir aesthetic with high contrast typography."
+        ],
+        [
+          "howItWorks",
+          "Vertical timeline with central gold divider line. Diamond-shaped step markers with Roman numerals. Alternating left-right text layout creates visual rhythm. Steps use geometric precision."
+        ],
+        [
+          "benefits",
+          "Two-column grid with large bordered cards. Corner flourishes (top-left, bottom-right). Rotated diamond checkmarks. Background darkens slightly on hover for depth."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "luxury",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "creative"
+      ]
+    },
+    {
+      "id": "aurora-mesh",
+      "name": "Aurora Mesh",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "Flowing mesh gradients, aurora effects, vibrant color transitions, modern startup aesthetic inspired by Stripe and Vercel",
+      "source_url": "https://designprompts.dev/aurora-mesh",
+      "raw_prompt": "raw/aurora-mesh.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "aurora-mesh"
+        ],
+        [
+          "name",
+          "Aurora Mesh"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Flowing mesh gradients, aurora effects, vibrant color transitions, modern startup aesthetic inspired by Stripe and Vercel"
+        ],
+        [
+          "hero",
+          "Full-height hero with animated mesh gradient background. Split layout with headline left (massive typography with gradient text fill), floating 3D-ish card mockup right with aurora glow underneath. CTAs have pill shapes with gradient borders."
+        ],
+        [
+          "stats",
+          "Horizontal strip with glass-morphic stat cards floating over a subtle aurora wave. Each stat has a glowing accent bar on top indicating its category color."
+        ],
+        [
+          "features",
+          "Asymmetric bento grid with varying card sizes. Cards have dark glass backgrounds with colored gradient borders that pulse subtly. Icons sit in gradient orbs."
+        ],
+        [
+          "howItWorks",
+          "Vertical timeline with a glowing gradient line connecting steps. Each step card has a mesh gradient corner accent. Numbers are oversized with gradient fills."
+        ],
+        [
+          "benefits",
+          "Two-column layout with benefit cards stacked. Each card has an aurora streak across the top edge. Checkmark icons with gradient fills."
+        ],
+        [
+          "pricing",
+          "Three cards with the featured card elevated and wrapped in an animated gradient border. Background has slow-moving mesh gradient. Prices use gradient text."
+        ],
+        [
+          "testimonials",
+          "Carousel or masonry of quote cards with avatar images having gradient ring borders. Quote marks are oversized with aurora gradient fills."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "geometric",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "bauhaus",
+      "name": "Bauhaus",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "Bold geometric modernism with circles, squares, and triangles. Primary color palette (Red/Blue/Yellow) with stark black borders and hard shadows. Functional yet artistic with constructivist asymmetry.",
+      "source_url": "https://designprompts.dev/bauhaus",
+      "raw_prompt": "raw/bauhaus.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "bauhaus"
+        ],
+        [
+          "name",
+          "Bauhaus"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Bold geometric modernism with circles, squares, and triangles. Primary color palette (Red/Blue/Yellow) with stark black borders and hard shadows. Functional yet artistic with constructivist asymmetry."
+        ],
+        [
+          "hero",
+          "Split-screen layout (50/50) with text on white background and geometric composition on blue. Massive uppercase typography with colored accent border on left."
+        ],
+        [
+          "stats",
+          "Equal-width grid with dividers. Each stat has geometric shape icon (circle/square/diamond) numbered 1-4. Yellow background section with white cards."
+        ],
+        [
+          "features",
+          "Three-column grid with lifted cards featuring corner decorations (circle/triangle/square). Each card has geometric icon in bordered container. Hover lift effect."
+        ],
+        [
+          "howItWorks",
+          "Horizontal timeline with thick connecting line (desktop only). Steps use alternating geometric shapes (circle/square/rotated square) as numbers. Two-column grid on mobile."
+        ],
+        [
+          "benefits",
+          "Grid of white cards on red background. Each card has circular yellow icon with checkmark. Clean borders and hard shadows."
+        ],
+        [
+          "pricing",
+          "Three-column layout with center tier elevated and highlighted with yellow background. All tiers have geometric headers and square bullet points."
+        ],
+        [
+          "testimonials",
+          "Three-column grid with cards featuring circular avatar cutouts positioned above card. Quote icon and bordered sections. Decorative corner elements."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "geometric"
+      ],
+      "best_for": [
+        "fitness",
+        "food",
+        "creative"
+      ]
+    },
+    {
+      "id": "bold-typography",
+      "name": "Bold Typography",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "Type-driven design that treats massive typography as the primary visual element. Ultra-large headlines, extreme contrast, and dramatic negative space create poster-like compositions where words become art.",
+      "source_url": "https://designprompts.dev/bold-typography",
+      "raw_prompt": "raw/bold-typography.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "bold-typography"
+        ],
+        [
+          "name",
+          "Bold Typography"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Type-driven design that treats massive typography as the primary visual element. Ultra-large headlines, extreme contrast, and dramatic negative space create poster-like compositions where words become art."
+        ],
+        [
+          "hero",
+          "Full-viewport hero with massive H1 (text-4xl to text-8xl responsive) occupying 60%+ of viewport. Stacked layout with headline, subhead, CTAs in strict vertical rhythm. Decorative oversized number in background (hidden on mobile). Typography IS the hero."
+        ],
+        [
+          "stats",
+          "Responsive grid (1 col mobile, 2 cols tablet, 4 cols desktop) with huge numbers (text-4xl to text-7xl) and tiny all-caps labels. Numbers in accent color for dramatic pop. Elevated background for section depth."
+        ],
+        [
+          "productDetail",
+          "Asymmetric two-column grid (1.2fr / 0.8fr). Left: headline + multi-paragraph description with max-width constraint. Right: typographic card with grade display (A+) featuring layered text shadow for depth and accent top border."
+        ],
+        [
+          "features",
+          "Responsive grid (1-2-3 columns) with gap-px border separator technique. Each feature card has icon, title, description. Hover state changes background. Compact on mobile (p-6) expanding to spacious on desktop (p-8)."
+        ],
+        [
+          "blog",
+          "Magazine-style responsive grid (1-2-3 columns). Each post has image with subtle hover scale, metadata in monospace, oversized titles that change color on hover. Featured badge on first post."
+        ],
+        [
+          "howItWorks",
+          "Vertical stepped list with massive step numbers (text-6xl to text-8xl) in border color that transitions to accent on hover. Three-column grid on desktop (number | title | description) collapses to stacked on mobile."
+        ],
+        [
+          "benefits",
+          "Two-column layout (header left, list right on desktop, stacked mobile). Each benefit has oversized accent number + title/description. Generous spacing between items."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "luxury",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "fitness"
+      ]
+    },
+    {
+      "id": "botanical",
+      "name": "Botanical / Organic Serif",
+      "mode": "light",
+      "font_type": "serif",
+      "description": "Soft, earthy, elegant design inspired by nature. Features organic shapes, generous rounded corners, paper grain texture, muted earth tones, and sophisticated serif typography that breathes warmth and natural luxury.",
+      "source_url": "https://designprompts.dev/botanical",
+      "raw_prompt": "raw/botanical.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "botanical"
+        ],
+        [
+          "name",
+          "Botanical / Organic Serif"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "Soft, earthy, elegant design inspired by nature. Features organic shapes, generous rounded corners, paper grain texture, muted earth tones, and sophisticated serif typography that breathes warmth and natural luxury."
+        ],
+        [
+          "hero",
+          "Split two-column layout with massive serif typography on left and arched image (200px top radius) on right. Decorative botanical icons float in corners. Quote overlay on image."
+        ],
+        [
+          "stats",
+          "Horizontal band with subtle sage background and border. Large serif numbers paired with uppercase sans-serif labels in grid."
+        ],
+        [
+          "features",
+          "Three-column grid with staggered vertical offsets (translate-y-12 on middle card). Soft rounded cards with botanical icons in muted circles."
+        ],
+        [
+          "howItWorks",
+          "Dark forest green background with three-step grid. Dotted SVG connecting path. Steps in translucent cards with numbered terracotta badges."
+        ],
+        [
+          "benefits",
+          "Alternating zig-zag layout with organic blob-shaped image backgrounds (rotate transform). Checkmark bullets in terracotta circles."
+        ],
+        [
+          "pricing",
+          "Three-column grid with center card elevated and scaled. Dark background for highlighted plan with terracotta badge. Pill-shaped buttons."
+        ],
+        [
+          "testimonials",
+          "Three-column grid on soft clay background with radial dot pattern overlay. Large quotation marks, circular avatars, serif quotes."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "luxury",
+        "dark"
+      ],
+      "best_for": [
+        "family"
+      ]
+    },
+    {
+      "id": "claymorphism",
+      "name": "Clay",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "A hyper-realistic 3D aesthetic simulating soft, inflatable clay objects with multi-layered shadow stacks, vibrant candy-store colors, tactile micro-interactions, and organic floating ambient elements that create a premium, playful digital toy experience.",
+      "source_url": "https://designprompts.dev/claymorphism",
+      "raw_prompt": "raw/claymorphism.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "claymorphism"
+        ],
+        [
+          "name",
+          "Clay"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A hyper-realistic 3D aesthetic simulating soft, inflatable clay objects with multi-layered shadow stacks, vibrant candy-store colors, tactile micro-interactions, and organic floating ambient elements that create a premium, playful digital toy experience."
+        ],
+        [
+          "hero",
+          "Centered content with massive, progressively scaled typography (text-5xl to text-8xl). Background features large, slowly drifting colored blobs with blur-3xl. Floating 3D shapes orbit the headline with clay-float-slow animation. Trust badge with animated pulse indicator. Gradient text with multi-color stops for headline accent."
+        ],
+        [
+          "stats",
+          "Grid of breathing spheres (clay-orb + clay-breathe) with aspect-square ratio. Numbers use Nunito Black in large sizes. Staggered animation delays create organic rhythm. Hover scale transforms provide tactile feedback."
+        ],
+        [
+          "features",
+          "Masonry Bento grid with col-span-2/row-span-2 hero card. Varying background opacity creates depth hierarchy. Internal decorative panels positioned absolutely at card bottom with translate-y hover reveals. Icon containers use vibrant gradient backgrounds with rounded-2xl shapes."
+        ],
+        [
+          "howItWorks",
+          "Three-column grid with centered content. Connecting horizontal 'pipe' element (rounded-full bg with shadow-inner). Each step uses large gradient circles (h-28 to h-32 responsive) with bold Nunito numbers. Group-hover scale interactions."
+        ],
+        [
+          "benefits",
+          "50/50 split layout. Left: Abstract clay composition with nested rounded shapes, layered backgrounds (aspect-square container). Right: Stacked benefit cards (rounded-[24px]) with gradient check icons, hover lift and enhanced shadow."
+        ],
+        [
+          "pricing",
+          "Three-column grid. Center 'popular' card scales to 110% on desktop only (md:scale-110) with enhanced shadow. All cards use consistent rounded-[32px] radius with responsive padding. Chunky check icons in green tones."
+        ],
+        [
+          "testimonials",
+          "2-3 column responsive grid. Cards use white backgrounds with shadow-clayCard. Avatars wrapped in white clay rings (shadow-clayButton). Five-star ratings in amber. Group hover lifts cards with enhanced shadows."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "family"
+      ]
+    },
+    {
+      "id": "cyberpunk",
+      "name": "Cyberpunk",
+      "mode": "dark",
+      "font_type": "mono",
+      "description": "High contrast neon on black, glitch animations, terminal/monospace fonts, tech-oriented decorations. A dystopian digital aesthetic inspired by 80s sci-fi and hacker culture.",
+      "source_url": "https://designprompts.dev/cyberpunk",
+      "raw_prompt": "raw/cyberpunk.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "cyberpunk"
+        ],
+        [
+          "name",
+          "Cyberpunk"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "mono"
+        ],
+        [
+          "description",
+          "High contrast neon on black, glitch animations, terminal/monospace fonts, tech-oriented decorations. A dystopian digital aesthetic inspired by 80s sci-fi and hacker culture."
+        ],
+        [
+          "hero",
+          "Full-bleed dark canvas with massive glitched headline (text-5xl to text-8xl) featuring chromatic aberration and neon glow shadows. Asymmetric 60/40 split with terminal-style subheadline with typing cursor on left, holographic HUD display with animated panels on right. Grid background with radial gradient mask. Scanline overlay across entire page."
+        ],
+        [
+          "stats",
+          "Horizontal 2x2 grid on mobile, 4-column on desktop. Each stat in bordered section with monospace labels, large display numbers, and upward trend indicators. Subtle background glow. Border separators between stats."
+        ],
+        [
+          "productDetails",
+          "Centered holographic card with circuit grid background. Terminal-style label, large heading, and paragraphs prefixed with >> symbols. Authenticated session indicator at bottom with pulsing dot."
+        ],
+        [
+          "features",
+          "Three-column grid (stacks on mobile) with chamfered corner cards. Icon in bordered square that transitions to accent background on hover. Card titles change color on hover. Radial gradient background accent. Section header with overline label and gradient accent bars."
+        ],
+        [
+          "blog",
+          "Three-column grid of terminal-style cards with VHS scanline overlay on images. Stream ID badges on images. ISO date format, author name, and access link with arrow. Entire card lifts on hover with border glow."
+        ],
+        [
+          "howItWorks",
+          "Vertical timeline with center line. Diamond-shaped step markers (rotated squares) with neon glow. Steps alternate left/right on desktop, stack left on mobile. Terminal-style step numbers (STEP_01, etc)."
+        ],
+        [
+          "benefits",
+          "Two-column split - left has list of benefits with checkboxes that fill on hover, right has full syntax-highlighted code editor mockup with terminal window chrome (traffic lights), line numbers, and blinking cursor."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "enterprise",
+      "name": "Corporate Trust",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "Modern SaaS aesthetic balancing professionalism with approachability. Vibrant indigo/violet gradients, soft colored shadows, isometric depth, and clean geometric sans-serif typography.",
+      "source_url": "https://designprompts.dev/enterprise",
+      "raw_prompt": "raw/enterprise.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "enterprise"
+        ],
+        [
+          "name",
+          "Corporate Trust"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Modern SaaS aesthetic balancing professionalism with approachability. Vibrant indigo/violet gradients, soft colored shadows, isometric depth, and clean geometric sans-serif typography."
+        ],
+        [
+          "hero",
+          "Split layout with 60/40 composition. Left: Gradient headline split, dual-CTA buttons, trust indicator. Right: Isometric floating card with subtle 3D transforms and decorative elements."
+        ],
+        [
+          "stats",
+          "Clean horizontal strip with large bold numbers, subtle text. Bordered top/bottom to create visual break."
+        ],
+        [
+          "productDetail",
+          "Two-column layout with text-left, visual-right. Abstract UI mockup inside gradient container with offset shadow element."
+        ],
+        [
+          "features",
+          "Zig-zag alternating layout. Icon badges with soft backgrounds, feature cards with isometric perspective transforms, decorative gradient blobs."
+        ],
+        [
+          "blog",
+          "Three-column card grid. Image-first design with gradient overlays on hover, metadata above headline."
+        ],
+        [
+          "howItWorks",
+          "Horizontal step timeline with connecting gradient line. Numbered badges with glow effects on dark background."
+        ],
+        [
+          "benefits",
+          "Two-column split: checklist items on left, isometric 3D card visualization on right with gradient background."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "technology"
+      ]
+    },
+    {
+      "id": "flat-design",
+      "name": "Flat Design",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "A design philosophy centered on removing depth cues (shadows, bevels, gradients) in favor of pure color, typography, and layout. Crisp, two-dimensional, and geometric with bold color blocking.",
+      "source_url": "https://designprompts.dev/flat-design",
+      "raw_prompt": "raw/flat-design.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "flat-design"
+        ],
+        [
+          "name",
+          "Flat Design"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A design philosophy centered on removing depth cues (shadows, bevels, gradients) in favor of pure color, typography, and layout. Crisp, two-dimensional, and geometric with bold color blocking."
+        ],
+        [
+          "hero",
+          "Full-width bold color block background (Primary Blue). Large decorative geometric shapes as background elements. Left-aligned text with massive headline (4xl to 8xl responsive). High-contrast CTA buttons with strong hover states. Right side features abstract geometric composition with overlapping shapes."
+        ],
+        [
+          "stats",
+          "Clean 4-column grid with gradient background accent. Large colorful numbers (5xl-6xl) in varied accent colors. Uppercase labels. Hover scale effects on individual stats."
+        ],
+        [
+          "features",
+          "3-column grid with section title. Each feature card has distinct soft background color (blue-50, green-50, amber-50, etc.) with white icon circles. Strong hover states with scale and color intensification."
+        ],
+        [
+          "howItWorks",
+          "Dark background (gray-900) for contrast. Horizontal step circles connected by background line. Large numbered circles in primary blue with border. Clean white text on dark."
+        ],
+        [
+          "benefits",
+          "50/50 split screen layout. Left side emerald green solid with white text and bullet points. Right side white with abstract geometric overlapping shapes in mix-blend-multiply mode."
+        ],
+        [
+          "pricing",
+          "3-column grid. Popular tier is scaled and uses primary blue block. Other tiers use light gray blocks. 'Most Popular' badge on featured tier. All cards have strong hover scale effects."
+        ],
+        [
+          "testimonials",
+          "Masonry columns layout. White cards on light gray background. Large decorative quote mark. Avatar circles with bold typography."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "glassmorphism",
+      "name": "Glassmorphism",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "Apple-inspired aesthetic with rich mesh gradients, premium blur, and constrained layouts.",
+      "source_url": "https://designprompts.dev/glassmorphism",
+      "raw_prompt": "raw/glassmorphism.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "glassmorphism"
+        ],
+        [
+          "name",
+          "Glassmorphism"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Apple-inspired aesthetic with rich mesh gradients, premium blur, and constrained layouts."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "luxury",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "industrial",
+      "name": "Industrial",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "A high-fidelity industrial skeuomorphism aesthetic inspired by Dieter Rams and Teenage Engineering. Features tactile neumorphic elements, matte plastic surfaces, and safety-orange accents. Every component mimics physical hardware with realistic lighting, mechanical interactions, and manufacturing details like screws, vents, and LED indicators.",
+      "source_url": "https://designprompts.dev/industrial",
+      "raw_prompt": "raw/industrial.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "industrial"
+        ],
+        [
+          "name",
+          "Industrial"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A high-fidelity industrial skeuomorphism aesthetic inspired by Dieter Rams and Teenage Engineering. Features tactile neumorphic elements, matte plastic surfaces, and safety-orange accents. Every component mimics physical hardware with realistic lighting, mechanical interactions, and manufacturing details like screws, vents, and LED indicators."
+        ],
+        [
+          "hero",
+          "Asymmetric split layout with control panel interface (text/CTAs) on left, and massive interactive 'Device' visualization on right featuring bezels, CRT-style scanlines, power indicators, and physical hardware buttons."
+        ],
+        [
+          "stats",
+          "Full-width dark LED readout strip with inset shadow depth, resembling a digital dashboard display. Glowing monospace numbers with color-coded shadows."
+        ],
+        [
+          "features",
+          "3-column grid of ventilated hardware modules. Each card has corner screws (CSS gradients), vent slots, recessed icon housings, and hover elevation effects."
+        ],
+        [
+          "howItWorks",
+          "Horizontal process flow with large circular neumorphic step indicators connected by physical cylindrical pipes (3D shadow effect)."
+        ],
+        [
+          "benefits",
+          "Split-panel control board with dark technical background. Left side has checklist with tactile toggle switches, right side features radar/sonar screen visualization with animated sweep."
+        ],
+        [
+          "pricing",
+          "Metal dog-tag style cards with hanging holes at top. Center card elevated with accent ring. Monospace pricing and recessed checkmark icons."
+        ],
+        [
+          "testimonials",
+          "Rotated paper note cards pinned to surface with red push-pins. Grayscale avatars and serif quote typography for authenticity."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "kinetic",
+      "name": "Kinetic",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "Motion-first design where typography is the primary visual medium. Features infinite marquees, viewport-scaled text, scroll-triggered animations, and aggressive uppercase styling. High contrast, brutalist energy with rhythmic movement.",
+      "source_url": "https://designprompts.dev/kinetic",
+      "raw_prompt": "raw/kinetic.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "kinetic"
+        ],
+        [
+          "name",
+          "Kinetic"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Motion-first design where typography is the primary visual medium. Features infinite marquees, viewport-scaled text, scroll-triggered animations, and aggressive uppercase styling. High contrast, brutalist energy with rhythmic movement."
+        ],
+        [
+          "hero",
+          "Full viewport height (90vh) with massive text using clamp() for responsive scaling (clamp(3rem,12vw,14rem)). Split headlines across lines with contrasting accent color. Add scroll-triggered scale (1.0→1.2) and opacity (1.0→0) transforms via Framer Motion. Center content with max-w-[95vw]."
+        ],
+        [
+          "stats",
+          "Infinite horizontal marquee on full-width accent background (py-8). Display huge numbers (6xl-8xl) paired with uppercase labels and decorative symbols (✦). Use react-fast-marquee with speed 80, no gradients—raw, continuous motion with border-y dividers."
+        ],
+        [
+          "productDetail",
+          "Two-column grid on desktop with massive heading (5xl-8xl uppercase). Each column has left border-l-4 with massive background numbers (6rem-8rem) positioned absolutely. Paragraphs in muted color with generous line-height. Numbers change color on hover."
+        ],
+        [
+          "features",
+          "Sticky scroll cards (top-24/top-32) that stack vertically as user scrolls. Display massive index numbers (6xl-8xl) in muted tones. Feature titles in accent color at 3xl-6xl uppercase. Sharp 2px borders that highlight on hover. Cards use p-8/p-12 with responsive flex layout."
+        ],
+        [
+          "blog",
+          "2-3 column grid (md:grid-cols-2 lg:grid-cols-3) with gap-px hairline dividers. Each card shows massive background number (3rem-4rem), uppercase title with translate-x-4 hover effect. Author and date in footer with border-top. Hover transitions to muted background."
+        ],
+        [
+          "howItWorks",
+          "Three-column grid with gap-px hairline dividers creating connected cards. Massive step numbers (8rem-12rem) at top, content at bottom. Full card color inversion on hover (background to accent, text to black). Min-height 500-600px for dramatic scale."
+        ],
+        [
+          "benefits",
+          "Full-width list with border-b dividers. Massive titles (4xl-7xl) that translate horizontally on hover (translate-x-4/translate-x-8). Descriptions fade in on hover (opacity-0→100) on desktop, always visible on mobile. Text-right alignment for descriptions on desktop."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "fitness"
+      ]
+    },
+    {
+      "id": "luxury",
+      "name": "Luxury",
+      "mode": "light",
+      "font_type": "serif",
+      "description": "Elegant serif typography with monochromatic palette and gold accents. Ultra-slow animations, generous white space, and architectural precision. High-end fashion magazine editorial aesthetic with depth through subtle shadows and layering.",
+      "source_url": "https://designprompts.dev/luxury",
+      "raw_prompt": "raw/luxury.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "luxury"
+        ],
+        [
+          "name",
+          "Luxury"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "Elegant serif typography with monochromatic palette and gold accents. Ultra-slow animations, generous white space, and architectural precision. High-end fashion magazine editorial aesthetic with depth through subtle shadows and layering."
+        ],
+        [
+          "hero",
+          "Asymmetric 12-column grid with text content in left 7 columns (bottom-aligned) and hero image in right 5 columns. Decorative horizontal line and 'Est. 2024' label. Massive type scale (text-5xl to text-9xl). Vertical writing mode label on image. Hero image has shadow and inner border."
+        ],
+        [
+          "stats",
+          "Horizontal strip with 2-4 column grid. Vertical left border on each stat. Large italic Playfair numerals with tiny uppercase labels. Responsive: 2 cols mobile, 4 cols desktop."
+        ],
+        [
+          "productDetail",
+          "Two-column asymmetric layout (5/6 split with offset). Headline on left with gold italic accent. Body text on right with drop cap on first paragraph."
+        ],
+        [
+          "features",
+          "Alternating image-text layout with offset columns. Images 3:4 aspect ratio with shadow, grayscale default. Text in 4 columns offset from edges. Numbered labels (01, 02) in gold. 'Read More' link buttons."
+        ],
+        [
+          "howItWorks",
+          "Dark section with inverted palette. Grid of cards with 1px gap simulated borders. Each card has numbered step label, title, and description. Hover effect darkens background."
+        ],
+        [
+          "benefits",
+          "Dark section with horizontal line dividers above each benefit (hover turns gold). 3-column grid. Section header split across columns."
+        ],
+        [
+          "pricing",
+          "Minimalist cards with top border only. Featured tier has 4px gold top border and 'Most Popular' badge. Subtle shadows that deepen on hover. Check mark list with gold icons."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "luxury",
+        "dark"
+      ],
+      "best_for": [
+        "health",
+        "legal",
+        "creative"
+      ]
+    },
+    {
+      "id": "material-design",
+      "name": "Material",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "Playful, dynamic color extraction, pill-shaped buttons, and distinct elevation states. Based on Google's Material Design 3 with enhanced depth and micro-interactions.",
+      "source_url": "https://designprompts.dev/material-design",
+      "raw_prompt": "raw/material-design.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "material-design"
+        ],
+        [
+          "name",
+          "Material"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Playful, dynamic color extraction, pill-shaped buttons, and distinct elevation states. Based on Google's Material Design 3 with enhanced depth and micro-interactions."
+        ],
+        [
+          "hero",
+          "Large rounded container (48px radius) with decorative organic blur shapes, split layout with abstract geometric shapes on desktop, centered on mobile"
+        ],
+        [
+          "stats",
+          "Grid of rounded cards (24px radius) with tonal backgrounds, hover effects with shadow elevation, centered numeric values with primary color accent"
+        ],
+        [
+          "productDetail",
+          "Two-column split layout with text content and abstract shape visualization, generous padding, shadow-inner on image container"
+        ],
+        [
+          "features",
+          "Card grid with tonal surface backgrounds, icon containers with secondary color, hover scale and shadow effects, generous padding"
+        ],
+        [
+          "blog",
+          "Card grid with image aspect ratio 3:2, image zoom on hover, tonal surface backgrounds, uppercase meta text with primary color"
+        ],
+        [
+          "howItWorks",
+          "Numbered circular badges with glow effects on hover above rounded content cards, vertical stepper layout with shadow transitions"
+        ],
+        [
+          "benefits",
+          "Full-width colored container with radial gradient overlays and blur shapes, nested glass-morphism cards with border, backdrop blur, and hover effects"
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "family"
+      ]
+    },
+    {
+      "id": "maximalism",
+      "name": "Maximalism",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "Clashing patterns, dense layouts, oversaturated colors, intentional visual clutter. MORE IS MORE.",
+      "source_url": "https://designprompts.dev/maximalism",
+      "raw_prompt": "raw/maximalism.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "maximalism"
+        ],
+        [
+          "name",
+          "Maximalism"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Clashing patterns, dense layouts, oversaturated colors, intentional visual clutter. MORE IS MORE."
+        ],
+        [
+          "hero",
+          "Full-viewport explosion with overlapping elements, floating animated shapes (stars, sparkles, emoji), massive background typography bleeding off edges, stacked multi-color text shadows, and chaotic visual layers with pattern overlays."
+        ],
+        [
+          "stats",
+          "Full-width chaotic mosaic grid (2x2 on mobile, 4 columns on desktop) with each stat in a different vibrant background color. Pattern dot overlays, rotated numbers with layered text shadows, and star decorations that rotate on hover."
+        ],
+        [
+          "productDetails",
+          "Two-column layout with animated concentric spinning circles on left (visual chaos with floating icons at cardinal points). Right side features layered container with offset shadow layer, multi-shadow card, and bordered paragraphs alternating colors."
+        ],
+        [
+          "features",
+          "3-column grid with alternating vertical offsets (staggered layout). Each card has colored icon container with rotation on hover, colored header backgrounds with transparency, and multi-layered hard shadows that intensify on hover."
+        ],
+        [
+          "blog",
+          "3-column grid with middle card offset vertically. Overlapping card stack with dramatic hover lift effects, colored date badges, gradient image overlays, and scale/rotation transitions."
+        ],
+        [
+          "howItWorks",
+          "3-step layout with horizontal connecting gradient line, numbered circles with different accent colors, cards offset vertically on alternating steps, and centered content."
+        ],
+        [
+          "benefits",
+          "Two-column asymmetric layout with left column containing title/CTA and right column with stacked benefit cards. Each card has colored border, icon circle, and transforms on hover (translate + scale)."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "creative"
+      ]
+    },
+    {
+      "id": "minimal-dark",
+      "name": "Simple Dark",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "An atmospheric dark mode design system built on deep slate tones with warm amber accents. Features ambient glow effects, glass-like translucent cards, geometric typography, and generous breathing room. Ethereal yet grounded—like a premium app at midnight.",
+      "source_url": "https://designprompts.dev/minimal-dark",
+      "raw_prompt": "raw/minimal-dark.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "minimal-dark"
+        ],
+        [
+          "name",
+          "Simple Dark"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "An atmospheric dark mode design system built on deep slate tones with warm amber accents. Features ambient glow effects, glass-like translucent cards, geometric typography, and generous breathing room. Ethereal yet grounded—like a premium app at midnight."
+        ],
+        [
+          "hero",
+          "Centered layout with massive headline. Ambient glow behind text creates depth. Trust badge floats above with subtle glow and pulsing dot. CTAs side by side with amber glow effect on primary button hover. Background has very subtle radial gradient warmth."
+        ],
+        [
+          "stats",
+          "Horizontal strip with glass-effect background. Stats separated by subtle vertical dividers (1px, low opacity). Numbers in display font with amber accent. Subtle top/bottom borders."
+        ],
+        [
+          "productDetail",
+          "Two-column layout. Left side has ambient glow orb decoration. Text content right-aligned on left column. Right column has floating glass card with abstract UI mockup inside."
+        ],
+        [
+          "features",
+          "Clean 3-column grid of glass cards. Icons in amber-tinted circles. Hover reveals subtle glow. First feature can span 2 columns for emphasis. Consistent card heights."
+        ],
+        [
+          "howItWorks",
+          "Horizontal numbered steps. Large circled numbers with amber fill. Connecting line between steps (subtle, dashed). Cards below each with glass effect."
+        ],
+        [
+          "benefits",
+          "Split layout with large ambient orb on left side. Benefits as a clean list on right with amber checkmarks. Generous spacing between items."
+        ],
+        [
+          "pricing",
+          "3-column glass cards. Highlighted tier has amber border glow, 'Popular' badge, and is slightly larger (scale-105 + translate-y-4 on desktop for prominence). Prices large in display font. Feature lists with subtle checkmarks."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "luxury",
+        "geometric",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "modern-dark",
+      "name": "Modern Dark",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "A cinematic, high-precision dark mode design featuring layered ambient lighting through animated gradient blobs, mouse-tracking spotlight effects, and meticulously crafted micro-interactions that feel like premium software.",
+      "source_url": "https://designprompts.dev/modern-dark",
+      "raw_prompt": "raw/modern-dark.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "modern-dark"
+        ],
+        [
+          "name",
+          "Modern Dark"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A cinematic, high-precision dark mode design featuring layered ambient lighting through animated gradient blobs, mouse-tracking spotlight effects, and meticulously crafted micro-interactions that feel like premium software."
+        ],
+        [
+          "hero",
+          "Centered cinematic hero with parallax scroll effects, gradient headline treatment, and floating announcement badge with ping animation. Trust indicators displayed as overlapping avatars below CTAs."
+        ],
+        [
+          "stats",
+          "Bold 4-column grid with gradient text for numbers, trend badges, and subtle hover glow effects. Numbers use massive typography (text-7xl) with gradient fills."
+        ],
+        [
+          "productDetail",
+          "Split 2-column layout with text content on left and mock interface visual on right. Mock interface includes macOS-style window controls and abstract UI components with accent highlights."
+        ],
+        [
+          "features",
+          "Asymmetric 6-column bento grid with varying card sizes. Hero feature card spans 4 columns and 2 rows with integrated data visualization. Cards use mouse-tracking spotlight effects."
+        ],
+        [
+          "blog",
+          "Magazine-style 3-column grid with hover-zoom images, gradient overlays on hover, and clean metadata presentation. Images have subtle opacity transitions."
+        ],
+        [
+          "howItWorks",
+          "3-column grid with numbered cards featuring glowing accent borders. Step numbers displayed in large format with glow effects. Connection line spans across cards on desktop."
+        ],
+        [
+          "benefits",
+          "Sticky left column with scrolling right column. Right side features stacked cards with checkmark icons and hover border accent effects."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "dark"
+      ],
+      "best_for": [
+        "technology"
+      ]
+    },
+    {
+      "id": "monochrome",
+      "name": "Monochrome",
+      "mode": "light",
+      "font_type": "serif",
+      "description": "A stark, editorial design system built on pure black and white. No accent colors—just dramatic contrast, oversized serif typography, and precise geometric layouts. Evokes high-end fashion editorials and architectural portfolios. Austere, sophisticated, unapologetically bold.",
+      "source_url": "https://designprompts.dev/monochrome",
+      "raw_prompt": "raw/monochrome.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "monochrome"
+        ],
+        [
+          "name",
+          "Monochrome"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "A stark, editorial design system built on pure black and white. No accent colors—just dramatic contrast, oversized serif typography, and precise geometric layouts. Evokes high-end fashion editorials and architectural portfolios. Austere, sophisticated, unapologetically bold."
+        ],
+        [
+          "hero",
+          "Full-width single column: badge with dot indicator, massive oversized headline (9xl), decorative thick rule with small bordered square, subheadline, dual CTAs, trust indicator. No images—pure typography as the hero element. Heavy 4px bottom border."
+        ],
+        [
+          "stats",
+          "Horizontal strip, inverted (black bg, white text). 4-column grid on desktop, 2-col on mobile. Stats separated by vertical dividers. Oversized numbers in display serif, small caps labels, trend info. Subtle vertical line texture overlay for depth."
+        ],
+        [
+          "productDetail",
+          "Two-column editorial spread with section label. Left: large headline. Right: body text with boxed drop cap (bordered square containing first letter) on first paragraph. Grid pattern overlay for texture. Heavy 4px bottom border."
+        ],
+        [
+          "features",
+          "Dense 3-column grid with 1px gaps filled with black. Each feature card has bordered icon box + numbered label, headline, description. Cards invert colors on hover (100ms transition). Heavy 4px bottom border."
+        ],
+        [
+          "howItWorks",
+          "3-column centered layout. Bordered square boxes with large step numbers, connected by horizontal lines. Headline + description below each. Diagonal line texture overlay. Heavy 4px bottom border."
+        ],
+        [
+          "benefits",
+          "Checklist format with oversized checkmarks (custom SVG, not icons). Benefits as bold headlines with supporting text. Alternating alignment for visual interest."
+        ],
+        [
+          "pricing",
+          "3-column grid with 1px gaps. Highlighted tier is inverted (black bg) AND elevated vertically on desktop (-my-8, py-16) with subtle shadow. Non-highlighted tiers have hover bg change. Badge, name, price, description, feature list, CTA button. Heavy 4px bottom border."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "luxury",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "health"
+      ]
+    },
+    {
+      "id": "neo-brutalism",
+      "name": "Neo-brutalism",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "A raw, high-contrast aesthetic that mimics print design and DIY punk culture. Characterized by cream backgrounds, thick black borders (4px), hard offset shadows with zero blur, clashing vibrant colors (Hot Red, Vivid Yellow, Soft Violet), and Space Grotesk typography at heavy weights. Embraces asymmetry, rotation, sticker-like layering, and organized visual chaos.",
+      "source_url": "https://designprompts.dev/neo-brutalism",
+      "raw_prompt": "raw/neo-brutalism.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "neo-brutalism"
+        ],
+        [
+          "name",
+          "Neo-brutalism"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A raw, high-contrast aesthetic that mimics print design and DIY punk culture. Characterized by cream backgrounds, thick black borders (4px), hard offset shadows with zero blur, clashing vibrant colors (Hot Red, Vivid Yellow, Soft Violet), and Space Grotesk typography at heavy weights. Embraces asymmetry, rotation, sticker-like layering, and organized visual chaos."
+        ],
+        [
+          "hero",
+          "Asymmetric split with massive rotated headline text blocks. Left side has border-boxed text with different colors and rotations. Right side features a 'visual chaos' container with overlapping shapes and badges. CTAs use brutalist shadows that translate on hover. Fully responsive with stacked layout on mobile."
+        ],
+        [
+          "stats",
+          "4-column brutalist grid (2 columns on tablet, 1 on mobile) with thick white borders on black background. Hover inverts to accent color. Each stat has oversized numbers (text-7xl), uppercase labels, and decorative bars. No icons, just raw numerical data."
+        ],
+        [
+          "features",
+          "3-column grid (1 on mobile) of cards with thick black borders and 8px offset shadows. Icons enclosed in bordered, colored accent boxes. Card headers have numbered badges and border separators. Hover lifts cards upward with deeper shadows."
+        ],
+        [
+          "howItWorks",
+          "3 centered boxes (stacked on mobile) connected by dashed line on desktop. Each step has a large rotated number badge at top with accent background and thick border. Hover rotates the badge further. Process badge at top with pill shape."
+        ],
+        [
+          "benefits",
+          "Split 2-column (stacked on mobile). Left: vibrant red accent with radial dot pattern overlay, massive white text with text shadow, rotated white card for subtitle. Right: clean cream background with bold list items using square bullets that change color on hover."
+        ],
+        [
+          "pricing",
+          "3-column card grid (1 on mobile) with massive hard shadows (12-16px). Highlighted plan scales up slightly and uses black header with white text. Price numbers are huge (text-6xl). Features use custom checkbox bullets. Decorative pattern border at top."
+        ],
+        [
+          "testimonials",
+          "Infinite horizontal marquee (react-fast-marquee) with gradient fade edges. Cards are white with thick borders and large shadows. 5-star ratings as large text. Author section has bordered avatar and separate background."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "fitness"
+      ]
+    },
+    {
+      "id": "neumorphism",
+      "name": "Neumorphism",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "Extruded and inset elements via dual shadows on monochromatic backgrounds. Soft, tactile, and physically grounded with excellent accessibility.",
+      "source_url": "https://designprompts.dev/neumorphism",
+      "raw_prompt": "raw/neumorphism.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "neumorphism"
+        ],
+        [
+          "name",
+          "Neumorphism"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Extruded and inset elements via dual shadows on monochromatic backgrounds. Soft, tactile, and physically grounded with excellent accessibility."
+        ],
+        [
+          "hero",
+          "Asymmetric split layout (60/40) with content on left and nested depth visual on right. Features animated floating cards and interactive 3D nested circles that respond to hover with scale and rotation."
+        ],
+        [
+          "stats",
+          "Two-stage presentation: inline stats in hero, then dedicated section with four extruded cards inside a deep inset container. Cards lift and scale on hover."
+        ],
+        [
+          "features",
+          "Bento-style grid with one large featured card (2 rows) and smaller cards. Deep inset icon wells create tactile depth. Smooth hover scale transforms."
+        ],
+        [
+          "howItWorks",
+          "Three-column horizontal stepper with nested depth circles for step numbers, connected by a visible inset rail with gradient progress indicator."
+        ],
+        [
+          "benefits",
+          "Split layout with checklist items in inset containers on left, abstract UI mockup visualization on right showing layered neumorphic elements."
+        ],
+        [
+          "pricing",
+          "Three-column grid with center card highlighted via subtle scale (1.05x) and enhanced shadow depth. Badge floating above highlighted tier."
+        ],
+        [
+          "testimonials",
+          "Asymmetric grid with one large featured testimonial (2 columns, 2 rows) and four smaller testimonials. Star ratings in inset pills, avatars in deep inset circles."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "newsprint",
+      "name": "Newsprint",
+      "mode": "light",
+      "font_type": "serif",
+      "description": "Stark black and white, high contrast, tight grids, newspaper aesthetic, sharp lines, editorial depth.",
+      "source_url": "https://designprompts.dev/newsprint",
+      "raw_prompt": "raw/newsprint.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "newsprint"
+        ],
+        [
+          "name",
+          "Newsprint"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "Stark black and white, high contrast, tight grids, newspaper aesthetic, sharp lines, editorial depth."
+        ],
+        [
+          "hero",
+          "Split 8-col/4-col grid. Main column has massive headline (5xl → 9xl), drop-cap intro paragraph, and CTA buttons. Side column contains stats box and ad placeholder with borders."
+        ],
+        [
+          "stats",
+          "Full-width black background ticker with horizontal marquee. Monospace labels, bold values, red accent badges."
+        ],
+        [
+          "features",
+          "4-column top grid with icons in bordered boxes, 3-column bottom grid with bullet points. All cells separated by black borders (collapsed grid style)."
+        ],
+        [
+          "blog",
+          "3-column grid with bordered card style. Grayscale images with sepia hover, date/author metadata in monospace, underline on hover."
+        ],
+        [
+          "howItWorks",
+          "Dark inverted section (black bg, white text). 3-column grid with numbered red boxes, horizontal connecting line, vertical layout breakdown."
+        ],
+        [
+          "benefits",
+          "Editorial 5-col/7-col split. Left has illustration placeholder, right has numbered list in 2-column text layout."
+        ],
+        [
+          "testimonials",
+          "2-column grid with large quote marks, serif quotes, bordered author cards with grayscale images."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "legal",
+        "food"
+      ]
+    },
+    {
+      "id": "organic",
+      "name": "Organic / Natural",
+      "mode": "light",
+      "font_type": "serif",
+      "description": "Earth-inspired palette with moss greens, terracotta, and sand tones. Features organic blob shapes, grain texture overlays, asymmetric rounded corners, and soft shadows. Embraces wabi-sabi philosophy with warmth and natural imperfection.",
+      "source_url": "https://designprompts.dev/organic",
+      "raw_prompt": "raw/organic.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "organic"
+        ],
+        [
+          "name",
+          "Organic / Natural"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "Earth-inspired palette with moss greens, terracotta, and sand tones. Features organic blob shapes, grain texture overlays, asymmetric rounded corners, and soft shadows. Embraces wabi-sabi philosophy with warmth and natural imperfection."
+        ],
+        [
+          "hero",
+          "Centered layout with overlapping organic blob backgrounds. Large serif typography with generous spacing. Trust badge with rounded pill shape. Dual CTAs in pill-shaped buttons."
+        ],
+        [
+          "stats",
+          "Horizontal grid (2 cols mobile, 4 cols desktop) with centered text. Large serif numbers with hover scale animation. Subtle border separators."
+        ],
+        [
+          "productDetail",
+          "Two-column split with rotated image frame and organic blob accent. Image has thick white border and soft shadow. Text constrained to max-w-2xl for readability."
+        ],
+        [
+          "features",
+          "3-column responsive grid with cards featuring varied organic border radii. Icon containers with rounded corners that fill on hover. Blob background for ambient depth."
+        ],
+        [
+          "blog",
+          "3-column grid of articles. Rounded image containers with overlay that fades on hover. Metadata with dot separators."
+        ],
+        [
+          "howItWorks",
+          "3-step horizontal layout with curved SVG connecting path. Large numbered circles with thick borders. Centered text alignment."
+        ],
+        [
+          "benefits",
+          "Two-column layout with dark moss green background and grain texture. Checkmark icons in rounded containers. Image masked with organic blob border-radius shape."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "playful-geometric",
+      "name": "Playful Geometric",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "A vibrant, high-energy aesthetic that combines a stable structural grid with whimsical geometric decorations. It relies on bright solid colors, simple primitive shapes (circles, triangles, squiggles), and tactile interactions to create a friendly, optimistic vibe reminiscent of modern Memphis design.",
+      "source_url": "https://designprompts.dev/playful-geometric",
+      "raw_prompt": "raw/playful-geometric.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "playful-geometric"
+        ],
+        [
+          "name",
+          "Playful Geometric"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A vibrant, high-energy aesthetic that combines a stable structural grid with whimsical geometric decorations. It relies on bright solid colors, simple primitive shapes (circles, triangles, squiggles), and tactile interactions to create a friendly, optimistic vibe reminiscent of modern Memphis design."
+        ],
+        [
+          "hero",
+          "Centralized or split layout where the main headline is framed by floating geometric primitives (3D-looking flat shapes). The CTA button sits on a 'blob' or irregular shape background. Background features a subtle dot pattern."
+        ],
+        [
+          "stats",
+          "Row of colorful distinct shapes (circle, square, triangle, hexagon) acting as containers for the numbers. The containers vibrate or rotate slightly on hover."
+        ],
+        [
+          "productDetail",
+          "Two-column layout. Image side has a 'collage' feel with offset colored rectangles behind the main product image. Text side uses substantial padding and colorful bullets."
+        ],
+        [
+          "features",
+          "Bento-box style grid, but each cell has a different playful background color (very light tints) or border radius strategy (some fully round, some leaf-shaped). Icons are solid, colorful circles."
+        ],
+        [
+          "blog",
+          "Masonry or grid where featured images are clipped into interesting shapes (arch, pill, circle). Titles use a chunky display font. Tags look like little stickers."
+        ],
+        [
+          "howItWorks",
+          "Horizontal or vertical timeline connected by a literal dashed SVG line that loops and squiggles between steps. Step numbers are inside solid colored stars or bursts."
+        ],
+        [
+          "benefits",
+          "Alternating layout. Each benefit text block is paired with a large, abstract geometric composition (e.g., a square balancing on a circle) representing the concept."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "food",
+        "family"
+      ]
+    },
+    {
+      "id": "professional",
+      "name": "Business Style",
+      "mode": "light",
+      "font_type": "serif",
+      "description": "An editorial-inspired minimalist design system centered on elegant serif typography. Warm ivory backgrounds with subtle paper texture, refined spacing, rule lines, and classical proportions create a timeless, literary aesthetic. Enhanced depth through layered gradients and multi-toned shadows. The design whispers sophistication through restraint and typographic excellence.",
+      "source_url": "https://designprompts.dev/professional",
+      "raw_prompt": "raw/professional.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "professional"
+        ],
+        [
+          "name",
+          "Business Style"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "serif"
+        ],
+        [
+          "description",
+          "An editorial-inspired minimalist design system centered on elegant serif typography. Warm ivory backgrounds with subtle paper texture, refined spacing, rule lines, and classical proportions create a timeless, literary aesthetic. Enhanced depth through layered gradients and multi-toned shadows. The design whispers sophistication through restraint and typographic excellence."
+        ],
+        [
+          "hero",
+          "Full-width centered layout with dramatic oversized serif headline (2.5rem mobile, 7xl desktop). Generous vertical breathing room (py-32 to py-44). Subtle decorative rule line below headline. Dual CTA buttons with refined hover states including subtle lift. Trust indicator in small caps with generous letter-spacing. Responsive text scaling maintains hierarchy on all devices."
+        ],
+        [
+          "stats",
+          "Horizontal 4-column layout (2-column on mobile) with thin vertical rule dividers between stats. Dividers appear between columns on mobile and all stats on desktop. Large display serif numbers (4xl mobile, 5xl desktop). Labels in monospace small caps with wide tracking (0.15em). Clean card background with border lines top and bottom."
+        ],
+        [
+          "features",
+          "3-column grid (stacks to 1 column mobile) with generous gaps (gap-8). Each card has 2px accent top border, rounded corners, and enhanced hover effect with background tint. Icon in muted circle background. Serif title with sans-serif description. Hover reveals subtle background shift and enhanced shadow."
+        ],
+        [
+          "howItWorks",
+          "3-column layout with large circular step numbers in serif. Horizontal connecting line on desktop. Each step has generous padding and clean typography hierarchy. Background uses card color for contrast."
+        ],
+        [
+          "benefits",
+          "Asymmetric two-column layout (1.3fr / 0.7fr ratio, stacks on mobile). Left column has title, subtitle, and bulleted list with elegant dash markers. Right column features enhanced abstract graphic with gradient backgrounds, layered circles, and hover-interactive elements. Refined typography hierarchy throughout."
+        ],
+        [
+          "pricing",
+          "3-column grid (stacks vertically mobile) with center card elevated (-translate-y-4 on desktop). Thin rule borders with accent border on highlighted tier. Large serif price numbers. Feature lists with checkmarks colored by tier importance. Highlighted tier has warm accent background tint (accent-muted). Badge positioning uses absolute positioning."
+        ],
+        [
+          "testimonials",
+          "3-column grid (stacks mobile) with large decorative opening quotation mark (100px, 20% opacity) in accent color. Italic serif quotes with generous line-height. Author info with circular avatar (48x48px) and refined typography. Subtle card borders and shadows."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "luxury",
+        "dark"
+      ],
+      "best_for": [
+        "health",
+        "legal"
+      ]
+    },
+    {
+      "id": "retro",
+      "name": "Retro",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "Ugly-cool 90s nostalgia aesthetic with Windows 95 beveled UI, system fonts, bright primary colors, marquee scrolling text, and maximum visual chaos.",
+      "source_url": "https://designprompts.dev/retro",
+      "raw_prompt": "raw/retro.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "retro"
+        ],
+        [
+          "name",
+          "Retro"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Ugly-cool 90s nostalgia aesthetic with Windows 95 beveled UI, system fonts, bright primary colors, marquee scrolling text, and maximum visual chaos."
+        ],
+        [
+          "hero",
+          "Centered layout with animated rainbow text headline (4s color cycle), dual colored horizontal bars as dividers, full-width CTA buttons with arrow decorations, and retro hit counter display at bottom."
+        ],
+        [
+          "stats",
+          "Table-style grid (2x2 on mobile, 1x4 on desktop) with visible cell borders, alternating white/gray backgrounds, inset beveled frame container, and monospace labels."
+        ],
+        [
+          "features",
+          "Two-column table layout with 80px colored icon cells (alternating navy/teal backgrounds) and text description cells, thick visible borders between rows, alternating row backgrounds."
+        ],
+        [
+          "howItWorks",
+          "Vertical step list with large beveled yellow numbered badges (48px-64px), gray content panels with outset bevels, groove HR dividers between steps."
+        ],
+        [
+          "benefits",
+          "2-column grid of beveled panels on navy background, each with lime green asterisk bullet and gray panel containing title and description."
+        ],
+        [
+          "pricing",
+          "3-column card grid with highlighted center tier (yellow header, red border, pulsing badge), beveled window-style cards with title bars, feature lists with green asterisk bullets."
+        ],
+        [
+          "testimonials",
+          "Horizontal auto-scrolling marquee (30px/s speed) with fixed-width cards (350px), Windows 95 title bar gradients, yellow inset content panels with 5-star ratings."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "dark"
+      ],
+      "best_for": [
+        "food"
+      ]
+    },
+    {
+      "id": "saas",
+      "name": "Tech Style",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "A bold, minimalist-modern visual system combining clean aesthetics with dynamic execution. Features signature Electric Blue gradients, sophisticated dual-font pairing (Calistoga + Inter), animated hero graphics, inverted contrast sections, and micro-interactions throughout. Professional yet design-forward—confidence without clutter.",
+      "source_url": "https://designprompts.dev/saas",
+      "raw_prompt": "raw/saas.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "saas"
+        ],
+        [
+          "name",
+          "Tech Style"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A bold, minimalist-modern visual system combining clean aesthetics with dynamic execution. Features signature Electric Blue gradients, sophisticated dual-font pairing (Calistoga + Inter), animated hero graphics, inverted contrast sections, and micro-interactions throughout. Professional yet design-forward—confidence without clutter."
+        ],
+        [
+          "hero",
+          "Asymmetrical two-column grid (1.1fr / 0.9fr). Left: bold headline with gradient text accent on key word, animated badge with pulsing dot, trust indicators with stacked avatars. Right: abstract generative art composition with floating animated cards, rotating outer ring, geometric elements, and bold corner accent block."
+        ],
+        [
+          "stats",
+          "INVERTED section with dark background (foreground color). Large display numbers (5xl-6xl), trend badges with arrow icons, dot pattern texture overlay. Vertical dividers between stats on desktop."
+        ],
+        [
+          "features",
+          "Asymmetric masonry grid where first card spans 2 rows. Gradient icon backgrounds (not translucent). Hover gradient overlays on cards. Featured card has 'Learn more' link and corner glow effect."
+        ],
+        [
+          "howItWorks",
+          "Horizontal timeline on desktop. Large circular step numbers (24x24) with inner gradient glow. Cards below each step. Arrow connectors between steps using accent-colored circular badges. Centered header layout."
+        ],
+        [
+          "benefits",
+          "Two-column asymmetric grid (1.2fr / 0.8fr). Text content with checkmark list items using accent-colored badges. Visual element has asymmetric border-radius (rounded-tl-[4rem] rounded-br-[4rem]) with abstract UI placeholder."
+        ],
+        [
+          "pricing",
+          "3-column grid with highlighted tier elevated (-translate-y-4) and featuring gradient border effect (2px gradient stroke). Gradient price text on highlighted tier. Badge hangs off top edge. Gradient checkmarks for highlighted features."
+        ],
+        [
+          "testimonials",
+          "3-column grid with center card offset vertically. Large decorative quote mark (120px, 8% opacity). Gradient accent bar at top of each card. Display font for quotes in italic. Larger avatars with accent border."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "luxury",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "technology"
+      ]
+    },
+    {
+      "id": "sketch",
+      "name": "Hand-Drawn / Sketch",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "Organic wobbly borders, handwritten typography, paper textures, and playful imperfection. Every element feels sketched with markers and pencils on textured paper.",
+      "source_url": "https://designprompts.dev/sketch",
+      "raw_prompt": "raw/sketch.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "sketch"
+        ],
+        [
+          "name",
+          "Hand-Drawn / Sketch"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "Organic wobbly borders, handwritten typography, paper textures, and playful imperfection. Every element feels sketched with markers and pencils on textured paper."
+        ],
+        [
+          "hero",
+          "Split 2-column grid with oversized marker-style headline, decorative hand-drawn arrow pointing to CTA, and polaroid-frame product mockup with wobbly borders. Trust indicators use overlapping avatar circles."
+        ],
+        [
+          "stats",
+          "Horizontal grid of stats displayed in irregular organic shapes (wobbly circles) with varying border radii. Each stat has playful rotation for authentic hand-drawn feel."
+        ],
+        [
+          "productDetail",
+          "Centered content in white card with wobbly borders, sticky-note tag at top center, drop-cap first letter treatment, and constrained text width for readability."
+        ],
+        [
+          "features",
+          "3-column grid of post-it yellow cards with tape decoration at top. Each card includes rough circular icon container and wobbly borders for sketchy aesthetic."
+        ],
+        [
+          "blog",
+          "3-column grid with polaroid-style frames. Dashed borders on image placeholders, hard offset shadows, and playful rotation on hover for scrapbook feel."
+        ],
+        [
+          "howItWorks",
+          "3-column step layout with decorative squiggly connecting line (desktop). Steps numbered in wobbly-border circles with hard offset shadows."
+        ],
+        [
+          "benefits",
+          "Centered white container with thick wobbly border and hard shadow. 2-column grid with hand-drawn bullet points (filled circles) for each benefit item."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "playful",
+        "geometric"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "swiss-minimalist",
+      "name": "Swiss",
+      "mode": "light",
+      "font_type": "sans-serif",
+      "description": "A rigorous implementation of the International Typographic Style (1950s). Characterized by objective typography, sans-serif fonts (Inter), mathematical grids with subtle texture patterns, and a strict black/white/red palette. Prioritizes readability, precision, asymmetrical organization, and visual depth through layered patterns.",
+      "source_url": "https://designprompts.dev/swiss-minimalist",
+      "raw_prompt": "raw/swiss-minimalist.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "swiss-minimalist"
+        ],
+        [
+          "name",
+          "Swiss"
+        ],
+        [
+          "mode",
+          "light"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A rigorous implementation of the International Typographic Style (1950s). Characterized by objective typography, sans-serif fonts (Inter), mathematical grids with subtle texture patterns, and a strict black/white/red palette. Prioritizes readability, precision, asymmetrical organization, and visual depth through layered patterns."
+        ],
+        [
+          "hero",
+          "Split screen composition with asymmetric 8:4 grid ratio. Left: massive typography (text-6xl to text-[10rem]) with geometric accent bar and functional CTAs. Right: geometric abstract composition with grid pattern overlay, featuring basic shapes (circles, rectangles, lines) in black/red on muted background."
+        ],
+        [
+          "stats",
+          "Horizontal strip divided by visible borders. 2x2 grid on mobile, 1x4 on desktop. Massive numbers with hover scale animation, rotating plus icons, and color inversion on hover (black → red). No decorative icons, pure data presentation."
+        ],
+        [
+          "productDetail",
+          "Split 7:5 grid. Left: 2x2 visual grid of geometric compositions with texture overlays (dots, diagonals, grid patterns). Right: large typographic headline with body text. Mobile stacks vertically."
+        ],
+        [
+          "features",
+          "Asymmetric two-column layout. Left: sticky header with dots pattern overlay and numbered label (01. System). Right: stacked feature cards with thick borders, numbered indicators, diagonal arrow icons, and full hover state color inversion."
+        ],
+        [
+          "howItWorks",
+          "Three-column grid with visible borders and black background. Each step features giant watermark numbers (text-8xl at 10% opacity), red accent border on left, and white text on black."
+        ],
+        [
+          "benefits",
+          "Asymmetric 5:7 grid split. Left: diagonal pattern overlay with section header. Right: stacked list items with numbered box indicators, hover state inverts to black background with red accent numbers."
+        ],
+        [
+          "testimonials",
+          "Three-column responsive grid (1 col mobile, 2 col tablet, 3 col desktop). Large red quotation mark, bold uppercase quote text, thick top border that changes to red on hover, subtle upward translation on hover."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "luxury",
+        "geometric"
+      ],
+      "best_for": [
+        "creative"
+      ]
+    },
+    {
+      "id": "terminal",
+      "name": "Terminal CLI",
+      "mode": "dark",
+      "font_type": "mono",
+      "description": "A raw, functional, and retro-futuristic command-line interface aesthetic. High contrast, monospaced precision, and blinking cursors.",
+      "source_url": "https://designprompts.dev/terminal",
+      "raw_prompt": "raw/terminal.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "terminal"
+        ],
+        [
+          "name",
+          "Terminal CLI"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "mono"
+        ],
+        [
+          "description",
+          "A raw, functional, and retro-futuristic command-line interface aesthetic. High contrast, monospaced precision, and blinking cursors."
+        ],
+        [
+          "hero",
+          "A massive ASCII art logo or headline. The subheadline types itself out. CTAs are rendered as command prompts."
+        ],
+        [
+          "stats",
+          "Displayed as a system status report or table output (e.g., 'UPTIME: 99.9%', 'USERS: 10k')."
+        ],
+        [
+          "features",
+          "A grid of terminal windows or 'man page' style entries. Each feature has a command-line flag (e.g., '--speed', '--security')."
+        ],
+        [
+          "howItWorks",
+          "A step-by-step shell script execution log. 'Step 1: Initializing...', 'Step 2: Processing...'."
+        ],
+        [
+          "benefits",
+          "A split-screen layout like a code editor (vim/vscode) showing 'Before' vs 'After' code blocks."
+        ],
+        [
+          "pricing",
+          "An ASCII table layout. Selected plan highlights with an inverted color block."
+        ],
+        [
+          "testimonials",
+          "Git commit logs or IRC chat logs. 'User@host says: ...'"
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "technology"
+      ]
+    },
+    {
+      "id": "vaporwave",
+      "name": "Vaporwave",
+      "mode": "dark",
+      "font_type": "mono",
+      "description": "A nostalgic, neon-drenched journey into 80s retro-futurism. High-contrast neon pinks and cyans against deep void purples. Digital grids, glowing horizons, surreal sunset gradients, and CRT scanline overlays create an immersive synthetic world.",
+      "source_url": "https://designprompts.dev/vaporwave",
+      "raw_prompt": "raw/vaporwave.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "vaporwave"
+        ],
+        [
+          "name",
+          "Vaporwave"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "mono"
+        ],
+        [
+          "description",
+          "A nostalgic, neon-drenched journey into 80s retro-futurism. High-contrast neon pinks and cyans against deep void purples. Digital grids, glowing horizons, surreal sunset gradients, and CRT scanline overlays create an immersive synthetic world."
+        ],
+        [
+          "hero",
+          "Full-screen immersive perspective grid floor with floating neon sun gradient backdrop. Massive glowing headline split across two lines with gradient text effect. Skewed neon-bordered CTAs with transforming hover states. Version badge with skewed container."
+        ],
+        [
+          "stats",
+          "Dashboard row with bordered stat containers featuring gradient top accent bars. Hover states trigger cyan glow and color transitions. Grid layout adapts from 4 columns to stacked on mobile."
+        ],
+        [
+          "productDetail",
+          "Terminal window interface with cyan borders and window control dots. Split layout with content on left and visual placeholder on right. Command-line styled text prefixes."
+        ],
+        [
+          "features",
+          "Grid of glass-morphic cards with cyan laser top borders and pink side borders. Rotating diamond icon containers that spin on hover. Cards lift upward on hover with smooth transitions."
+        ],
+        [
+          "blog",
+          "Grid of retro data tape/file cards with duotone gradient overlays on images. Hover triggers cyan border glow and card shadow expansion."
+        ],
+        [
+          "howItWorks",
+          "Vertical timeline with alternating left-right steps. Central pink checkpoint dots with glow effects. Bordered step containers with corner accent decorations. Background dot pattern overlay."
+        ],
+        [
+          "benefits",
+          "Windows 95-inspired file explorer window with title bar and status bar. Grid of file icons with centered layouts. Hover states change background to pink tint."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "playful",
+        "geometric",
+        "dark"
+      ],
+      "best_for": []
+    },
+    {
+      "id": "web3",
+      "name": "Crypto",
+      "mode": "dark",
+      "font_type": "sans-serif",
+      "description": "A bold, futuristic aesthetic inspired by Bitcoin and decentralized finance. Deep void backgrounds with Bitcoin orange accents, golden highlights, glowing elements, and precision data visualization.",
+      "source_url": "https://designprompts.dev/web3",
+      "raw_prompt": "raw/web3.md",
+      "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+      "imported_at": "2026-07-13T01:53:57.090525+00:00",
+      "layouts": [
+        [
+          "id",
+          "web3"
+        ],
+        [
+          "name",
+          "Crypto"
+        ],
+        [
+          "mode",
+          "dark"
+        ],
+        [
+          "fontType",
+          "sans-serif"
+        ],
+        [
+          "description",
+          "A bold, futuristic aesthetic inspired by Bitcoin and decentralized finance. Deep void backgrounds with Bitcoin orange accents, golden highlights, glowing elements, and precision data visualization."
+        ],
+        [
+          "hero",
+          "Split layout with 60/40 ratio. Left: Massive headline with Bitcoin orange gradient text and trust badge. Right: Floating animated 3D orb with spinning orbital rings and floating stat cards. Background features subtle grid pattern with radial gradient blur effects."
+        ],
+        [
+          "stats",
+          "Horizontal grid of four key metrics with monospace numbers, uppercase labels, and subtle trend indicators. Dark surface background with top/bottom borders for ticker-tape feel."
+        ],
+        [
+          "productDetail",
+          "Two-column layout with mockup on left, content on right. Abstract UI mockup with glass morphism, grid backgrounds, and holographic gradients."
+        ],
+        [
+          "features",
+          "Three-column grid of elevated cards with background icon watermarks, glowing accent borders on hover, and icon containers with gradient backgrounds."
+        ],
+        [
+          "blog",
+          "Three-column grid of image-led cards. Full-bleed images with gradient overlays, date badges, and hover scale effects that increase contrast."
+        ],
+        [
+          "howItWorks",
+          "Vertical timeline with centered connection line. Alternating left/right content cards with numbered nodes on the centerline. Cards have corner accent borders."
+        ],
+        [
+          "benefits",
+          "Three-column grid of cards with check icons in glowing circles. Gradient borders appear on hover."
+        ]
+      ],
+      "tags": [
+        "editorial",
+        "technical",
+        "geometric",
+        "dark"
+      ],
+      "best_for": [
+        "technology"
+      ]
+    }
+  ]
+}

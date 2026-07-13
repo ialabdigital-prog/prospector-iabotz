@@ -49,9 +49,18 @@ def run_prospecting(
     nota_min: float = 4.7,
     aval_min: int = 40,
     raio_km: int = 15,
+    lat: float | None = None,
+    lng: float | None = None,
+    candidate_limit: int | None = None,
+    quality_mode: str | None = None,
     engine: str | None = None,
     on_progress: Progress | None = None,
 ) -> dict:
+    cfg = load_config()
+    canais = (cfg.get("envio") or {}).get("canais") or ["email"]
+    canais = [c for c in canais if c in ("email", "whatsapp")] or ["email"]
+    quality_mode = (quality_mode or (cfg.get("prospeccao") or {}).get("siteQuality") or "balanced").lower()
+    candidate_limit = max(40, min(int(candidate_limit or max(meta * 30, 100)), 500))
     def log(msg: str, level: str = "info"):
         if on_progress:
             # runners pass only msg; level via prefix for UI
@@ -64,21 +73,44 @@ def run_prospecting(
         log(f"STEP:{key}|{label}")
 
     eng_name, service = resolve_engine(engine)
-    step("start", f"Iniciando · {nicho} em {cidade} · meta {meta} leads · motor {eng_name}")
+    step("start", f"Iniciando · {nicho} em {cidade} · meta {meta} leads · até {candidate_limit} negócios · motor {eng_name}")
     log(
         f"Critérios: nota ≥ {nota_min}, avaliações ≥ {aval_min}, "
-        f"site ativo ruim (≥2 problemas) + e-mail público"
+        f"site ativo ruim · critério {quality_mode} · contato: {' ou '.join(canais)}"
     )
 
     step("search", "1/4 Buscando negócios no Google Maps (API Places/Apify)…")
     if eng_name == "google_places":
         candidates = service.search(
-            nicho, cidade, max_results=max(meta * 5, 40), radius_km=raio_km, on_progress=log
+            nicho, cidade, max_results=candidate_limit, lat=lat, lng=lng, radius_km=raio_km, on_progress=log
         )
     else:
         candidates = service.search_sync(
-            nicho, cidade, max_results=max(meta * 5, 40), on_progress=log
+            nicho, cidade, max_results=candidate_limit, on_progress=log
         )
+
+    # Legacy Google Places can legitimately return a sparse first page for a
+    # dense area. In automatic mode, complete it with Apify instead of making
+    # the UI look capped at 20/40 results.
+    configured_engine = (engine or maps.get("engine") or "auto").lower()
+    _, apify_key = get_maps_keys()
+    minimum_expected = min(candidate_limit, max(60, candidate_limit // 2))
+    if eng_name == "google_places" and configured_engine == "auto" and apify_key and len(candidates) < minimum_expected:
+        log(f"Places retornou {len(candidates)}/{candidate_limit}; complementando via Apify…", "warn")
+        try:
+            extra = ApifyGoogleMapsService(apify_key).search_sync(
+                nicho, cidade, max_results=candidate_limit, on_progress=log
+            )
+            merged = {}
+            for item in [*candidates, *extra]:
+                identity = item.get("place_id") or f"{item.get('nome','').strip().lower()}|{item.get('endereco','').strip().lower()}"
+                if identity:
+                    merged[identity] = {**item, "engine": "google_places+apify"}
+            candidates = list(merged.values())[:candidate_limit]
+            eng_name = "google_places+apify"
+            log(f"COUNT:candidates={len(candidates)}")
+        except Exception as exc:
+            log(f"Apify complementar indisponível: {exc}", "warn")
 
     log(f"COUNT:candidates={len(candidates)}")
     step("filter", f"2/4 {len(candidates)} lugares encontrados — filtrando potencial e website…")
@@ -93,14 +125,11 @@ def run_prospecting(
         if nota is None or nota < nota_min or aval < aval_min:
             skipped_potential += 1
             continue
-        if not (p.get("site") or "").strip():
-            skipped_no_site += 1
-            continue
         to_qualify.append(p)
 
     log(
         f"Após filtro Maps: {len(to_qualify)} para analisar site "
-        f"(↓{skipped_potential} nota/aval · ↓{skipped_no_site} sem website)"
+        f"(↓{skipped_potential} nota/aval · {skipped_no_site} sem website descartados)"
     )
     log(f"COUNT:to_qualify={len(to_qualify)}")
 
@@ -120,8 +149,8 @@ def run_prospecting(
             if site
             else {"ok": False, "motivos": ["sem website"], "email": "", "whatsapp": ""}
         )
-        ok, motivo = is_lead_gold(p, site_info, nota_min, aval_min)
-        slug = _slugify(f"{p.get('nome','')}-{cidade}")
+        ok, motivo = is_lead_gold(p, site_info, nota_min, aval_min, canais=canais, quality_mode=quality_mode)
+        slug = _slugify(f"{p.get('nome','')}-{cidade}", site)
         wa = site_info.get("whatsapp") or _phone_to_wa(p.get("telefone") or "")
         row = {
             "slug": slug,
@@ -169,9 +198,12 @@ def run_prospecting(
 
     return {
         "engine": eng_name,
+        "canais": canais,
         "nicho": nicho,
         "cidade": cidade,
         "meta": meta,
+        "candidate_limit": candidate_limit,
+        "quality_mode": quality_mode,
         "qualified": [{"slug": q["slug"], "nome": q["nome"], "motivo": q["motivo"]} for q in qualified],
         "qualified_count": len(qualified),
         "discarded_count": len(discarded),

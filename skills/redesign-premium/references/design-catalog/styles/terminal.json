@@ -1,0 +1,71 @@
+{
+  "id": "terminal",
+  "name": "Terminal CLI",
+  "mode": "dark",
+  "font_type": "mono",
+  "description": "A raw, functional, and retro-futuristic command-line interface aesthetic. High contrast, monospaced precision, and blinking cursors.",
+  "source_url": "https://designprompts.dev/terminal",
+  "raw_prompt": "raw/terminal.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "terminal"
+    ],
+    [
+      "name",
+      "Terminal CLI"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "mono"
+    ],
+    [
+      "description",
+      "A raw, functional, and retro-futuristic command-line interface aesthetic. High contrast, monospaced precision, and blinking cursors."
+    ],
+    [
+      "hero",
+      "A massive ASCII art logo or headline. The subheadline types itself out. CTAs are rendered as command prompts."
+    ],
+    [
+      "stats",
+      "Displayed as a system status report or table output (e.g., 'UPTIME: 99.9%', 'USERS: 10k')."
+    ],
+    [
+      "features",
+      "A grid of terminal windows or 'man page' style entries. Each feature has a command-line flag (e.g., '--speed', '--security')."
+    ],
+    [
+      "howItWorks",
+      "A step-by-step shell script execution log. 'Step 1: Initializing...', 'Step 2: Processing...'."
+    ],
+    [
+      "benefits",
+      "A split-screen layout like a code editor (vim/vscode) showing 'Before' vs 'After' code blocks."
+    ],
+    [
+      "pricing",
+      "An ASCII table layout. Selected plan highlights with an inverted color block."
+    ],
+    [
+      "testimonials",
+      "Git commit logs or IRC chat logs. 'User@host says: ...'"
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "technology"
+  ]
+}

@@ -5,17 +5,17 @@ description: Esta skill deve ser usada ao publicar páginas no aapanel local —
 
 # Deploy no aapanel Local
 
-Publicar páginas em `https://cliente-slug.panel.iabotz.online/` (subdomínio) ou `https://panel.iabotz.online/clientes/cliente-slug/` (subpasta) e garantir HTTPS com cadeado válido.
+Publicar páginas em `https://cliente-slug.example.com/` (subdomínio) ou `https://panel.example.com/clientes/cliente-slug/` (subpasta) e garantir HTTPS com cadeado válido.
 
 ## Configuração (prospector-config.json → bloco `aapanel`)
 
 ```json
 "aapanel": {
-  "url": "https://panel.iabotz.online",        // URL do painel aapanel
+  "url": "https://panel.example.com",          // URL do painel aaPanel
   "api_token": "seu_token_api",                // Token da API (Configurações → API)
   "usuario": "usuario_ftp",                    // Usuário FTP/SSH do servidor
   "senha": "senha_ftp",                        // Senha FTP/SSH (NUNCA no chat)
-  "dominio_base": "panel.iabotz.online",       // Domínio base para subdomínios
+  "dominio_base": "example.com",               // Domínio base para subdomínios
   "pasta_base": "clientes",                    // Pasta base se usar subpasta
   "usar_subpasta": false,                      // false = subdomínio, true = subpasta
   "ssl_auto": true,                            // SSL Let's Encrypt automático
@@ -29,15 +29,15 @@ Publicar páginas em `https://cliente-slug.panel.iabotz.online/` (subdomínio) o
 
 ### Opção A: Subdomínio por cliente (RECOMENDADO)
 ```
-https://nutricionista-joao.panel.iabotz.online/
-https://nutricionista-joao.panel.iabotz.online/proposta.html
+https://cliente.example.com/
+https://cliente.example.com/proposta.html
 ```
 Vantagens: SSL isolado, URLs limpas, profissional, cada cliente tem "seu domínio".
 
 ### Opção B: Subpasta (igual HostGator)
 ```
-https://panel.iabotz.online/clientes/nutricionista-joao/
-https://panel.iabotz.online/clientes/nutricionista-joao/proposta.html
+https://panel.example.com/clientes/cliente/
+https://panel.example.com/clientes/cliente/proposta.html
 ```
 Config: `"usar_subpasta": true`, `"pasta_base": "clientes"`
 
@@ -136,10 +136,10 @@ Próximo passo sugerido: `/proposta` para enviar e-mails.
 
 ## Requisitos do Servidor
 
-- aapanel instalado e acessível em `panel.iabotz.online:443`
+- aaPanel instalado e acessível em `panel.example.com:443`
 - API habilitada (Configurações → API → Gerar token)
 - Usuário FTP/SSH com acesso a `/www/wwwroot/`
-- DNS wildcard `*.panel.iabotz.online` → IP do servidor (para subdomínios)
+- DNS wildcard `*.example.com` → IP do servidor (para subdomínios)
 - Porta 22 (SSH) aberta para rsync/SFTP
 - Porta 443 aberta para HTTPS
 - Let's Encrypt funcional no aapanel
@@ -153,10 +153,10 @@ O publicador local existente (`fila-publicacao.txt`, `publicar-agora.bat/.ps1`, 
 sites/nutri-joao/index.html|public_html/clientes/nutri-joao/index.html
 
 # Agora (aapanel subdomínio)
-sites/nutri-joao/index.html|/www/wwwroot/nutri-joao.panel.iabotz.online/index.html
+sites/cliente/index.html|/www/wwwroot/cliente.example.com/index.html
 
 # Ou (aapanel subpasta)
-sites/nutri-joao/index.html|/www/wwwroot/panel.iabotz.online/clientes/nutri-joao/index.html
+sites/cliente/index.html|/www/wwwroot/panel.example.com/clientes/cliente/index.html
 ```
 
 O script `publicador-oculto.vbs` / `publicador-oculto.sh` lê a fila e faz upload via rsync/SFTP para o servidor aapanel.

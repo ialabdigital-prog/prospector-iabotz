@@ -6,6 +6,7 @@ const STATUS_LABEL = {
   redesenhado: "Redesenhado",
   publicado: "Publicado",
   proposta: "Proposta",
+  proposta_whatsapp: "Proposta WhatsApp",
   fechado: "Fechado",
   descartado: "Descartado",
   queued: "Na fila",
@@ -50,6 +51,7 @@ const state = {
   orModelQuery: "",
   openrouterModels: [],
   es: null,
+  jobPoll: null,
 };
 
 async function api(path, opts = {}) {
@@ -98,8 +100,11 @@ function pipelineInfo(status) {
 
 function nextAction(lead) {
   const info = pipelineInfo(lead.status);
-  if (lead.status === "publicado" && !lead.email) {
-    return { type: null, label: "Falta e-mail", disabled: true };
+  const canais = state.config?.envio?.canais || ["email"];
+  const hasEmail = !!lead.email;
+  const hasWhatsapp = !!(lead.whatsapp || lead.telefone);
+  if (lead.status === "publicado" && !((canais.includes("email") && hasEmail) || (canais.includes("whatsapp") && hasWhatsapp))) {
+    return { type: null, label: "Falta contato do canal", disabled: true };
   }
   if (!info.next) return { type: null, label: info.nextLabel, disabled: true };
   return { type: info.next, label: info.nextLabel, disabled: false };
@@ -116,10 +121,11 @@ function selectHtml(id, options, attrs = "") {
 }
 
 const VIEWS = {
-  overview: { title: "Funil", sub: "Do Maps ao e-mail" },
-  prospect: { title: "Prospectar", sub: "Maps · nota · site fraco · e-mail" },
+  overview: { title: "Funil", sub: "Do Maps ao contato e proposta" },
+  prospect: { title: "Prospectar", sub: "Maps · nota · site fraco · canal configurado" },
   leads: { title: "Leads", sub: "Redesenhar → publicar → proposta" },
   emails: { title: "E-mails", sub: "Rascunhos de proposta · drafts/" },
+  outreach: { title: "Outreach", sub: "Histórico de e-mail e WhatsApp" },
   jobs: { title: "Jobs", sub: "Fila e histórico" },
   config: { title: "Config", sub: "LLM · Maps · aaPanel · Cloudflare · Gmail" },
 };
@@ -138,6 +144,7 @@ $$(".nav").forEach((btn) =>
     showView(btn.dataset.view);
     if (btn.dataset.view === "leads") renderLeads();
     if (btn.dataset.view === "emails") renderEmails();
+    if (btn.dataset.view === "outreach") renderOutreach();
     if (btn.dataset.view === "jobs") renderJobs();
     if (btn.dataset.view === "config") renderConfig();
     if (btn.dataset.view === "overview") renderOverview();
@@ -163,7 +170,7 @@ function openDrawer(lead) {
   const mini = stages
     .map((s, i) => {
       const cls = i < idx ? "done" : i === idx ? "now" : "";
-      return `<span class="${cls}">${esc(pipelineInfo(s).label)}</span>`;
+      return `<div class="pipeline-step ${cls}"><span class="pipeline-dot"></span><span>${esc(pipelineInfo(s).label)}</span></div>`;
     })
     .join("");
 
@@ -190,6 +197,9 @@ function openDrawer(lead) {
       : ""}
     ${lead.status === "novo" || lead.status === "redesenhado"
       ? `<button class="btn ghost" data-run="redesenhar" data-slug="${esc(lead.slug)}">Redesenhar</button>`
+      : ""}
+    ${["publicado", "proposta", "fechado"].includes(lead.status)
+      ? `<button class="btn ghost" data-run="redesenhar" data-slug="${esc(lead.slug)}">Gerar nova opção</button>`
       : ""}
     ${["redesenhado", "publicado"].includes(lead.status)
       ? `<button class="btn ghost" data-run="publicar" data-slug="${esc(lead.slug)}">Publicar + DNS</button>`
@@ -247,6 +257,11 @@ async function boot() {
   renderOverview(stats);
   await renderLeads();
   await renderJobs();
+  // Overview counters must reflect jobs that complete in another tab/worker,
+  // not only the initial page load or the currently watched EventSource.
+  setInterval(() => {
+    api("/api/stats").then(renderOverview).catch(() => {});
+  }, 5000);
 }
 
 function renderOverview(stats) {
@@ -308,7 +323,7 @@ function renderOverview(stats) {
       <ol style="margin:0;padding-left:18px;line-height:1.75;color:var(--muted)">
         <li><strong style="color:var(--ink)">Prospectar</strong> — Google Maps (nota + avaliações + site fraco + e-mail).</li>
         <li><strong style="color:var(--ink)">Redesenhar</strong> — gera site em <code>sites/</code> (LLM opcional para copy).</li>
-        <li><strong style="color:var(--ink)">Publicar</strong> — aaPanel local + CNAME Cloudflare → <code>{slug}.iabotz.online</code>.</li>
+        <li><strong style="color:var(--ink)">Publicar</strong> — hosting + DNS configurados → <code>{slug}.{dominio}</code>.</li>
         <li><strong style="color:var(--ink)">Proposta</strong> — Composio/Gmail ou draft em <code>drafts/</code>.</li>
       </ol>
     </div>
@@ -351,6 +366,8 @@ function renderOverview(stats) {
 
 function renderProspectForm(activeJobType = "prospectar") {
   const isProspect = activeJobType === "prospectar" || !activeJobType;
+  const canais = state.config?.envio?.canais || ["email"];
+  const channelLabel = canais.length === 2 ? "e-mail ou WhatsApp" : canais[0] === "whatsapp" ? "WhatsApp" : "e-mail";
   const providerOpts = [
     { value: "", label: "Usar default (config)" },
     ...(state.providers || []).map((p) => ({
@@ -361,47 +378,63 @@ function renderProspectForm(activeJobType = "prospectar") {
   ];
 
   $("#view-prospect").innerHTML = `
-    <div class="panel">
-      <p class="muted" style="margin-top:0">
-        Busca no <strong style="color:var(--ink)">Google Maps</strong>, filtra por nota/avaliações,
-        analisa o site e só salva quem tem site fraco + e-mail.
-      </p>
-      <form id="prospect-form" class="stack">
-        <div class="row">
-          <label style="flex:2">Nicho
+    <div class="prospect-layout">
+      <div class="panel" style="margin-top:0">
+        <p class="muted" style="margin-top:0">Defina exatamente a área. O círculo no mapa será usado pelo Google Places para buscar negócios do nicho escolhido.</p>
+        <form id="prospect-form" class="stack">
+          <label>Nicho
             <input name="nicho" id="f-nicho" value="nutricionistas" required />
             <div class="suggest" id="sug-nicho">${NICHOS.map((n) => `<button type="button" data-fill="f-nicho" data-v="${esc(n)}">${esc(n)}</button>`).join("")}</div>
           </label>
-          <label style="flex:2">Cidade
-            <input name="cidade" id="f-cidade" value="Rio de Janeiro" required />
-            <div class="suggest" id="sug-cidade">${CIDADES.map((n) => `<button type="button" data-fill="f-cidade" data-v="${esc(n)}">${esc(n)}</button>`).join("")}</div>
+          <label>Onde você quer prospectar?
+            <input name="cidade" id="f-cidade" autocomplete="off" value="Rio de Janeiro" placeholder="Bairro, cidade ou endereço" required />
+            <span class="field-hint">Digite ao menos 3 caracteres e escolha uma localização.</span>
+            <div class="location-results" id="location-results"></div>
           </label>
-          <label style="flex:1">Meta
-            <input name="meta" type="number" min="1" max="100" value="5" />
-            <span class="field-hint">leads ouro</span>
-          </label>
-        </div>
-        <div class="row">
-          <label>Nota mín.
-            <input name="notaMinima" type="number" step="0.1" value="4.7" />
-          </label>
-          <label>Aval. mín.
-            <input name="avaliacoesMinimas" type="number" value="40" />
-          </label>
-          <label>Motor Maps
-            ${selectHtml("f-engine", [
-              { value: "auto", label: "Auto — Places → Apify" },
-              { value: "google_places", label: "Google Places" },
-              { value: "apify", label: "Apify" },
-            ], 'name="engine"')}
-          </label>
-          <label>LLM (desta rodada)
-            ${selectHtml("provider-select", providerOpts, 'name="provider"')}
-            <span class="field-hint">Só afeta redesign/proposta</span>
-          </label>
-        </div>
-        <button class="btn primary" type="submit" id="btn-prospect">Disparar prospecção</button>
-      </form>
+          <input type="hidden" name="lat" id="f-lat" />
+          <input type="hidden" name="lng" id="f-lng" />
+          <div class="row">
+            <label style="flex:1">Raio de busca <span class="range-value" id="radius-value">15 km</span>
+              <input name="raioKm" id="f-radius" type="range" min="1" max="50" value="15" />
+            </label>
+            <label>Meta de leads ouro
+              <input name="meta" type="number" min="1" max="100" value="5" />
+            </label>
+            <label>Volume a analisar
+              ${selectHtml("f-candidates", [
+                { value: "100", label: "100 negócios" },
+                { value: "250", label: "250 negócios" },
+                { value: "500", label: "500 negócios" },
+              ], 'name="candidateLimit"')}
+              <span class="field-hint">Mais volume = mais tempo e consumo Maps</span>
+            </label>
+          </div>
+          <div class="row">
+            <label>Nota mín.<input name="notaMinima" type="number" min="1" max="5" step="0.1" value="4.7" /></label>
+            <label>Avaliações mín.<input name="avaliacoesMinimas" type="number" min="0" value="40" /></label>
+            <label>Motor Maps
+              ${selectHtml("f-engine", [
+                { value: "auto", label: "Auto — Places → Apify" },
+                { value: "google_places", label: "Google Places" },
+                { value: "apify", label: "Apify" },
+              ], 'name="engine"')}
+            </label>
+            <label>Site considerado fraco
+              ${selectHtml("f-quality", [
+                { value: "strict", label: "Rigoroso · 3+ sinais" },
+                { value: "balanced", label: "Equilibrado · 2+ sinais" },
+                { value: "broad", label: "Amplo · 1 problema forte" },
+              ], 'name="siteQuality"')}
+            </label>
+          </div>
+          <button class="btn primary" type="submit" id="btn-prospect">Iniciar prospecção nesta área</button>
+        </form>
+      </div>
+      <div class="panel" style="margin-top:0">
+        <h3>Área selecionada</h3>
+        <div class="prospect-map" id="prospect-map"></div>
+        <div class="map-caption"><span id="map-location">Busque uma localização para centralizar.</span><span>${esc(channelLabel)} obrigatório</span></div>
+      </div>
     </div>
 
     <div class="panel" id="run-panel">
@@ -416,7 +449,7 @@ function renderProspectForm(activeJobType = "prospectar") {
         <li data-step="start" class="step"><span class="step-num">0</span><div><strong>Preparar</strong><div class="muted small">Critérios</div></div></li>
         <li data-step="search" class="step"><span class="step-num">1</span><div><strong>Buscar no Maps</strong><div class="muted small">Places / Apify</div></div></li>
         <li data-step="filter" class="step"><span class="step-num">2</span><div><strong>Filtrar</strong><div class="muted small">Nota e avaliações</div></div></li>
-        <li data-step="qualify" class="step"><span class="step-num">3</span><div><strong>Analisar sites</strong><div class="muted small">Fraco + e-mail</div></div></li>
+        <li data-step="qualify" class="step"><span class="step-num">3</span><div><strong>Analisar sites</strong><div class="muted small">Fraco + ${esc(channelLabel)}</div></div></li>
         <li data-step="save" class="step"><span class="step-num">4</span><div><strong>Salvar leads</strong><div class="muted small">Resumo</div></div></li>`
             : `
         <li data-step="start" class="step"><span class="step-num">1</span><div><strong>Iniciar</strong><div class="muted small">Fila</div></div></li>
@@ -438,6 +471,58 @@ function renderProspectForm(activeJobType = "prospectar") {
     </div>`;
 
   $("#f-engine").value = "auto";
+  $("#f-quality").value = state.config?.prospeccao?.siteQuality || "balanced";
+  let prospectMap = null;
+  let marker = null;
+  let circle = null;
+  const setArea = (area) => {
+    $("#f-lat").value = area.lat;
+    $("#f-lng").value = area.lng;
+    $("#f-cidade").value = area.label;
+    $("#map-location").textContent = area.label;
+    $("#location-results").innerHTML = "";
+    if (!prospectMap) return;
+    const point = [area.lat, area.lng];
+    prospectMap.setView(point, Math.max(prospectMap.getZoom(), 12));
+    if (marker) marker.setLatLng(point); else marker = L.marker(point, { draggable: true }).addTo(prospectMap);
+    marker.off("dragend").on("dragend", () => {
+      const pos = marker.getLatLng();
+      $("#f-lat").value = pos.lat.toFixed(6);
+      $("#f-lng").value = pos.lng.toFixed(6);
+      refreshRadius();
+    });
+    refreshRadius();
+  };
+  const refreshRadius = () => {
+    if (!prospectMap || !marker) return;
+    const radiusKm = Number($("#f-radius").value || 15);
+    $("#radius-value").textContent = `${radiusKm} km`;
+    if (circle) circle.setRadius(radiusKm * 1000); else circle = L.circle(marker.getLatLng(), { radius: radiusKm * 1000, color: "#ff7a1a", fillColor: "#ff7a1a", fillOpacity: .12 }).addTo(prospectMap);
+    circle.setLatLng(marker.getLatLng());
+  };
+  if (window.L) {
+    prospectMap = L.map("prospect-map", { scrollWheelZoom: true }).setView([-22.9068, -43.1729], 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(prospectMap);
+    prospectMap.on("click", (event) => setArea({ label: $("#f-cidade").value || "Ponto selecionado no mapa", lat: event.latlng.lat, lng: event.latlng.lng }));
+  } else {
+    $("#prospect-map").innerHTML = '<p class="muted" style="padding:20px">Não foi possível carregar o mapa. Você ainda pode buscar uma localização.</p>';
+  }
+  $("#f-radius").addEventListener("input", refreshRadius);
+  let locationTimer;
+  $("#f-cidade").addEventListener("input", (event) => {
+    clearTimeout(locationTimer);
+    const query = event.target.value.trim();
+    if (query.length < 3) { $("#location-results").innerHTML = ""; return; }
+    locationTimer = setTimeout(async () => {
+      try {
+        const places = await api(`/api/maps/locations?q=${encodeURIComponent(query)}`);
+        $("#location-results").innerHTML = places.map((p, index) => `<button type="button" class="location-result" data-location="${index}">${esc(p.label)}</button>`).join("");
+        $$("[data-location]").forEach((button) => button.addEventListener("click", () => setArea(places[Number(button.dataset.location)])));
+      } catch (error) {
+        $("#location-results").innerHTML = `<span class="muted small">${esc(error.message)}</span>`;
+      }
+    }, 350);
+  });
   $$("[data-fill]").forEach((b) =>
     b.addEventListener("click", () => {
       const input = $(`#${b.dataset.fill}`);
@@ -455,6 +540,7 @@ function renderProspectForm(activeJobType = "prospectar") {
       const fd = new FormData(e.target);
       const payload = Object.fromEntries(fd.entries());
       payload.meta = Number(payload.meta);
+      payload.candidateLimit = Number(payload.candidateLimit);
       payload.notaMinima = Number(payload.notaMinima);
       payload.avaliacoesMinimas = Number(payload.avaliacoesMinimas);
       const body = { type: "prospectar", payload, provider: payload.provider || null };
@@ -579,7 +665,12 @@ function showJobSummary(job) {
   box.innerHTML = `
     <strong class="ok">Concluído</strong>
     <p class="muted">${esc(labels[job.type] || "Job finalizado.")}</p>
+    ${job.type === "proposta" ? '<button class="btn primary" id="goto-drafts" type="button">Abrir rascunhos</button>' : ''}
     <button class="btn ghost" id="goto-leads" type="button">Ver leads</button>`;
+  $("#goto-drafts")?.addEventListener("click", () => {
+    showView("emails");
+    renderEmails();
+  });
   $("#goto-leads")?.addEventListener("click", () => {
     showView("leads");
     renderLeads();
@@ -588,6 +679,7 @@ function showJobSummary(job) {
 
 async function watchJob(id, jobType = "prospectar") {
   if (state.es) state.es.close();
+  if (state.jobPoll) clearInterval(state.jobPoll);
   $("#run-job-label").textContent = `Job #${id}`;
   if ($("#run-title")) $("#run-title").textContent = JOB_LABEL[jobType] || jobType;
   resetRunUI();
@@ -609,23 +701,45 @@ async function watchJob(id, jobType = "prospectar") {
   } catch (_) {}
 
   return new Promise((resolve) => {
+    const finish = async () => {
+      if (state.es) state.es.close();
+      if (state.jobPoll) clearInterval(state.jobPoll);
+      state.jobPoll = null;
+      const job = await api(`/api/jobs/${id}`);
+      showJobSummary(job);
+      appendLog(`— fim —`);
+      renderLeads();
+      renderJobs();
+      api("/api/stats").then(renderOverview).catch(() => {});
+      resolve(job);
+    };
+    const pollEvents = async () => {
+      try {
+        const job = await api(`/api/jobs/${id}`);
+        (job.events || []).filter((event) => (event.id || 0) > lastId).forEach((event) => {
+          lastId = event.id || lastId;
+          applyRunMessage(event.message, jobType);
+        });
+        if (["succeeded", "failed", "cancelled"].includes(job.status)) await finish();
+      } catch (_) {}
+    };
     state.es = new EventSource(`/api/jobs/${id}/events?after=${lastId}`);
     state.es.onmessage = async (ev) => {
       try {
         const data = JSON.parse(ev.data);
         if (data.done) {
-          state.es.close();
-          const job = await api(`/api/jobs/${id}`);
-          showJobSummary(job);
-          appendLog(`— fim —`);
-          renderLeads();
-          renderJobs();
-          resolve(job);
+          await finish();
           return;
         }
         if (data.id) lastId = data.id;
         if (data.message) applyRunMessage(data.message, jobType);
       } catch (_) {}
+    };
+    state.es.onerror = () => {
+      // Proxies may buffer/close SSE during long 250/500-result runs. Polling
+      // keeps the counters and final state live instead of freezing the UI.
+      state.es?.close();
+      if (!state.jobPoll) state.jobPoll = setInterval(pollEvents, 2500);
     };
   });
 }
@@ -671,11 +785,12 @@ async function renderLeads() {
         <td>${statusPill(l.status)}</td>
         <td class="small">${esc(l.email || "—")}</td>
         <td onclick="event.stopPropagation()">
-          ${
-            !next.disabled && next.type
+          <div class="row">
+            <button class="btn ghost sm" data-act="redesenhar" data-slug="${esc(l.slug)}">Nueva dirección visual</button>
+            ${!next.disabled && next.type
               ? `<button class="btn primary sm" data-act="${esc(next.type)}" data-slug="${esc(l.slug)}">${esc(next.label)}</button>`
-              : `<button class="btn ghost sm" data-open-btn="${esc(l.slug)}">Detalhe</button>`
-          }
+              : `<button class="btn ghost sm" data-open-btn="${esc(l.slug)}">Detalhe</button>`}
+          </div>
         </td>
       </tr>`;
     })
@@ -697,6 +812,7 @@ async function renderLeads() {
         </div>
         <button class="btn ghost sm" id="refresh-leads" type="button">Atualizar</button>
       </div>
+      <p class="muted small" style="margin:0 0 14px">“Nueva dirección visual” genera otro estilo, composición e imágenes KIE. “Crear outreach” prepara e-mail y WhatsApp, pero no modifica el sitio.</p>
       ${
         rows
           ? `<table class="table">
@@ -772,7 +888,7 @@ async function renderEmails() {
       <td class="small">${esc(l.dataProposta || l.atualizado || "")}</td>
       <td class="row">
         ${l.urlNova ? `<a class="btn ghost sm" href="${esc(l.urlNova)}" target="_blank" rel="noopener">Site</a>` : ""}
-        <button class="btn primary sm" data-act="proposta" data-slug="${esc(l.slug)}">Nova proposta</button>
+        <button class="btn primary sm" data-act="proposta" data-slug="${esc(l.slug)}">Crear outreach</button>
       </td>
     </tr>`
     )
@@ -988,6 +1104,27 @@ async function loadOpenRouterModels(query = "") {
   }
 }
 
+async function renderOutreach() {
+  const rows = await api("/api/outreach");
+  const body = rows.length
+    ? rows.map((r) => `<tr>
+        <td><strong>${esc(r.nome)}</strong><div class="muted small">${esc(r.lead_slug)}</div></td>
+        <td>${esc(r.channel)}</td>
+        <td>${esc(r.recipient || "—")}</td>
+        <td>${esc(r.status)}</td>
+        <td class="small">${esc(r.created_at)}</td>
+        <td class="small">${esc(r.error || "—")}</td>
+      </tr>`).join("")
+    : '<tr><td colspan="6" class="muted">Nenhuma tentativa de envio registrada.</td></tr>';
+  $("#view-outreach").innerHTML = `
+    <div class="panel stack">
+      <div class="row between"><div><h3 style="margin:0">Entregas</h3><p class="muted small" style="margin:4px 0 0">WhatsApp é registrado após cada chamada Evolution. E-mails permanecem disponíveis em E-mails.</p></div>
+      <button class="btn ghost sm" id="refresh-outreach">Atualizar</button></div>
+      <div style="overflow:auto"><table><thead><tr><th>Lead</th><th>Canal</th><th>Destino</th><th>Status</th><th>Quando</th><th>Erro</th></tr></thead><tbody>${body}</tbody></table></div>
+    </div>`;
+  $("#refresh-outreach")?.addEventListener("click", renderOutreach);
+}
+
 async function renderConfig() {
   state.config = await api("/api/config");
   state.providers = await api("/api/providers");
@@ -1000,6 +1137,11 @@ async function renderConfig() {
   const cf = c.cloudflare || {};
   const co = c.composio || {};
   const envio = c.envio || {};
+  const waCfg = envio.whatsapp || {};
+  const evoApi = waCfg.evolution_api || {};
+  const evoGo = waCfg.evolution_go || {};
+  const automation = c.automation || {};
+  const redesign = c.redesign || {};
   const ready = Object.fromEntries((state.integrations?.funnel || []).map((f) => [f.id, f.ready]));
   state.selectedProvider = state.selectedProvider || llm.default_provider || "openrouter";
 
@@ -1008,6 +1150,8 @@ async function renderConfig() {
     { id: "maps", label: "Maps" },
     { id: "publish", label: "Publicar" },
     { id: "gmail", label: "Gmail" },
+    { id: "outreach", label: "Canais" },
+    { id: "redesign", label: "Redesign" },
     { id: "assinatura", label: "Assinatura" },
   ];
 
@@ -1047,6 +1191,19 @@ async function renderConfig() {
           Clique em OpenRouter para carregar os modelos disponíveis.
         </p>
         <div class="provider-grid">${providerCards}</div>
+        <div class="row">
+          <label style="flex:1">Modelo para orquestrar / avaliar
+            ${selectHtml("cfg-orchestrator-provider", (state.providers || []).map((p) => ({ value: p.id, label: p.name })))}
+          </label>
+          <label style="flex:1">Modelo específico de orquestração<input id="cfg-orchestrator-model" value="${esc(llm.orchestrator_model || "")}" placeholder="vazio = padrão do provider" /></label>
+        </div>
+        <div class="row">
+          <label style="flex:1">Modelo para redesign / copy
+            ${selectHtml("cfg-redesign-provider", (state.providers || []).map((p) => ({ value: p.id, label: p.name })))}
+          </label>
+          <label style="flex:1">Modelo específico de redesign<input id="cfg-redesign-model" value="${esc(llm.redesign_model || "")}" placeholder="vazio = padrão do provider" /></label>
+          <label><input id="cfg-redesign-llm-enabled" type="checkbox" ${llm.redesign_llm_enabled ? "checked" : ""} /> Usar LLM no redesign</label>
+        </div>
         <div class="row">
           <button class="btn ghost sm" type="button" id="refresh-providers">Re-detectar CLIs</button>
           <button class="btn ghost sm" type="button" id="test-provider">Testar provider + modelo</button>
@@ -1112,11 +1269,11 @@ async function renderConfig() {
     <div class="cfg-pane ${state.cfgTab === "publish" ? "" : "hidden"}" data-pane="publish">
       <div class="panel cfg-card stack">
         <h3>aaPanel <span class="tag ${ready.aapanel ? "on" : "off"}">${ready.aapanel ? "ok" : "faltando"}</span></h3>
-        <p class="muted small" style="margin:0">URL pública: <code>https://{slug}.{domínio}</code>. Use <code>iabotz.online</code> (Universal SSL).</p>
+        <p class="muted small" style="margin:0">URL pública: <code>https://{slug}.{domínio}</code>. Use un dominio cuya zona DNS administre.</p>
         <div class="row">
           <label style="flex:1">URL painel<input id="cfg-aa-url" value="${esc(aa.url || "")}" /></label>
-          <label style="flex:1">Domínio base<input id="cfg-aa-dom" value="${esc(aa.dominio_base || "iabotz.online")}" /></label>
-          <label style="flex:1">DNS target<input id="cfg-aa-dns" value="${esc(aa.dns_target || "panel.iabotz.online")}" /></label>
+          <label style="flex:1">Domínio base<input id="cfg-aa-dom" value="${esc(aa.dominio_base || "example.com")}" /></label>
+          <label style="flex:1">DNS target<input id="cfg-aa-dns" value="${esc(aa.dns_target || "origin.example.com")}" /></label>
         </div>
         <div class="row">
           <label>Subdomínio?
@@ -1140,7 +1297,7 @@ async function renderConfig() {
         <div class="row">
           <label style="flex:1">API Key / Token<input id="cfg-cf-key" type="password" value="${esc(cf.api_key || cf.api_token || "")}" /></label>
           <label style="flex:1">E-mail<input id="cfg-cf-email" value="${esc(cf.email || "")}" /></label>
-          <label style="flex:1">Zona<input id="cfg-cf-zone" value="${esc(cf.zone || "iabotz.online")}" /></label>
+          <label style="flex:1">Zona<input id="cfg-cf-zone" value="${esc(cf.zone || "example.com")}" /></label>
         </div>
         <button class="btn ghost sm" type="button" id="test-cf">Testar Cloudflare</button>
       </div>
@@ -1165,6 +1322,95 @@ async function renderConfig() {
       </div>
     </div>
 
+    <div class="cfg-pane ${state.cfgTab === "outreach" ? "" : "hidden"}" data-pane="outreach">
+      <div class="panel cfg-card stack">
+        <h3>Canais e piloto automático</h3>
+        <p class="muted small" style="margin:0">O canal define quais contatos tornam um resultado do Maps elegível: e-mail exige e-mail; WhatsApp exige número; ambos aceitam qualquer um e enviam em todos os canais disponíveis.</p>
+        <div class="row">
+          <label>Canal de prospecção
+            ${selectHtml("cfg-channel", [
+              { value: "email", label: "E-mail" },
+              { value: "whatsapp", label: "WhatsApp" },
+              { value: "both", label: "E-mail + WhatsApp" },
+            ])}
+          </label>
+          <label>Modo e-mail
+            ${selectHtml("cfg-envio", [
+              { value: "rascunho", label: "Rascunho" },
+              { value: "enviar", label: "Enviar direto" },
+            ])}
+          </label>
+          <label>Provedor WhatsApp
+            ${selectHtml("cfg-wa-provider", [
+              { value: "evolution_api", label: "Evolution API" },
+              { value: "evolution_go", label: "Evolution Go" },
+            ])}
+          </label>
+        </div>
+        <div class="row">
+          <label><input id="cfg-auto-enabled" type="checkbox" ${automation.enabled ? "checked" : ""} /> Piloto automático</label>
+          <label><input id="cfg-auto-publish" type="checkbox" ${automation.publish !== false ? "checked" : ""} /> Publicar após redesign</label>
+          <label><input id="cfg-auto-outreach" type="checkbox" ${automation.outreach ? "checked" : ""} /> Enviar após publicar</label>
+        </div>
+      </div>
+      <div class="panel cfg-card stack">
+        <h3>Evolution API / Go</h3>
+        <div class="row">
+          <label style="flex:1">URL Evolution API<input id="cfg-evo-api-url" value="${esc(evoApi.url || "http://localhost:8080")}" /></label>
+          <label style="flex:1">API key<input id="cfg-evo-api-key" type="password" value="${esc(evoApi.api_key || "")}" /></label>
+          <label>Instância<input id="cfg-evo-api-instance" value="${esc(evoApi.instance || "prospector")}" /></label>
+        </div>
+        <div class="row">
+          <label style="flex:1">URL Evolution Go<input id="cfg-evo-go-url" value="${esc(evoGo.url || "http://localhost:8080")}" /></label>
+          <label style="flex:1">API key<input id="cfg-evo-go-key" type="password" value="${esc(evoGo.api_key || "")}" /></label>
+        </div>
+        <div class="row"><button class="btn ghost sm" type="button" id="test-whatsapp">Testar conexão WhatsApp</button><span id="test-whatsapp-msg" class="muted small"></span></div>
+      </div>
+    </div>
+
+    <div class="cfg-pane ${state.cfgTab === "redesign" ? "" : "hidden"}" data-pane="redesign">
+      <div class="panel cfg-card stack">
+        <h3>Direção criativa</h3>
+        <p class="muted small" style="margin:0">O gerador escolhe uma composição por nicho, não apenas outra cor. Imagens de origem são usadas primeiro; geração externa é opcional.</p>
+        <div class="row">
+          <label>Direção
+            ${selectHtml("cfg-redesign-direction", [
+              { value: "auto", label: "Auto por nicho" },
+              { value: "editorial", label: "Editorial sofisticado" },
+              { value: "cinematic", label: "Cinemático imersivo" },
+              { value: "minimal", label: "Minimalista premium" },
+            ])}
+          </label>
+          <label>Imagens
+            ${selectHtml("cfg-image-provider", [
+              { value: "source", label: "Fotos do site / fallback" },
+              { value: "kie_mcp", label: "KIE MCP (configuração externa)" },
+            ])}
+          </label>
+          <label>Modelo de imagem
+            <select id="cfg-image-model"><option value="${esc(redesign.image_model || "")}">${esc(redesign.image_model || "Escolha após conectar KIE")}</option></select>
+          </label>
+          <label><input id="cfg-parallax" type="checkbox" ${redesign.parallax !== false ? "checked" : ""} /> Parallax</label>
+        </div>
+        <div class="row">
+          <label style="flex:1">KIE AI API key<input id="cfg-kie-key" type="password" value="${esc(redesign.kie_api_key || "")}" placeholder="Salva somente no servidor" /></label>
+          <button class="btn ghost sm" type="button" id="test-kie">Testar KIE MCP</button>
+          <button class="btn ghost sm" type="button" id="load-kie-models">Carregar modelos</button>
+          <span id="test-kie-msg" class="muted small"></span>
+        </div>
+        <label>Prompt de preview
+          <textarea id="kie-image-prompt" rows="3" placeholder="Ex.: foto editorial premium de clínica odontológica contemporânea, luz natural, paleta roxa, sem texto, 16:9"></textarea>
+        </label>
+        <div class="row">
+          <label>Formato ${selectHtml("kie-aspect", ["16:9", "4:3", "1:1", "9:16"])}</label>
+          <label>Resolução ${selectHtml("kie-resolution", ["1K", "2K", "4K"])}</label>
+          <button class="btn primary sm" type="button" id="generate-kie-image">Gerar imagem de preview</button>
+        </div>
+        <div id="kie-generation-result" class="hidden"></div>
+        <p class="field-hint">O teste inicia o MCP via npx no servidor e valida o handshake. Salve a chave antes de testar.</p>
+      </div>
+    </div>
+
     <div class="cfg-pane ${state.cfgTab === "assinatura" ? "" : "hidden"}" data-pane="assinatura">
       <div class="panel cfg-card stack">
         <h3>Assinatura dos e-mails</h3>
@@ -1184,9 +1430,15 @@ async function renderConfig() {
 
   // set select values after mount
   if ($("#cfg-engine")) $("#cfg-engine").value = m.engine || "auto";
+  if ($("#cfg-orchestrator-provider")) $("#cfg-orchestrator-provider").value = llm.orchestrator_provider || llm.default_provider || "openrouter";
+  if ($("#cfg-redesign-provider")) $("#cfg-redesign-provider").value = llm.redesign_provider || llm.default_provider || "openrouter";
   if ($("#cfg-aa-sub")) $("#cfg-aa-sub").value = String(aa.usar_subdominio !== false);
   if ($("#cfg-aa-ssl")) $("#cfg-aa-ssl").value = String(aa.ssl_auto !== false);
   if ($("#cfg-envio")) $("#cfg-envio").value = envio.modo || "rascunho";
+  if ($("#cfg-channel")) $("#cfg-channel").value = (envio.canais || ["email"]).length === 2 ? "both" : (envio.canais || ["email"])[0];
+  if ($("#cfg-wa-provider")) $("#cfg-wa-provider").value = waCfg.provedor || "evolution_api";
+  if ($("#cfg-redesign-direction")) $("#cfg-redesign-direction").value = redesign.direction || "auto";
+  if ($("#cfg-image-provider")) $("#cfg-image-provider").value = redesign.image_provider || "source";
 
   $$("[data-tab]").forEach((b) =>
     b.addEventListener("click", () => {
@@ -1278,11 +1530,37 @@ async function renderConfig() {
         api_key: val("#cfg-co-key") || "***",
         entity_id: val("#cfg-co-entity"),
       },
-      envio: { modo: val("#cfg-envio") || "rascunho" },
+      envio: {
+        modo: val("#cfg-envio") || "rascunho",
+        canais: val("#cfg-channel") === "both" ? ["email", "whatsapp"] : [val("#cfg-channel") || "email"],
+        whatsapp: {
+          provedor: val("#cfg-wa-provider") || "evolution_api",
+          evolution_api: { url: val("#cfg-evo-api-url"), api_key: val("#cfg-evo-api-key") || "***", instance: val("#cfg-evo-api-instance") },
+          evolution_go: { url: val("#cfg-evo-go-url"), api_key: val("#cfg-evo-go-key") || "***" },
+        },
+      },
+      automation: {
+        enabled: $("#cfg-auto-enabled")?.checked || false,
+        redesign: true,
+        publish: $("#cfg-auto-publish")?.checked || false,
+        outreach: $("#cfg-auto-outreach")?.checked || false,
+      },
+      redesign: {
+        direction: val("#cfg-redesign-direction") || "auto",
+        image_provider: val("#cfg-image-provider") || "source",
+        image_model: val("#cfg-image-model"),
+        kie_api_key: val("#cfg-kie-key") || "***",
+        parallax: $("#cfg-parallax")?.checked || false,
+      },
       llm: {
         openrouter_api_key: val("#cfg-or") || "***",
         openrouter_model: val("#cfg-ormodel") || "openai/gpt-4o-mini",
         default_provider: state.selectedProvider || "openrouter",
+        orchestrator_provider: val("#cfg-orchestrator-provider") || state.selectedProvider || "openrouter",
+        orchestrator_model: val("#cfg-orchestrator-model"),
+        redesign_provider: val("#cfg-redesign-provider") || state.selectedProvider || "openrouter",
+        redesign_model: val("#cfg-redesign-model"),
+        redesign_llm_enabled: $("#cfg-redesign-llm-enabled")?.checked || false,
       },
     };
     await api("/api/config", { method: "POST", body: JSON.stringify(body) });
@@ -1308,6 +1586,68 @@ async function renderConfig() {
       body: JSON.stringify({ engine: "apify" }),
     });
     msg(r.message || JSON.stringify(r));
+  });
+  $("#test-whatsapp")?.addEventListener("click", async () => {
+    const el = $("#test-whatsapp-msg");
+    el.textContent = "Salve a configuração antes de testar.";
+    try {
+      const r = await api("/api/config/whatsapp/test", { method: "POST", body: "{}" });
+      el.textContent = r.message || (r.success ? "Conectado" : "Falhou");
+    } catch (e) { el.textContent = e.message; }
+  });
+  $("#test-kie")?.addEventListener("click", async () => {
+    const el = $("#test-kie-msg");
+    const apiKey = val("#cfg-kie-key");
+    if (!apiKey || apiKey === "***") {
+      el.textContent = "Informe a API key para testar.";
+      return;
+    }
+    el.textContent = "Testando MCP KIE…";
+    try {
+      const r = await api("/api/config/kie/test", { method: "POST", body: JSON.stringify({ api_key: apiKey }) });
+      el.textContent = r.message || (r.success ? "Conectado" : "Falhou");
+    } catch (e) { el.textContent = e.message; }
+  });
+  $("#load-kie-models")?.addEventListener("click", async () => {
+    const el = $("#test-kie-msg");
+    const apiKey = val("#cfg-kie-key");
+    if (!apiKey || apiKey === "***") { el.textContent = "Informe a API key para carregar modelos."; return; }
+    el.textContent = "Lendo modelos do KIE MCP…";
+    try {
+      const r = await api("/api/config/kie/models", { method: "POST", body: JSON.stringify({ api_key: apiKey }) });
+      const select = $("#cfg-image-model");
+      const current = select.value;
+      select.innerHTML = (r.models || []).map((model) => `<option value="${esc(model.id)}">${esc(model.label)} (${esc(model.id)})</option>`).join("") || `<option value="${esc(current)}">${esc(current || "Nenhum modelo declarado pelo MCP")}</option>`;
+      if ([...select.options].some((option) => option.value === current)) select.value = current;
+      el.textContent = r.models?.length ? `${r.models.length} modelo(s) de imagem disponível(is)` : `MCP conectado, mas não declarou modelos. Ferramentas: ${(r.tools || []).join(", ")}`;
+    } catch (e) { el.textContent = e.message; }
+  });
+  $("#generate-kie-image")?.addEventListener("click", async () => {
+    const output = $("#kie-generation-result");
+    const apiKey = val("#cfg-kie-key");
+    const model = val("#cfg-image-model");
+    const prompt = val("#kie-image-prompt");
+    if (!apiKey || apiKey === "***" || !model || !prompt) { output.textContent = "Informe API key, carregue um modelo e escreva o prompt."; output.classList.remove("hidden"); return; }
+    output.textContent = "Solicitando imagem ao KIE…"; output.classList.remove("hidden");
+    try {
+      const r = await api("/api/config/kie/generate", { method: "POST", body: JSON.stringify({ api_key: apiKey, model, prompt, aspect_ratio: val("#kie-aspect"), resolution: val("#kie-resolution") }) });
+      if (!r.task_id) throw new Error(r.message || "KIE não retornou task ID");
+      const poll = async (attempt = 0) => {
+        output.textContent = `Imagem solicitada. Aguardando KIE… (${attempt + 1})`;
+        const status = await api("/api/config/kie/status", { method: "POST", body: JSON.stringify({ api_key: apiKey, task_id: r.task_id }) });
+        if (status.status === "success" && status.urls?.length) {
+          output.innerHTML = `<p class="ok">Imagem gerada com sucesso.</p><div class="row">${status.urls.map((url) => `<a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="Imagem gerada pelo KIE" style="max-width:320px;border-radius:12px;border:1px solid var(--line)" /></a>`).join("")}</div>`;
+          return;
+        }
+        if (["failed", "error", "cancelled"].includes(status.status)) {
+          output.textContent = status.error || status.message || "A geração falhou.";
+          return;
+        }
+        if (attempt >= 29) { output.textContent = `A tarefa ${r.task_id} continua processando. Use o task ID para consultar depois.`; return; }
+        setTimeout(() => poll(attempt + 1), 5000);
+      };
+      poll();
+    } catch (e) { output.textContent = e.message; }
   });
   $("#test-cf")?.addEventListener("click", async () => {
     const r = await api("/api/config/cloudflare/test", { method: "POST", body: "{}" });

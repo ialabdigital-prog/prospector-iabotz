@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
+#!/usr/bin/env bash
+
 # Prospector IA Botz - Launcher Principal
 
-BASE_DIR="/home/clawd/workspace/prospector-iabotz"
+BASE_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 cd "$BASE_DIR"
 
 # Verificar venv
@@ -36,9 +38,17 @@ case "${1:-menu}" in
         shift
         python3 skills/proposta-email/references/proposta.py "$@"
         ;;
+    proposta-whatsapp)
+        shift
+        python3 skills/proposta-whatsapp/references/proposta_whatsapp.py "$@"
+        ;;
     followup)
         shift
         python3 skills/proposta-email/references/followup.py "$@"
+        ;;
+    followup-whatsapp)
+        shift
+        python3 skills/proposta-whatsapp/references/followup_whatsapp.py "$@"
         ;;
     editor)
         shift
@@ -133,7 +143,11 @@ COMANDOS DIRETOS:
                           # Deploy no aapanel (SSL automático)
   ./prospector proposta [slug|todos]
                           # Gerar rascunhos de proposta no Gmail
+  ./prospector proposta-whatsapp [slug|todos]
+                          # Enviar proposta via WhatsApp (Evolution)
   ./prospector followup     # Follow-up leads sem resposta (3+ dias)
+  ./prospector followup-whatsapp [slug|todos]
+                          # Follow-up via WhatsApp
   ./prospector editor       # Editor visual de páginas
   ./prospector dashboard    # Regenerar dashboard.html
 

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Prospector design catalog",
+  "type": "object",
+  "required": ["schema_version", "source", "styles"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "source": {"type": "object"},
+    "styles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "source_url", "raw_prompt"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "mode": {"enum": ["light", "dark"]},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "best_for": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

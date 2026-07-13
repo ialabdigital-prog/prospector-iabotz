@@ -21,7 +21,13 @@ SECRET_KEYS = {
     ("llm", "openrouter_api_key"),
     ("auth", "secret_key"),
     ("composio", "api_key"),
+    ("redesign", "kie_api_key"),
 }
+
+NESTED_SECRET_KEYS = [
+    ("envio", "whatsapp", "evolution_api", "api_key"),
+    ("envio", "whatsapp", "evolution_go", "api_key"),
+]
 
 
 def load_config() -> dict:
@@ -43,25 +49,40 @@ def mask_config(config: dict | None = None) -> dict:
         block = cfg.get(section)
         if isinstance(block, dict) and block.get(key):
             block[key] = "***"
-    # legacy cloudflare key at top if any
+    for path in NESTED_SECRET_KEYS:
+        block = cfg
+        for part in path[:-1]:
+            if isinstance(block, dict):
+                block = block.get(part, {})
+            else:
+                break
+        if isinstance(block, dict) and block.get(path[-1]):
+            block[path[-1]] = "***"
     return cfg
 
 
 def merge_config(incoming: dict) -> dict:
     """Merge incoming config without overwriting secrets sent as ***."""
     current = load_config()
+
+    def merge(dest: dict, values: dict) -> None:
+        for key, value in values.items():
+            if value == "***":
+                continue
+            if isinstance(value, dict) and isinstance(dest.get(key), dict):
+                merge(dest[key], value)
+            else:
+                dest[key] = value
+
     for section, values in incoming.items():
         if not isinstance(values, dict):
             current[section] = values
-            continue
-        dest = current.setdefault(section, {})
-        if not isinstance(dest, dict):
-            current[section] = values
-            continue
-        for k, v in values.items():
-            if v == "***":
-                continue
-            dest[k] = v
+        else:
+            dest = current.setdefault(section, {})
+            if not isinstance(dest, dict):
+                current[section] = values
+            else:
+                merge(dest, values)
     save_config(current)
     return current
 

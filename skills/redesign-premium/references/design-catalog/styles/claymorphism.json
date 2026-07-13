@@ -1,0 +1,71 @@
+{
+  "id": "claymorphism",
+  "name": "Clay",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "A hyper-realistic 3D aesthetic simulating soft, inflatable clay objects with multi-layered shadow stacks, vibrant candy-store colors, tactile micro-interactions, and organic floating ambient elements that create a premium, playful digital toy experience.",
+  "source_url": "https://designprompts.dev/claymorphism",
+  "raw_prompt": "raw/claymorphism.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "claymorphism"
+    ],
+    [
+      "name",
+      "Clay"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A hyper-realistic 3D aesthetic simulating soft, inflatable clay objects with multi-layered shadow stacks, vibrant candy-store colors, tactile micro-interactions, and organic floating ambient elements that create a premium, playful digital toy experience."
+    ],
+    [
+      "hero",
+      "Centered content with massive, progressively scaled typography (text-5xl to text-8xl). Background features large, slowly drifting colored blobs with blur-3xl. Floating 3D shapes orbit the headline with clay-float-slow animation. Trust badge with animated pulse indicator. Gradient text with multi-color stops for headline accent."
+    ],
+    [
+      "stats",
+      "Grid of breathing spheres (clay-orb + clay-breathe) with aspect-square ratio. Numbers use Nunito Black in large sizes. Staggered animation delays create organic rhythm. Hover scale transforms provide tactile feedback."
+    ],
+    [
+      "features",
+      "Masonry Bento grid with col-span-2/row-span-2 hero card. Varying background opacity creates depth hierarchy. Internal decorative panels positioned absolutely at card bottom with translate-y hover reveals. Icon containers use vibrant gradient backgrounds with rounded-2xl shapes."
+    ],
+    [
+      "howItWorks",
+      "Three-column grid with centered content. Connecting horizontal 'pipe' element (rounded-full bg with shadow-inner). Each step uses large gradient circles (h-28 to h-32 responsive) with bold Nunito numbers. Group-hover scale interactions."
+    ],
+    [
+      "benefits",
+      "50/50 split layout. Left: Abstract clay composition with nested rounded shapes, layered backgrounds (aspect-square container). Right: Stacked benefit cards (rounded-[24px]) with gradient check icons, hover lift and enhanced shadow."
+    ],
+    [
+      "pricing",
+      "Three-column grid. Center 'popular' card scales to 110% on desktop only (md:scale-110) with enhanced shadow. All cards use consistent rounded-[32px] radius with responsive padding. Chunky check icons in green tones."
+    ],
+    [
+      "testimonials",
+      "2-3 column responsive grid. Cards use white backgrounds with shadow-clayCard. Avatars wrapped in white clay rings (shadow-clayButton). Five-star ratings in amber. Group hover lifts cards with enhanced shadows."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "family"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "id": "organic",
+  "name": "Organic / Natural",
+  "mode": "light",
+  "font_type": "serif",
+  "description": "Earth-inspired palette with moss greens, terracotta, and sand tones. Features organic blob shapes, grain texture overlays, asymmetric rounded corners, and soft shadows. Embraces wabi-sabi philosophy with warmth and natural imperfection.",
+  "source_url": "https://designprompts.dev/organic",
+  "raw_prompt": "raw/organic.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "organic"
+    ],
+    [
+      "name",
+      "Organic / Natural"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "Earth-inspired palette with moss greens, terracotta, and sand tones. Features organic blob shapes, grain texture overlays, asymmetric rounded corners, and soft shadows. Embraces wabi-sabi philosophy with warmth and natural imperfection."
+    ],
+    [
+      "hero",
+      "Centered layout with overlapping organic blob backgrounds. Large serif typography with generous spacing. Trust badge with rounded pill shape. Dual CTAs in pill-shaped buttons."
+    ],
+    [
+      "stats",
+      "Horizontal grid (2 cols mobile, 4 cols desktop) with centered text. Large serif numbers with hover scale animation. Subtle border separators."
+    ],
+    [
+      "productDetail",
+      "Two-column split with rotated image frame and organic blob accent. Image has thick white border and soft shadow. Text constrained to max-w-2xl for readability."
+    ],
+    [
+      "features",
+      "3-column responsive grid with cards featuring varied organic border radii. Icon containers with rounded corners that fill on hover. Blob background for ambient depth."
+    ],
+    [
+      "blog",
+      "3-column grid of articles. Rounded image containers with overlay that fades on hover. Metadata with dot separators."
+    ],
+    [
+      "howItWorks",
+      "3-step horizontal layout with curved SVG connecting path. Large numbered circles with thick borders. Centered text alignment."
+    ],
+    [
+      "benefits",
+      "Two-column layout with dark moss green background and grain texture. Checkmark icons in rounded containers. Image masked with organic blob border-radius shape."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "dark"
+  ],
+  "best_for": []
+}

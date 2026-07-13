@@ -53,6 +53,13 @@ def complete(
     llm = cfg.get("llm") or {}
     provider = (provider or llm.get("default_provider") or "openrouter").lower()
 
+    availability = {item["id"]: item["available"] for item in list_providers()}
+    if provider != "openrouter" and not availability.get(provider, False):
+        if (llm.get("openrouter_api_key") or "").strip():
+            provider = "openrouter"
+        else:
+            raise RuntimeError(f"Provider {provider} indisponível")
+
     if provider == "openrouter":
         key = (llm.get("openrouter_api_key") or "").strip()
         if not key:

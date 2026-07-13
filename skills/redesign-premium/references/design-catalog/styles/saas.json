@@ -1,0 +1,72 @@
+{
+  "id": "saas",
+  "name": "Tech Style",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "A bold, minimalist-modern visual system combining clean aesthetics with dynamic execution. Features signature Electric Blue gradients, sophisticated dual-font pairing (Calistoga + Inter), animated hero graphics, inverted contrast sections, and micro-interactions throughout. Professional yet design-forward—confidence without clutter.",
+  "source_url": "https://designprompts.dev/saas",
+  "raw_prompt": "raw/saas.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "saas"
+    ],
+    [
+      "name",
+      "Tech Style"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A bold, minimalist-modern visual system combining clean aesthetics with dynamic execution. Features signature Electric Blue gradients, sophisticated dual-font pairing (Calistoga + Inter), animated hero graphics, inverted contrast sections, and micro-interactions throughout. Professional yet design-forward—confidence without clutter."
+    ],
+    [
+      "hero",
+      "Asymmetrical two-column grid (1.1fr / 0.9fr). Left: bold headline with gradient text accent on key word, animated badge with pulsing dot, trust indicators with stacked avatars. Right: abstract generative art composition with floating animated cards, rotating outer ring, geometric elements, and bold corner accent block."
+    ],
+    [
+      "stats",
+      "INVERTED section with dark background (foreground color). Large display numbers (5xl-6xl), trend badges with arrow icons, dot pattern texture overlay. Vertical dividers between stats on desktop."
+    ],
+    [
+      "features",
+      "Asymmetric masonry grid where first card spans 2 rows. Gradient icon backgrounds (not translucent). Hover gradient overlays on cards. Featured card has 'Learn more' link and corner glow effect."
+    ],
+    [
+      "howItWorks",
+      "Horizontal timeline on desktop. Large circular step numbers (24x24) with inner gradient glow. Cards below each step. Arrow connectors between steps using accent-colored circular badges. Centered header layout."
+    ],
+    [
+      "benefits",
+      "Two-column asymmetric grid (1.2fr / 0.8fr). Text content with checkmark list items using accent-colored badges. Visual element has asymmetric border-radius (rounded-tl-[4rem] rounded-br-[4rem]) with abstract UI placeholder."
+    ],
+    [
+      "pricing",
+      "3-column grid with highlighted tier elevated (-translate-y-4) and featuring gradient border effect (2px gradient stroke). Gradient price text on highlighted tier. Badge hangs off top edge. Gradient checkmarks for highlighted features."
+    ],
+    [
+      "testimonials",
+      "3-column grid with center card offset vertically. Large decorative quote mark (120px, 8% opacity). Gradient accent bar at top of each card. Display font for quotes in italic. Larger avatars with accent border."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "playful",
+    "luxury",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "technology"
+  ]
+}

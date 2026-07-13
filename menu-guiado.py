@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'prospeccao
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'deploy-aapanel', 'references'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'redesign-premium', 'references'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'proposta-email', 'references'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'proposta-whatsapp', 'references'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'contrato-servico', 'references'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'skills', 'dashboard-leads', 'references'))
 
@@ -139,6 +140,73 @@ def carregar_leads_qualificados() -> List[Dict]:
             })
     return [l for l in leads if l['status'].lower() in ('qualificado', 'redesenhado', 'deployado', 'proposta_enviada')]
 
+
+def carregar_leads_com_whatsapp() -> List[Dict]:
+    """Carrega leads com WhatsApp cadastrado (do SQLite ou leads.md).
+    Para WhatsApp, qualquer lead com número serve — e-mail é bônus."""
+    leads = []
+
+    db_file = os.path.join(os.path.dirname(__file__), 'prospector.db')
+    if os.path.exists(db_file):
+        import sqlite3
+        conn = sqlite3.connect(db_file)
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """SELECT slug, nome, nicho, cidade, nota, avaliacoes, email, telefone, whatsapp,
+                      siteAntigo as site_atual, motivo, status, urlNova as url_nova
+               FROM leads
+               WHERE whatsapp IS NOT NULL AND whatsapp != ''
+               ORDER BY atualizado DESC"""
+        ).fetchall()
+        conn.close()
+        for r in rows:
+            leads.append({
+                'slug': r['slug'],
+                'nome': r['nome'] or '',
+                'cidade': r['cidade'] or '',
+                'nicho': r['nicho'] or '',
+                'nota': str(r['nota'] or '') if r['nota'] else '',
+                'avaliacoes': str(r['avaliacoes'] or '') if r['avaliacoes'] else '',
+                'telefone': r['telefone'] or '',
+                'email': r['email'] or '',
+                'whatsapp': r['whatsapp'] or '',
+                'site': r['site_atual'] or '',
+                'status': r['status'] or '',
+                'url_nova': r['url_nova'] or '',
+                'tem_email': bool(r['email'] and r['email'].strip()),
+            })
+        return leads
+
+    if not os.path.exists(LEADS_PATH):
+        return []
+    with open(LEADS_PATH, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    for line in lines[1:]:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts = line.split('|')
+        if len(parts) >= 12:
+            telefone = parts[7].strip()
+            nome = parts[1].strip()
+            if telefone and telefone not in ('-', ''):
+                leads.append({
+                    'slug': parts[10].strip(),
+                    'nome': nome,
+                    'cidade': parts[2].strip(),
+                    'nicho': parts[3].strip(),
+                    'nota': parts[4].strip(),
+                    'avaliacoes': parts[5].strip(),
+                    'telefone': telefone,
+                    'email': parts[8].strip(),
+                    'whatsapp': telefone,
+                    'site': parts[6].strip(),
+                    'status': parts[9].strip(),
+                    'url_nova': parts[10].strip() if len(parts) > 10 else '',
+                    'tem_email': bool(parts[8].strip() and parts[8].strip() not in ('-', '')),
+                })
+    return leads
+
 def listar_leads():
     """Lista todos os leads com status"""
     if not os.path.exists(LEADS_PATH):
@@ -177,22 +245,27 @@ def exportar_csv():
 def main():
     while True:
         print_header("🤖 PROSPECTOR IA BOTZ - Menu Principal")
+        config = load_config()
+        aapanel = config.get('aapanel', {})
+        panel_url = os.environ.get("PROSPECTOR_PUBLIC_URL", "http://127.0.0.1:8765")
         print(f"{Colors.CYAN}Config:{Colors.END} {CONFIG_PATH}")
         print(f"{Colors.CYAN}Leads:{Colors.END} {LEADS_PATH}")
-        print(f"{Colors.CYAN}Dashboard:{Colors.END} http://localhost:8765 (rode 'iniciar-dashboard.sh')\n")
-        
+        print(f"{Colors.CYAN}Dashboard Local:{Colors.END} http://localhost:8765")
+        print(f"{Colors.CYAN}Painel Web:{Colors.END} {panel_url}\n")
+
         print_menu_option("1", "🔍 Prospecção", "Buscar leads no Google Maps (Playwright)")
         print_menu_option("2", "🎨 Redesign", "Redesenhar sites dos leads qualificados")
         print_menu_option("3", "🚀 Deploy", "Publicar sites no aapanel (SSL automático)")
-        print_menu_option("4", "📧 Propostas", "Gerar e enviar propostas por e-mail")
-        print_menu_option("5", "📊 Dashboard", "Abrir/gerenciar dashboard local")
-        print_menu_option("6", "⚙️  Configuração", "Setup inicial, credenciais, nichos, aapanel, Cloudflare")
-        print_menu_option("7", "📋 Ver Leads", "Listar leads atuais (qualificados/descartados)")
-        print_menu_option("8", "🔧 Ferramentas", "Utilitários: testar conexões, limpar cache, logs")
-        print_menu_option("9", "❌ Sair", "Encerrar Prospector")
-        
+        print_menu_option("4", "📧 Propostas E-mail", "Gerar e enviar propostas por e-mail")
+        print_menu_option("5", "📱 Propostas WhatsApp", "Enviar propostas via WhatsApp (Evolution)")
+        print_menu_option("6", "📊 Dashboard", "Abrir/gerenciar dashboard local")
+        print_menu_option("7", "⚙️  Configuração", "Setup inicial, credenciais, nichos, aapanel, Cloudflare")
+        print_menu_option("8", "📋 Ver Leads", "Listar leads atuais (qualificados/descartados)")
+        print_menu_option("9", "🔧 Ferramentas", "Utilitários: testar conexões, limpar cache, logs")
+        print_menu_option("10", "❌ Sair", "Encerrar Prospector")
+
         choice = input(f"\n{Colors.BOLD}Escolha uma opção:{Colors.END} ").strip()
-        
+
         if choice == '1':
             menu_prospeccao()
         elif choice == '2':
@@ -202,14 +275,16 @@ def main():
         elif choice == '4':
             menu_propostas()
         elif choice == '5':
-            menu_dashboard()
+            menu_propostas_whatsapp()
         elif choice == '6':
-            menu_config()
+            menu_dashboard()
         elif choice == '7':
-            menu_ver_leads()
+            menu_config()
         elif choice == '8':
+            menu_ver_leads()
+        elif choice == '9':
             menu_ferramentas()
-        elif choice in ('9', 'q', 'quit', 'sair'):
+        elif choice in ('10', 'q', 'quit', 'sair'):
             print_info("Até logo! 👋")
             break
         else:
@@ -224,22 +299,22 @@ def menu_prospeccao():
     config = load_config()
     prospeccao = config.get('prospeccao', {})
     playwright_cfg = config.get('playwright', {})
-    
+
     nichos = prospeccao.get('nichos', ['nutricionistas', 'psicologos', 'advogados', 'psiquiatras', 'dentistas'])
     cidade = prospeccao.get('cidade', 'São Paulo')
     meta = prospeccao.get('leadsPorBusca', 10)
     nota_min = prospeccao.get('notaMinima', 4.7)
     aval_min = prospeccao.get('avaliacoesMinimas', 40)
-    
+
     print(f"Nichos: {', '.join(nichos)}")
     print(f"Cidade: {cidade}")
     print(f"Meta: {meta} leads/busca | Nota mínima: {nota_min} | Avaliações mín: {aval_min}")
     print(f"Playwright: headless={playwright_cfg.get('headless', True)} stealth={playwright_cfg.get('stealth', True)}")
-    
+
     print("\nComo rodar:")
     print("  ./prospector prospectar              # todos os nichos")
     print("  ./prospector prospectar nutricionistas  # nicho específico")
-    
+
     if confirm("\nExecutar prospecção agora?"):
         nicho_especifico = input_prompt("Nicho específico (Enter para todos)", "").strip()
         cmd = [sys.executable, '-m', 'prospector_de_sites.commands.prospectar']
@@ -260,18 +335,18 @@ def menu_redesign():
         print_warning("Nenhum lead qualificado encontrado. Rode a prospecção primeiro.")
         input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
         return
-    
+
     print(f"Leads qualificados disponíveis: {Colors.GREEN}{len(leads)}{Colors.END}\n")
     for i, lead in enumerate(leads, 1):
         print(f"  {i}. {lead['nome']} ({lead['cidade']}) - ⭐{lead['nota']} | {lead['email']} [{lead['status']}]")
-    
+
     print(f"\n  {len(leads)+1}. Redesenhar TODOS")
     print(f"  {len(leads)+2}. Voltar")
-    
+
     choice = input(f"\n{Colors.BOLD}Escolha lead(s) para redesenhar:{Colors.END} ").strip()
     if choice == str(len(leads)+2) or choice.lower() in ('v', 'voltar'):
         return
-    
+
     selecionados = []
     if choice == str(len(leads)+1):
         selecionados = leads
@@ -283,11 +358,11 @@ def menu_redesign():
         except ValueError:
             print_error("Opção inválida")
             return
-    
+
     if not selecionados:
         print_error("Nenhum lead selecionado")
         return
-    
+
     print_info(f"\nIniciando redesign de {len(selecionados)} lead(s)...")
     for lead in selecionados:
         print(f"\n{Colors.CYAN}🎨 Redesenhando: {lead['nome']}{Colors.END}")
@@ -296,7 +371,7 @@ def menu_redesign():
             print_success(f"  ✅ {lead['nome']} redesenhado!")
         else:
             print_error(f"  ❌ Falha: {result['stderr'][:200]}")
-    
+
     print_success("\nRedesign concluído!")
     print_info("Próximo passo sugerido: Menu > 🚀 Deploy")
 
@@ -304,29 +379,29 @@ def menu_deploy():
     print_header("🚀 DEPLOY - Publicar Sites no aapanel")
     config = load_config()
     aapanel = config.get('aapanel', {})
-    
+
     if not aapanel.get('url'):
         print_warning("aapanel não configurado. Vá em Configuração > aapanel")
         input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
         return
-    
+
     leads = carregar_leads_qualificados()
     if not leads:
         print_warning("Nenhum lead qualificado. Rode redesign primeiro.")
         input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
         return
-    
+
     print(f"Leads com redesign pronto: {Colors.GREEN}{len(leads)}{Colors.END}")
     for i, lead in enumerate(leads, 1):
-        print(f"  {i}. {lead['nome']} ({lead['slug']}.{aapanel.get('dominio_base', 'panel.iabotz.online')})")
-    
+        print(f"  {i}. {lead['nome']} ({lead['slug']}.{aapanel.get('dominio_base', 'example.com')})")
+
     print(f"\n  {len(leads)+1}. Deploy TODOS")
     print(f"  {len(leads)+2}. Voltar")
-    
+
     choice = input(f"\n{Colors.BOLD}Escolha lead(s) para deploy:{Colors.END} ").strip()
     if choice == str(len(leads)+2) or choice.lower() in ('v', 'voltar'):
         return
-    
+
     selecionados = []
     if choice == str(len(leads)+1):
         selecionados = leads
@@ -338,11 +413,11 @@ def menu_deploy():
         except ValueError:
             print_error("Opção inválida")
             return
-    
+
     if not selecionados:
         print_error("Nenhum lead selecionado")
         return
-    
+
     print_info(f"\nIniciando deploy de {len(selecionados)} site(s)...")
     for lead in selecionados:
         print(f"\n{Colors.CYAN}🚀 Deploy: {lead['nome']}{Colors.END}")
@@ -352,42 +427,43 @@ def menu_deploy():
             print(f"     {result['stdout'][-500:]}")
         else:
             print_error(f"  ❌ Falha: {result['stderr'][:300]}")
-    
+
     print_success("\nDeploy concluído!")
     print_info("Próximo passo sugerido: Menu > 📧 Propostas")
 
 def menu_propostas():
-    print_header("📧 PROPOSTAS - Gerar e Enviar")
+    print_header("📤 PROPOSTAS - Gerar e Enviar")
     config = load_config()
     assinatura = config.get('assinatura', {})
     envio = config.get('envio', {})
-    
+    canais = envio.get('canais', ['email'])
+
     if not assinatura.get('nome'):
         print_warning("Assinatura não configurada. Vá em Configuração > Assinatura")
         input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
         return
-    
+
     leads = carregar_leads_qualificados()
     if not leads:
         print_warning("Nenhum lead qualificado")
         input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
         return
-    
+
     print(f"Leads qualificados: {Colors.GREEN}{len(leads)}{Colors.END}")
     print(f"Assinatura: {assinatura['nome']} | {assinatura.get('apresentacao', '')}")
+    print(f"Canais ativos: {' + '.join(canais).upper()}")
     print(f"Modo e-mail: {envio.get('modo', 'rascunho')}")
-    print(f"WhatsApp: {assinatura.get('whatsapp', 'não configurado')}")
-    
+
     for i, lead in enumerate(leads, 1):
         print(f"  {i}. {lead['nome']} ({lead['cidade']}) - {lead['email']} [{lead['status']}]")
-    
+
     print(f"\n  {len(leads)+1}. Proposta para TODOS")
     print(f"  {len(leads)+2}. Voltar")
-    
+
     choice = input(f"\n{Colors.BOLD}Escolha lead(s) para proposta:{Colors.END} ").strip()
     if choice == str(len(leads)+2) or choice.lower() in ('v', 'voltar'):
         return
-    
+
     selecionados = []
     if choice == str(len(leads)+1):
         selecionados = leads
@@ -399,34 +475,124 @@ def menu_propostas():
         except ValueError:
             print_error("Opção inválida")
             return
-    
+
     if not selecionados:
         print_error("Nenhum lead selecionado")
         return
-    
-    print_info(f"\nGerando propostas para {len(selecionados)} lead(s)...")
+
     for lead in selecionados:
-        print(f"\n{Colors.CYAN}📧 Proposta: {lead['nome']}{Colors.END}")
-        result = run_command([sys.executable, '-m', 'prospector_de_sites.commands.proposta', lead['slug']])
+        slug = lead['slug']
+        print(f"\n{Colors.CYAN}📤 Proposta: {lead['nome']}{Colors.END}")
+
+        if 'email' in canais:
+            print(f"  {Colors.BLUE}📧 Enviando por e-mail...{Colors.END}")
+            result = run_command([sys.executable, '-m', 'prospector_de_sites.commands.proposta', slug])
+            if result['success']:
+                print_success(f"  ✅ E-mail gerado!")
+            else:
+                print_error(f"  ❌ Falha e-mail: {result['stderr'][:200]}")
+
+        if 'whatsapp' in canais:
+            print(f"  {Colors.BLUE}📱 Enviando por WhatsApp...{Colors.END}")
+            result = run_command([sys.executable, 'skills/proposta-whatsapp/references/proposta_whatsapp.py', slug])
+            if result['success']:
+                print_success(f"  ✅ WhatsApp enviado!")
+            else:
+                print_error(f"  ❌ Falha WhatsApp: {result['stderr'][:200]}")
+
+    print_success("\nPropostas concluídas!")
+
+
+def menu_propostas_whatsapp():
+    print_header("📱 PROPOSTAS WHATSAPP - Enviar via Evolution")
+    config = load_config()
+    assinatura = config.get('assinatura', {})
+    envio = config.get('envio', {})
+    wa = envio.get('whatsapp', {})
+    provedor = wa.get('provedor', 'evolution_api')
+
+    if not assinatura.get('nome'):
+        print_warning("Assinatura não configurada. Vá em Configuração > Assinatura")
+        input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
+        return
+
+    if provedor == 'evolution_go':
+        cfg_ok = bool(wa.get('evolution_go', {}).get('api_key'))
+    else:
+        cfg_ok = bool(wa.get('evolution_api', {}).get('api_key'))
+
+    if not cfg_ok:
+        print_warning("WhatsApp não configurado. Vá em Configuração > WhatsApp & Canais")
+        input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
+        return
+
+    # Carrega leads com WhatsApp (com ou sem email)
+    leads = carregar_leads_com_whatsapp()
+    if not leads:
+        print_warning("Nenhum lead com WhatsApp encontrado")
+        input(f"\n{Colors.BOLD}Pressione Enter para voltar...{Colors.END}")
+        return
+
+    com_email = sum(1 for l in leads if l.get('tem_email'))
+    sem_email = len(leads) - com_email
+
+    print(f"Leads com WhatsApp: {Colors.GREEN}{len(leads)}{Colors.END}")
+    print(f"  Com e-mail: {com_email}  |  Sem e-mail: {sem_email}")
+    print(f"Provedor: {provedor}")
+    print(f"Assinatura: {assinatura['nome']}")
+    print()
+
+    for i, lead in enumerate(leads, 1):
+        wa_icon = "📱"
+        email_tag = f" ✉️" if lead.get('tem_email') else ""
+        print(f"  {i}. {wa_icon} {lead['nome']} ({lead['cidade']}) - {lead.get('telefone', lead.get('whatsapp', ''))}{email_tag} [{lead['status']}]")
+
+    print(f"\n  {len(leads)+1}. Enviar para TODOS")
+    print(f"  {len(leads)+2}. Voltar")
+
+    choice = input(f"\n{Colors.BOLD}Escolha lead(s) para WhatsApp:{Colors.END} ").strip()
+    if choice == str(len(leads)+2) or choice.lower() in ('v', 'voltar'):
+        return
+
+    selecionados = []
+    if choice == str(len(leads)+1):
+        selecionados = leads
+    else:
+        try:
+            idx = int(choice) - 1
+            if 0 <= idx < len(leads):
+                selecionados = [leads[idx]]
+        except ValueError:
+            print_error("Opção inválida")
+            return
+
+    if not selecionados:
+        print_error("Nenhum lead selecionado")
+        return
+
+    for lead in selecionados:
+        slug = lead['slug']
+        print(f"\n{Colors.CYAN}📱 WhatsApp: {lead['nome']}{Colors.END}")
+        result = run_command(['python3', 'skills/proposta-whatsapp/references/proposta_whatsapp.py', slug])
         if result['success']:
-            print_success(f"  ✅ Proposta gerada!")
+            print_success(f"  ✅ WhatsApp enviado!")
             print(f"     {result['stdout'][-500:]}")
         else:
             print_error(f"  ❌ Falha: {result['stderr'][:300]}")
-    
-    print_success("\nPropostas concluídas!")
+
+    print_success("\nPropostas WhatsApp concluídas!")
 
 def menu_dashboard():
     print_header("📊 DASHBOARD - Visualizar Leads")
     print("O dashboard roda em http://localhost:8765")
     print("Para iniciar: ./iniciar-dashboard.sh (Linux) ou iniciar-dashboard.bat (Windows)")
-    
+
     if confirm("\nAbrir dashboard no navegador?"):
         import webbrowser
         webbrowser.open('http://localhost:8765')
-    
+
     if confirm("Iniciar servidor do dashboard agora?"):
-        subprocess.Popen([sys.executable, 'dashboard-server.py'], 
+        subprocess.Popen([sys.executable, 'dashboard-server.py'],
                         cwd=os.path.dirname(__file__))
         print_success("Servidor iniciado em background")
         print_info("Acesse http://localhost:8765")
@@ -435,9 +601,12 @@ def menu_config():
     """Menu de configuração completa"""
     while True:
         config = load_config()
+        aapanel = config.get('aapanel', {})
+        panel_url = os.environ.get("PROSPECTOR_PUBLIC_URL", "http://127.0.0.1:8765")
         print_header("⚙️ CONFIGURAÇÃO DO PROSPECTOR")
-        print(f"Status: {'✅ Configurado' if config.get('assinatura', {}).get('nome') else '⚠️  Incompleto'}\n")
-        
+        print(f"Status: {'✅ Configurado' if config.get('assinatura', {}).get('nome') else '⚠️  Incompleto'}")
+        print(f"Painel web: {panel_url}\n")
+
         options = [
             ("👤 Assinatura & Perfil", "Nome, apresentação, WhatsApp"),
             ("🎯 Nichos & Prospecção", "Nichos, cidade, filtros, meta de leads"),
@@ -445,15 +614,16 @@ def menu_config():
             ("🌐 aapanel (Deploy)", "URL, API token, FTP/SSH, domínio, SSL"),
             ("☁️ Cloudflare (DNS)", "API Token, email, zona, proxy CNAME"),
             ("📧 E-mail & Propostas", "Modo rascunho/enviar, assinatura e-mail"),
+            ("📱 WhatsApp & Canais", "Evolution API/Go, canais de envio"),
             ("💾 Salvar & Testar", "Valida tudo e testa conexões"),
             ("🔙 Voltar", "")
         ]
-        
+
         for i, (title, desc) in enumerate(options, 1):
             print_menu_option(str(i), title, desc)
-        
+
         choice = input(f"\n{Colors.BOLD}Escolha:{Colors.END} ").strip()
-        
+
         if choice == '1':
             config_assinatura(config)
         elif choice == '2':
@@ -467,8 +637,10 @@ def menu_config():
         elif choice == '6':
             config_email(config)
         elif choice == '7':
+            config_whatsapp(config)
+        elif choice == '8':
             validar_config_completa(config)
-        elif choice in ('8', 'v', 'voltar'):
+        elif choice in ('9', 'v', 'voltar'):
             break
         else:
             print_error("Opção inválida")
@@ -522,11 +694,11 @@ def config_aapanel(config: Dict):
     print_header("🌐 aapanel (Deploy Local)")
     aa = config.get('aapanel', {})
     print("Configure seu aapanel local:")
-    aa['url'] = input_prompt("URL do painel (ex: https://panel.iabotz.online)", aa.get('url', 'https://panel.iabotz.online'))
+    aa['url'] = input_prompt("URL do painel (ex: https://panel.example.com)", aa.get('url', 'https://panel.example.com'))
     aa['api_token'] = input_prompt("API Token (Configurações → API no aapanel)", aa.get('api_token', ''))
     aa['usuario'] = input_prompt("Usuário FTP/SSH do servidor", aa.get('usuario', ''))
     aa['senha'] = input_prompt("Senha FTP/SSH (NUNCA compartilhe no chat)", aa.get('senha', ''))
-    aa['dominio_base'] = input_prompt("Domínio base (ex: panel.iabotz.online)", aa.get('dominio_base', 'panel.iabotz.online'))
+    aa['dominio_base'] = input_prompt("Domínio base (ex: example.com)", aa.get('dominio_base', 'example.com'))
     usar_subpasta = confirm("Usar subpasta em vez de subdomínio?", aa.get('usar_subpasta', False))
     aa['usar_subpasta'] = usar_subpasta
     if usar_subpasta:
@@ -545,11 +717,11 @@ def config_aapanel(config: Dict):
 def config_cloudflare(config: Dict):
     print_header("☁️ Cloudflare (DNS Automático)")
     cf = config.get('cloudflare', {})
-    print("Configure o Cloudflare para criar CNAMEs automáticos (ex: cliente.panel.iabotz.online)")
+    print("Configure o Cloudflare para criar CNAMEs automáticos (ex: cliente.example.com)")
     print("API Token: Cloudflare → My Profile → API Tokens → Create Token (Zone:DNS:Edit)")
     cf['api_token'] = input_prompt("API Token", cf.get('api_token', ''))
     cf['email'] = input_prompt("Email da conta Cloudflare", cf.get('email', 'avanni@ellajoyas.com'))
-    cf['zone'] = cf.get('zone', 'iabotz.online')
+    cf['zone'] = cf.get('zone', 'example.com')
     cf['proxied'] = confirm("Proxy Cloudflare (ON = proteção DDoS, OFF = DNS only)?", cf.get('proxied', True))
     config['cloudflare'] = cf
     save_config(config)
@@ -561,9 +733,88 @@ def config_email(config: Dict):
     print_header("📧 E-mail & Propostas")
     envio = config.get('envio', {})
     envio['modo'] = 'rascunho' if confirm("Modo: criar rascunho no Gmail (recomendado)?", envio.get('modo') == 'rascunho') else 'enviar'
+    envio['canais'] = config_canais(envio.get('canais', ['email']))
     config['envio'] = envio
     save_config(config)
     print_success("E-mail configurado!")
+
+
+def config_canais(current: list = None) -> list:
+    """Interactive channel selection: email, whatsapp, or both."""
+    current = current or ["email"]
+    print("\nCanais de envio:")
+    print(f"  {'[x]' if 'email' in current else '[ ]'} 1. E-mail")
+    print(f"  {'[x]' if 'whatsapp' in current else '[ ]'} 2. WhatsApp")
+    print(f"  {'[x]' if 'email' in current and 'whatsapp' in current else '[ ]'} 3. Ambos")
+    option = input_prompt("Escolha o canal", "3").strip()
+    if option == '1':
+        return ['email']
+    elif option == '2':
+        return ['whatsapp']
+    else:
+        return ['email', 'whatsapp']
+
+
+def config_whatsapp(config: Dict):
+    print_header("📱 WhatsApp & Canais de Envio")
+    envio = config.get('envio', {})
+    wa = envio.get('whatsapp', {})
+
+    print("Selecione os canais de envio das propostas:")
+    envio['canais'] = config_canais(envio.get('canais', ['email']))
+
+    print("\nConfiguração do provedor WhatsApp:")
+    provedor = 'evolution_api' if confirm("Usar Evolution API (caso contrário Evolution Go)?", wa.get('provedor') != 'evolution_go') else 'evolution_go'
+    wa['provedor'] = provedor
+
+    # Evolution API config
+    evo_api = wa.get('evolution_api', {})
+    if provedor == 'evolution_api' or confirm("Configurar Evolution API (mesmo que não seja o provedor ativo)?", True):
+        evo_api['url'] = input_prompt("URL do servidor Evolution API", evo_api.get('url', 'http://localhost:8080'))
+        evo_api['api_key'] = input_prompt("API Key Evolution", evo_api.get('api_key', ''))
+        evo_api['instance'] = input_prompt("Nome da instância", evo_api.get('instance', 'prospector'))
+        wa['evolution_api'] = evo_api
+
+    # Evolution Go config
+    evo_go = wa.get('evolution_go', {})
+    if provedor == 'evolution_go' or confirm("Configurar Evolution Go (mesmo que não seja o provedor ativo)?", True):
+        evo_go['url'] = input_prompt("URL do servidor Evolution Go", evo_go.get('url', 'http://localhost:3100'))
+        evo_go['api_key'] = input_prompt("API Key Evolution Go", evo_go.get('api_key', ''))
+        evo_go['instance'] = input_prompt("Nome da instância", evo_go.get('instance', 'prospector'))
+        wa['evolution_go'] = evo_go
+
+    envio['whatsapp'] = wa
+    config['envio'] = envio
+    save_config(config)
+    print_success("WhatsApp configurado!")
+
+    if confirm("Testar conexão?", True):
+        testar_conexao_whatsapp(config)
+
+
+def testar_conexao_whatsapp(config: Dict):
+    print_info("Testando conexão WhatsApp...")
+    wa = config.get('envio', {}).get('whatsapp', {})
+    provedor = wa.get('provedor', 'evolution_api')
+    if provedor == 'evolution_go':
+        url = wa.get('evolution_go', {}).get('url', '')
+    else:
+        url = wa.get('evolution_api', {}).get('url', '')
+    result = run_command([sys.executable, '-c', f'''
+import urllib.request
+import json
+url = "{url}"
+try:
+    req = urllib.request.Request(url+"/", headers={{"apikey": "test"}})
+    response = urllib.request.urlopen(req, timeout=10)
+    print("Servidor OK - Status:", response.status)
+except Exception as e:
+    print("Falha de conexão:", e)
+'''])
+    if result['success']:
+        print_success(result['stdout'])
+    else:
+        print_error(f"Falha: {result['stderr']}")
 
 def validar_config_completa(config: Dict):
     print_header("✅ Validação Completa")
@@ -625,7 +876,7 @@ with open("prospector-config.json") as f:
 if not c.get("api_token"):
     print("⚠️  Cloudflare não configurado")
     sys.exit(0)
-client = CloudflareClient(c["api_token"], c.get("email", ""), c.get("zone", "iabotz.online"))
+client = CloudflareClient(c["api_token"], c.get("email", ""), c.get("zone", "example.com"))
 if client.test_connection():
     records = client.list_records()
     print(f"Cloudflare: OK - {len([r for r in records if r['type'] == 'CNAME'])} CNAMEs")

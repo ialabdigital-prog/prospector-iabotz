@@ -1,0 +1,70 @@
+{
+  "id": "bauhaus",
+  "name": "Bauhaus",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "Bold geometric modernism with circles, squares, and triangles. Primary color palette (Red/Blue/Yellow) with stark black borders and hard shadows. Functional yet artistic with constructivist asymmetry.",
+  "source_url": "https://designprompts.dev/bauhaus",
+  "raw_prompt": "raw/bauhaus.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "bauhaus"
+    ],
+    [
+      "name",
+      "Bauhaus"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Bold geometric modernism with circles, squares, and triangles. Primary color palette (Red/Blue/Yellow) with stark black borders and hard shadows. Functional yet artistic with constructivist asymmetry."
+    ],
+    [
+      "hero",
+      "Split-screen layout (50/50) with text on white background and geometric composition on blue. Massive uppercase typography with colored accent border on left."
+    ],
+    [
+      "stats",
+      "Equal-width grid with dividers. Each stat has geometric shape icon (circle/square/diamond) numbered 1-4. Yellow background section with white cards."
+    ],
+    [
+      "features",
+      "Three-column grid with lifted cards featuring corner decorations (circle/triangle/square). Each card has geometric icon in bordered container. Hover lift effect."
+    ],
+    [
+      "howItWorks",
+      "Horizontal timeline with thick connecting line (desktop only). Steps use alternating geometric shapes (circle/square/rotated square) as numbers. Two-column grid on mobile."
+    ],
+    [
+      "benefits",
+      "Grid of white cards on red background. Each card has circular yellow icon with checkmark. Clean borders and hard shadows."
+    ],
+    [
+      "pricing",
+      "Three-column layout with center tier elevated and highlighted with yellow background. All tiers have geometric headers and square bullet points."
+    ],
+    [
+      "testimonials",
+      "Three-column grid with cards featuring circular avatar cutouts positioned above card. Quote icon and bordered sections. Decorative corner elements."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "geometric"
+  ],
+  "best_for": [
+    "fitness",
+    "food",
+    "creative"
+  ]
+}

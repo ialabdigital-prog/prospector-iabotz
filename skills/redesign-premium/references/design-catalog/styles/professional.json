@@ -1,0 +1,71 @@
+{
+  "id": "professional",
+  "name": "Business Style",
+  "mode": "light",
+  "font_type": "serif",
+  "description": "An editorial-inspired minimalist design system centered on elegant serif typography. Warm ivory backgrounds with subtle paper texture, refined spacing, rule lines, and classical proportions create a timeless, literary aesthetic. Enhanced depth through layered gradients and multi-toned shadows. The design whispers sophistication through restraint and typographic excellence.",
+  "source_url": "https://designprompts.dev/professional",
+  "raw_prompt": "raw/professional.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "professional"
+    ],
+    [
+      "name",
+      "Business Style"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "An editorial-inspired minimalist design system centered on elegant serif typography. Warm ivory backgrounds with subtle paper texture, refined spacing, rule lines, and classical proportions create a timeless, literary aesthetic. Enhanced depth through layered gradients and multi-toned shadows. The design whispers sophistication through restraint and typographic excellence."
+    ],
+    [
+      "hero",
+      "Full-width centered layout with dramatic oversized serif headline (2.5rem mobile, 7xl desktop). Generous vertical breathing room (py-32 to py-44). Subtle decorative rule line below headline. Dual CTA buttons with refined hover states including subtle lift. Trust indicator in small caps with generous letter-spacing. Responsive text scaling maintains hierarchy on all devices."
+    ],
+    [
+      "stats",
+      "Horizontal 4-column layout (2-column on mobile) with thin vertical rule dividers between stats. Dividers appear between columns on mobile and all stats on desktop. Large display serif numbers (4xl mobile, 5xl desktop). Labels in monospace small caps with wide tracking (0.15em). Clean card background with border lines top and bottom."
+    ],
+    [
+      "features",
+      "3-column grid (stacks to 1 column mobile) with generous gaps (gap-8). Each card has 2px accent top border, rounded corners, and enhanced hover effect with background tint. Icon in muted circle background. Serif title with sans-serif description. Hover reveals subtle background shift and enhanced shadow."
+    ],
+    [
+      "howItWorks",
+      "3-column layout with large circular step numbers in serif. Horizontal connecting line on desktop. Each step has generous padding and clean typography hierarchy. Background uses card color for contrast."
+    ],
+    [
+      "benefits",
+      "Asymmetric two-column layout (1.3fr / 0.7fr ratio, stacks on mobile). Left column has title, subtitle, and bulleted list with elegant dash markers. Right column features enhanced abstract graphic with gradient backgrounds, layered circles, and hover-interactive elements. Refined typography hierarchy throughout."
+    ],
+    [
+      "pricing",
+      "3-column grid (stacks vertically mobile) with center card elevated (-translate-y-4 on desktop). Thin rule borders with accent border on highlighted tier. Large serif price numbers. Feature lists with checkmarks colored by tier importance. Highlighted tier has warm accent background tint (accent-muted). Badge positioning uses absolute positioning."
+    ],
+    [
+      "testimonials",
+      "3-column grid (stacks mobile) with large decorative opening quotation mark (100px, 20% opacity) in accent color. Italic serif quotes with generous line-height. Author info with circular avatar (48x48px) and refined typography. Subtle card borders and shadows."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "luxury",
+    "dark"
+  ],
+  "best_for": [
+    "health",
+    "legal"
+  ]
+}

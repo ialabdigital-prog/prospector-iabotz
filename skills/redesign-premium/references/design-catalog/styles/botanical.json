@@ -1,0 +1,70 @@
+{
+  "id": "botanical",
+  "name": "Botanical / Organic Serif",
+  "mode": "light",
+  "font_type": "serif",
+  "description": "Soft, earthy, elegant design inspired by nature. Features organic shapes, generous rounded corners, paper grain texture, muted earth tones, and sophisticated serif typography that breathes warmth and natural luxury.",
+  "source_url": "https://designprompts.dev/botanical",
+  "raw_prompt": "raw/botanical.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "botanical"
+    ],
+    [
+      "name",
+      "Botanical / Organic Serif"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "Soft, earthy, elegant design inspired by nature. Features organic shapes, generous rounded corners, paper grain texture, muted earth tones, and sophisticated serif typography that breathes warmth and natural luxury."
+    ],
+    [
+      "hero",
+      "Split two-column layout with massive serif typography on left and arched image (200px top radius) on right. Decorative botanical icons float in corners. Quote overlay on image."
+    ],
+    [
+      "stats",
+      "Horizontal band with subtle sage background and border. Large serif numbers paired with uppercase sans-serif labels in grid."
+    ],
+    [
+      "features",
+      "Three-column grid with staggered vertical offsets (translate-y-12 on middle card). Soft rounded cards with botanical icons in muted circles."
+    ],
+    [
+      "howItWorks",
+      "Dark forest green background with three-step grid. Dotted SVG connecting path. Steps in translucent cards with numbered terracotta badges."
+    ],
+    [
+      "benefits",
+      "Alternating zig-zag layout with organic blob-shaped image backgrounds (rotate transform). Checkmark bullets in terracotta circles."
+    ],
+    [
+      "pricing",
+      "Three-column grid with center card elevated and scaled. Dark background for highlighted plan with terracotta badge. Pill-shaped buttons."
+    ],
+    [
+      "testimonials",
+      "Three-column grid on soft clay background with radial dot pattern overlay. Large quotation marks, circular avatars, serif quotes."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "luxury",
+    "dark"
+  ],
+  "best_for": [
+    "family"
+  ]
+}

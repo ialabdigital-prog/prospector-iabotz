@@ -1,0 +1,40 @@
+{
+  "id": "glassmorphism",
+  "name": "Glassmorphism",
+  "mode": "dark",
+  "font_type": "sans-serif",
+  "description": "Apple-inspired aesthetic with rich mesh gradients, premium blur, and constrained layouts.",
+  "source_url": "https://designprompts.dev/glassmorphism",
+  "raw_prompt": "raw/glassmorphism.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "glassmorphism"
+    ],
+    [
+      "name",
+      "Glassmorphism"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Apple-inspired aesthetic with rich mesh gradients, premium blur, and constrained layouts."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "luxury",
+    "dark"
+  ],
+  "best_for": []
+}

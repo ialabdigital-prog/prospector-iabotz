@@ -12,8 +12,10 @@ import asyncio
 import shutil
 import subprocess
 import time
+import re
 from pathlib import Path
 from typing import Dict
+from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR / "skills" / "deploy-aapanel" / "references"))
@@ -39,6 +41,20 @@ def mark_published(slug: str, url: str) -> None:
     conn.close()
     print(f"🗄  SQLite: {slug} → publicado ({url})")
 
+
+def public_subdomain(slug: str, site_url: str = "") -> str:
+    """Return a readable, valid one-label hostname for Cloudflare Universal SSL."""
+    host = ""
+    if site_url:
+        parsed = urlparse(site_url if "://" in site_url else f"https://{site_url}")
+        host = (parsed.hostname or "").lower().removeprefix("www.")
+    candidate = host.split(".")[0] if host else slug
+    candidate = re.sub(r"[^a-z0-9]+", "-", candidate.lower()).strip("-") or "lead"
+    if len(candidate) > 55:
+        import hashlib
+        candidate = f"{candidate[:47].rstrip('-')}-{hashlib.sha1(candidate.encode()).hexdigest()[:7]}"
+    return candidate
+
 async def main():
     if len(sys.argv) < 2:
         print("Uso: python3 deploy.py <slug|todos>")
@@ -59,21 +75,27 @@ async def main():
     # Determinar slugs (SQLite first)
     import sqlite3
     db_file = BASE_DIR / "prospector.db"
-    slugs = []
+    targets: list[tuple[str, str]] = []
     if target == "todos" and db_file.exists():
         conn = sqlite3.connect(db_file)
-        slugs = [r[0] for r in conn.execute(
-            "SELECT slug FROM leads WHERE status='redesenhado' ORDER BY atualizado DESC"
+        targets = [(r[0], r[1] or "") for r in conn.execute(
+            "SELECT slug, siteAntigo FROM leads WHERE status='redesenhado' ORDER BY atualizado DESC"
         ).fetchall()]
         conn.close()
     elif target != "todos":
-        slugs = [target]
+        site_url = ""
+        if db_file.exists():
+            conn = sqlite3.connect(db_file)
+            row = conn.execute("SELECT siteAntigo FROM leads WHERE slug=?", (target,)).fetchone()
+            conn.close()
+            site_url = row[0] if row else ""
+        targets = [(target, site_url)]
 
-    if not slugs:
+    if not targets:
         print("⚠️  Nenhum lead com status 'redesenhado' encontrado")
         sys.exit(0)
 
-    print(f"\n🚀 Iniciando deploy de {len(slugs)} site(s)...\n")
+    print(f"\n🚀 Iniciando deploy de {len(targets)} site(s)...\n")
 
     # Verificar Cloudflare
     cf_client = None
@@ -81,14 +103,14 @@ async def main():
         if cf_config.get('api_token'):
             cf_client = CloudflareClient(
                 api_token=cf_config['api_token'],
-                email=cf_config.get('email', 'avanni@ellajoyas.com'),
-                zone_name=cf_config.get('zone', 'iabotz.online')
+                email=cf_config.get('email', ''),
+                zone_name=cf_config.get('zone') or 'example.com'
             )
         else:
             cf_client = CloudflareClient(
                 api_key=cf_config['api_key'],
-                api_email=cf_config.get('email', 'avanni@ellajoyas.com'),
-                zone_name=cf_config.get('zone', 'iabotz.online')
+                api_email=cf_config.get('email', ''),
+                zone_name=cf_config.get('zone') or 'example.com'
             )
         try:
             records = cf_client.list_records()
@@ -120,7 +142,7 @@ async def main():
 
     results = []
 
-    for slug in slugs:
+    for slug, site_url in targets:
         print(f"\n{'='*50}")
         print(f"📦 Deploy: {slug}")
         print(f"{'='*50}")
@@ -131,12 +153,16 @@ async def main():
             results.append({'slug': slug, 'success': False, 'error': 'Diretório não encontrado'})
             continue
 
+        public_label = public_subdomain(slug, site_url)
+        if public_label != slug:
+            print(f"🌐 Subdomínio público: {public_label} (do domínio original)")
+
         if has_api and client:
             # Modo API
             result = await deploy_site_aapanel(client, slug, config, local_dir)
         else:
             # Modo LOCAL puro
-            result = await deploy_local_only(slug, config, local_dir, cf_client)
+            result = await deploy_local_only(slug, config, local_dir, cf_client, public_label=public_label)
 
         results.append(result)
 
@@ -167,32 +193,32 @@ async def main():
         sys.exit(1)
 
 
-async def deploy_local_only(slug: str, config: Dict, local_dir: Path, cf_client: CloudflareClient = None) -> Dict:
+async def deploy_local_only(slug: str, config: Dict, local_dir: Path, cf_client: CloudflareClient = None, public_label: str | None = None) -> Dict:
     """Deploy local: /www/wwwroot + nginx aaPanel + CNAME Cloudflare.
 
-    Importante: Cloudflare Universal SSL cobre apenas *.iabotz.online (um nível).
-    Por isso o padrão é {slug}.iabotz.online → CNAME para panel.iabotz.online,
-    NÃO {slug}.panel.iabotz.online (isso exige Advanced Certificate Manager).
+    Cloudflare Universal SSL normally covers one wildcard label. The public
+    domain and origin target are always read from configuration.
     """
     aapanel = config.get("aapanel", {})
     cf_cfg = config.get("cloudflare") or {}
     usar_subdominio = aapanel.get("usar_subdominio", True)
     # Default alinhado ao Universal SSL da Cloudflare
-    dominio_base = aapanel.get("dominio_base") or "iabotz.online"
+    dominio_base = aapanel.get("dominio_base") or "example.com"
     pasta_base = aapanel.get("pasta_base", "clientes")
-    dns_target = aapanel.get("dns_target") or "panel.iabotz.online"
-    cert_dir = aapanel.get("ssl_cert_dir") or "/www/server/panel/vhost/cert/iabotz.online"
+    dns_target = aapanel.get("dns_target") or "origin.example.com"
+    cert_dir = aapanel.get("ssl_cert_dir") or f"/www/server/panel/vhost/cert/{dominio_base}"
 
+    public_label = public_label or public_subdomain(slug)
     if usar_subdominio:
-        dominio = f"{slug}.{dominio_base}"
+        dominio = f"{public_label}.{dominio_base}"
         path = f"/www/wwwroot/{dominio}"
         url_final = f"https://{dominio}/"
-        zone = cf_cfg.get("zone") or "iabotz.online"
+        zone = cf_cfg.get("zone") or dominio_base
         # Registro CF relativo à zona (ex.: slug ou slug.panel)
         if dominio.endswith("." + zone):
             cf_record_name = dominio[: -(len(zone) + 1)]
         else:
-            cf_record_name = slug
+            cf_record_name = public_label
     else:
         dominio = dominio_base
         path = f"/www/wwwroot/{dominio_base}/{pasta_base}/{slug}"

@@ -1,0 +1,70 @@
+{
+  "id": "material-design",
+  "name": "Material",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "Playful, dynamic color extraction, pill-shaped buttons, and distinct elevation states. Based on Google's Material Design 3 with enhanced depth and micro-interactions.",
+  "source_url": "https://designprompts.dev/material-design",
+  "raw_prompt": "raw/material-design.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "material-design"
+    ],
+    [
+      "name",
+      "Material"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Playful, dynamic color extraction, pill-shaped buttons, and distinct elevation states. Based on Google's Material Design 3 with enhanced depth and micro-interactions."
+    ],
+    [
+      "hero",
+      "Large rounded container (48px radius) with decorative organic blur shapes, split layout with abstract geometric shapes on desktop, centered on mobile"
+    ],
+    [
+      "stats",
+      "Grid of rounded cards (24px radius) with tonal backgrounds, hover effects with shadow elevation, centered numeric values with primary color accent"
+    ],
+    [
+      "productDetail",
+      "Two-column split layout with text content and abstract shape visualization, generous padding, shadow-inner on image container"
+    ],
+    [
+      "features",
+      "Card grid with tonal surface backgrounds, icon containers with secondary color, hover scale and shadow effects, generous padding"
+    ],
+    [
+      "blog",
+      "Card grid with image aspect ratio 3:2, image zoom on hover, tonal surface backgrounds, uppercase meta text with primary color"
+    ],
+    [
+      "howItWorks",
+      "Numbered circular badges with glow effects on hover above rounded content cards, vertical stepper layout with shadow transitions"
+    ],
+    [
+      "benefits",
+      "Full-width colored container with radial gradient overlays and blur shapes, nested glass-morphism cards with border, backdrop blur, and hover effects"
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "family"
+  ]
+}

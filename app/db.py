@@ -83,8 +83,23 @@ def init_db() -> None:
               created_at TEXT DEFAULT (datetime('now','localtime'))
             );
 
+            CREATE TABLE IF NOT EXISTS outreach_log(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              lead_slug TEXT NOT NULL,
+              channel TEXT NOT NULL,
+              kind TEXT NOT NULL DEFAULT 'proposta',
+              status TEXT NOT NULL,
+              recipient TEXT,
+              content TEXT,
+              external_id TEXT,
+              error TEXT,
+              created_at TEXT DEFAULT (datetime('now','localtime')),
+              FOREIGN KEY(lead_slug) REFERENCES leads(slug) ON DELETE CASCADE
+            );
+
             CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
             CREATE INDEX IF NOT EXISTS idx_job_events_job ON job_events(job_id);
+            CREATE INDEX IF NOT EXISTS idx_outreach_lead ON outreach_log(lead_slug, created_at DESC);
             """
         )
         # soft migrations for older DBs
@@ -93,6 +108,8 @@ def init_db() -> None:
             c.execute("ALTER TABLE leads ADD COLUMN placeId TEXT")
         if "engine" not in cols:
             c.execute("ALTER TABLE leads ADD COLUMN engine TEXT")
+        if "dataWhatsApp" not in cols:
+            c.execute("ALTER TABLE leads ADD COLUMN dataWhatsApp TEXT")
 
         c.execute("SELECT COUNT(*) FROM leads")
         if c.fetchone()[0] == 0:
@@ -153,15 +170,36 @@ def _import_leads_md(c: sqlite3.Cursor) -> None:
         )
 
 
-def _slugify(nome: str) -> str:
+def _slugify(nome: str, site_url: str = "") -> str:
     import re
     import unicodedata
+    import hashlib
+    from urllib.parse import urlparse
+
+    # A real business domain is a concise, recognizable public identifier.
+    # Prefer it over a long Maps display name whenever it is available.
+    host = ""
+    if site_url:
+        parsed = urlparse(site_url if "://" in site_url else f"https://{site_url}")
+        host = (parsed.hostname or "").lower().removeprefix("www.")
+    if host:
+        # www.clinica.example.br -> clinica; avoid TLD-only labels.
+        label = host.split(".")[0]
+        if label and label not in {"www", "site", "home"}:
+            nome = label
 
     s = unicodedata.normalize("NFKD", nome)
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
     s = s.lower()
     s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
-    return s or "lead"
+    if not s:
+        return "lead"
+    # DNS labels are limited to 63 bytes. Keep a readable prefix plus a stable
+    # hash so two long business names cannot collide on a customer subdomain.
+    if len(s) > 55:
+        digest = hashlib.sha1(s.encode("utf-8")).hexdigest()[:7]
+        s = f"{s[:47].rstrip('-')}-{digest}"
+    return s
 
 
 def _float(v: Any) -> float:

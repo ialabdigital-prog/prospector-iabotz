@@ -1,0 +1,67 @@
+{
+  "id": "sketch",
+  "name": "Hand-Drawn / Sketch",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "Organic wobbly borders, handwritten typography, paper textures, and playful imperfection. Every element feels sketched with markers and pencils on textured paper.",
+  "source_url": "https://designprompts.dev/sketch",
+  "raw_prompt": "raw/sketch.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "sketch"
+    ],
+    [
+      "name",
+      "Hand-Drawn / Sketch"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Organic wobbly borders, handwritten typography, paper textures, and playful imperfection. Every element feels sketched with markers and pencils on textured paper."
+    ],
+    [
+      "hero",
+      "Split 2-column grid with oversized marker-style headline, decorative hand-drawn arrow pointing to CTA, and polaroid-frame product mockup with wobbly borders. Trust indicators use overlapping avatar circles."
+    ],
+    [
+      "stats",
+      "Horizontal grid of stats displayed in irregular organic shapes (wobbly circles) with varying border radii. Each stat has playful rotation for authentic hand-drawn feel."
+    ],
+    [
+      "productDetail",
+      "Centered content in white card with wobbly borders, sticky-note tag at top center, drop-cap first letter treatment, and constrained text width for readability."
+    ],
+    [
+      "features",
+      "3-column grid of post-it yellow cards with tape decoration at top. Each card includes rough circular icon container and wobbly borders for sketchy aesthetic."
+    ],
+    [
+      "blog",
+      "3-column grid with polaroid-style frames. Dashed borders on image placeholders, hard offset shadows, and playful rotation on hover for scrapbook feel."
+    ],
+    [
+      "howItWorks",
+      "3-column step layout with decorative squiggly connecting line (desktop). Steps numbered in wobbly-border circles with hard offset shadows."
+    ],
+    [
+      "benefits",
+      "Centered white container with thick wobbly border and hard shadow. 2-column grid with hand-drawn bullet points (filled circles) for each benefit item."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "geometric"
+  ],
+  "best_for": []
+}

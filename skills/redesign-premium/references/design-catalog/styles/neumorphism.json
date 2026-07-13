@@ -1,0 +1,68 @@
+{
+  "id": "neumorphism",
+  "name": "Neumorphism",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "Extruded and inset elements via dual shadows on monochromatic backgrounds. Soft, tactile, and physically grounded with excellent accessibility.",
+  "source_url": "https://designprompts.dev/neumorphism",
+  "raw_prompt": "raw/neumorphism.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "neumorphism"
+    ],
+    [
+      "name",
+      "Neumorphism"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Extruded and inset elements via dual shadows on monochromatic backgrounds. Soft, tactile, and physically grounded with excellent accessibility."
+    ],
+    [
+      "hero",
+      "Asymmetric split layout (60/40) with content on left and nested depth visual on right. Features animated floating cards and interactive 3D nested circles that respond to hover with scale and rotation."
+    ],
+    [
+      "stats",
+      "Two-stage presentation: inline stats in hero, then dedicated section with four extruded cards inside a deep inset container. Cards lift and scale on hover."
+    ],
+    [
+      "features",
+      "Bento-style grid with one large featured card (2 rows) and smaller cards. Deep inset icon wells create tactile depth. Smooth hover scale transforms."
+    ],
+    [
+      "howItWorks",
+      "Three-column horizontal stepper with nested depth circles for step numbers, connected by a visible inset rail with gradient progress indicator."
+    ],
+    [
+      "benefits",
+      "Split layout with checklist items in inset containers on left, abstract UI mockup visualization on right showing layered neumorphic elements."
+    ],
+    [
+      "pricing",
+      "Three-column grid with center card highlighted via subtle scale (1.05x) and enhanced shadow depth. Badge floating above highlighted tier."
+    ],
+    [
+      "testimonials",
+      "Asymmetric grid with one large featured testimonial (2 columns, 2 rows) and four smaller testimonials. Star ratings in inset pills, avatars in deep inset circles."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": []
+}

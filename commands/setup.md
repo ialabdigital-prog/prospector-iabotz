@@ -36,17 +36,17 @@ Pergunte se o usuário já tem o aapanel instalado e acessível.
 
 ## 5. Conexão com Cloudflare (DNS automático para subdomínios)
 
-**NOVO**: Para criar subdomínios automáticos para cada prospect (ex.: `nutricionista-joao.panel.iabotz.online`), usamos a API do Cloudflare para criar o registro CNAME automaticamente.
+Para criar subdomínios automáticos para cada prospect (ex.: `cliente.example.com`), usamos a API do Cloudflare para criar o registro CNAME automaticamente.
 
-Pergunte se o usuário tem conta no Cloudflare com o domínio base (ex.: `iabotz.online`) gerenciado lá.
+Pergunte se o usuário tem conta no Cloudflare com o domínio base (ex.: `example.com`) gerenciado lá.
 
 - **Se não tem**: explique que o DNS será manual (o usuário cria o CNAME manualmente no painel DNS) — o deploy ainda funciona mas o SSL só sai depois que o DNS propagar.
 - **Se tem**: **NÃO colete token/email pelo chat**. Tudo vai na aba **Configurações** do dashboard → seção **Conexão Cloudflare**:
   1. Instrua: dashboard → Configurações → seção **Conexão Cloudflare**.
-  2. Preenche: API Token (Cloudflare → My Profile → API Tokens → Create Token com permissões DNS:Edit), Email da conta, Zona (domínio base, ex.: `iabotz.online`), Proxy (on/off — recomendado ON para proteção DDoS).
+  2. Preenche: API Token (Cloudflare → My Profile → API Tokens → Create Token com permissões DNS:Edit), Email da conta, Zona (domínio base, ex.: `example.com`), Proxy (on/off, recomendado ON para proteção DDoS).
   3. Clica "Salvar conexão" → vai direto pro `prospector-config.json`.
 
-  Com Cloudflare configurado, o `/publicar` cria automaticamente o CNAME `slug.panel.iabotz.online` → `panel.iabotz.online` e aguarda DNS propagar antes de solicitar SSL.
+  Com Cloudflare configurado, o `/publicar` cria automaticamente o CNAME `slug.example.com` → `panel.example.com` e aguarda DNS propagar antes de solicitar SSL.
 
 ## 6. Configuração do Playwright (prospecção headless)
 
@@ -65,7 +65,7 @@ Salve tudo em `prospector-config.json` na pasta conectada, neste formato:
   "prospeccao": { "nichos": ["nutricionistas", "psicologos", "advogados", "psiquiatras"], "cidade": "", "leadsPorBusca": 10, "notaMinima": 4.7, "avaliacoesMinimas": 40 },
   "envio": { "modo": "rascunho" },
   "aapanel": { "url": "", "api_token": "", "usuario": "", "senha": "", "dominio_base": "", "pasta_base": "clientes", "usar_subdominio": true, "ssl_auto": true, "php_version": "82" },
-  "cloudflare": { "api_token": "", "email": "", "zone": "iabotz.online", "proxied": true },
+  "cloudflare": { "api_token": "", "email": "", "zone": "example.com", "proxied": true },
   "playwright": { "headless": true, "browser": "chromium", "timeout_ms": 30000, "delay_entre_requisicoes_ms": 2000, "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36...", "viewport": { "width": 1366, "height": 768 }, "proxy": "", "stealth": true },
   "dashboard": { "porta": 8765, "host": "0.0.0.0" }
 }

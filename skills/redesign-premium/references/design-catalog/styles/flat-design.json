@@ -1,0 +1,68 @@
+{
+  "id": "flat-design",
+  "name": "Flat Design",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "A design philosophy centered on removing depth cues (shadows, bevels, gradients) in favor of pure color, typography, and layout. Crisp, two-dimensional, and geometric with bold color blocking.",
+  "source_url": "https://designprompts.dev/flat-design",
+  "raw_prompt": "raw/flat-design.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "flat-design"
+    ],
+    [
+      "name",
+      "Flat Design"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "A design philosophy centered on removing depth cues (shadows, bevels, gradients) in favor of pure color, typography, and layout. Crisp, two-dimensional, and geometric with bold color blocking."
+    ],
+    [
+      "hero",
+      "Full-width bold color block background (Primary Blue). Large decorative geometric shapes as background elements. Left-aligned text with massive headline (4xl to 8xl responsive). High-contrast CTA buttons with strong hover states. Right side features abstract geometric composition with overlapping shapes."
+    ],
+    [
+      "stats",
+      "Clean 4-column grid with gradient background accent. Large colorful numbers (5xl-6xl) in varied accent colors. Uppercase labels. Hover scale effects on individual stats."
+    ],
+    [
+      "features",
+      "3-column grid with section title. Each feature card has distinct soft background color (blue-50, green-50, amber-50, etc.) with white icon circles. Strong hover states with scale and color intensification."
+    ],
+    [
+      "howItWorks",
+      "Dark background (gray-900) for contrast. Horizontal step circles connected by background line. Large numbered circles in primary blue with border. Clean white text on dark."
+    ],
+    [
+      "benefits",
+      "50/50 split screen layout. Left side emerald green solid with white text and bullet points. Right side white with abstract geometric overlapping shapes in mix-blend-multiply mode."
+    ],
+    [
+      "pricing",
+      "3-column grid. Popular tier is scaled and uses primary blue block. Other tiers use light gray blocks. 'Most Popular' badge on featured tier. All cards have strong hover scale effects."
+    ],
+    [
+      "testimonials",
+      "Masonry columns layout. White cards on light gray background. Large decorative quote mark. Avatar circles with bold typography."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "geometric",
+    "dark"
+  ],
+  "best_for": []
+}

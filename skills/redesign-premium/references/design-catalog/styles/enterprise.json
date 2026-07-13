@@ -1,0 +1,70 @@
+{
+  "id": "enterprise",
+  "name": "Corporate Trust",
+  "mode": "light",
+  "font_type": "sans-serif",
+  "description": "Modern SaaS aesthetic balancing professionalism with approachability. Vibrant indigo/violet gradients, soft colored shadows, isometric depth, and clean geometric sans-serif typography.",
+  "source_url": "https://designprompts.dev/enterprise",
+  "raw_prompt": "raw/enterprise.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "enterprise"
+    ],
+    [
+      "name",
+      "Corporate Trust"
+    ],
+    [
+      "mode",
+      "light"
+    ],
+    [
+      "fontType",
+      "sans-serif"
+    ],
+    [
+      "description",
+      "Modern SaaS aesthetic balancing professionalism with approachability. Vibrant indigo/violet gradients, soft colored shadows, isometric depth, and clean geometric sans-serif typography."
+    ],
+    [
+      "hero",
+      "Split layout with 60/40 composition. Left: Gradient headline split, dual-CTA buttons, trust indicator. Right: Isometric floating card with subtle 3D transforms and decorative elements."
+    ],
+    [
+      "stats",
+      "Clean horizontal strip with large bold numbers, subtle text. Bordered top/bottom to create visual break."
+    ],
+    [
+      "productDetail",
+      "Two-column layout with text-left, visual-right. Abstract UI mockup inside gradient container with offset shadow element."
+    ],
+    [
+      "features",
+      "Zig-zag alternating layout. Icon badges with soft backgrounds, feature cards with isometric perspective transforms, decorative gradient blobs."
+    ],
+    [
+      "blog",
+      "Three-column card grid. Image-first design with gradient overlays on hover, metadata above headline."
+    ],
+    [
+      "howItWorks",
+      "Horizontal step timeline with connecting gradient line. Numbered badges with glow effects on dark background."
+    ],
+    [
+      "benefits",
+      "Two-column split: checklist items on left, isometric 3D card visualization on right with gradient background."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "technical",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "technology"
+  ]
+}

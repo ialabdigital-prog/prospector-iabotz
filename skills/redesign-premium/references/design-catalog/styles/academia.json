@@ -1,0 +1,72 @@
+{
+  "id": "academia",
+  "name": "Academia",
+  "mode": "dark",
+  "font_type": "serif",
+  "description": "University aesthetic, old libraries, warm paper textures, traditional serifs, gold/crimson accents.",
+  "source_url": "https://designprompts.dev/academia",
+  "raw_prompt": "raw/academia.md",
+  "source_hash": "58051e392b2e08914843297cf628f37b5b690a6eda122d63cf9c07502eb0035b",
+  "imported_at": "2026-07-13T01:53:57.090525+00:00",
+  "layouts": [
+    [
+      "id",
+      "academia"
+    ],
+    [
+      "name",
+      "Academia"
+    ],
+    [
+      "mode",
+      "dark"
+    ],
+    [
+      "fontType",
+      "serif"
+    ],
+    [
+      "description",
+      "University aesthetic, old libraries, warm paper textures, traditional serifs, gold/crimson accents."
+    ],
+    [
+      "hero",
+      "Asymmetric two-column layout (7/5 split) with ornate decorative corner flourishes. Left column contains brass accent line with establishment date, large serif headline with first word highlighted in brass, drop-cap paragraph, and dual CTAs. Right column features arch-topped sepia image with brass border overlay."
+    ],
+    [
+      "stats",
+      "Full-width horizontal band with four equal columns separated by vertical borders. Each stat features large brass numbers in Cinzel, small uppercase labels, and subtle hover interactions that scale numbers and change background opacity."
+    ],
+    [
+      "productDetail",
+      "Centered content within ornate frame. Brass horizontal lines flanking 'Proclamation' label, large serif headline, ornate divider, and multi-paragraph body text with drop cap on first paragraph."
+    ],
+    [
+      "features",
+      "Three-column grid of cards with corner flourishes. Each card has circular icon container with brass border, Roman numeral label in Cinzel, serif heading, and body text. Cards lift on hover with brass border tint."
+    ],
+    [
+      "benefits",
+      "Three-column grid with gradient dividers above each item. Roman numeral labels, serif headings, and body text. Dividers animate from wood-grain to full brass on hover."
+    ],
+    [
+      "howItWorks",
+      "Alternating timeline layout with vertical brass connector line and medallions. Content alternates left/right with Roman numeral medallions centered. Each step features serif heading and description."
+    ],
+    [
+      "pricing",
+      "Three-column card layout with highlighted tier featuring brass border and ring. Wax seal badges on featured plans positioned at top-right. Cards include tier name, large price in Cormorant, feature list with check icons, and CTA button."
+    ]
+  ],
+  "tags": [
+    "editorial",
+    "playful",
+    "luxury",
+    "geometric",
+    "dark"
+  ],
+  "best_for": [
+    "health",
+    "legal"
+  ]
+}

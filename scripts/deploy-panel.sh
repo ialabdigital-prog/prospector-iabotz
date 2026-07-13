@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Deploy / refresh prospector.iabotz.online reverse proxy + systemd units
+# Deploy / refresh the configurable reverse proxy + systemd units
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DOMAIN="prospector.iabotz.online"
+DOMAIN="${PROSPECTOR_DOMAIN:?Set PROSPECTOR_DOMAIN (for example prospector.example.com)}"
 PORT="${PROSPECTOR_PORT:-8765}"
 VENV="$ROOT/venv"
 
@@ -20,8 +20,9 @@ Type=simple
 User=$(whoami)
 WorkingDirectory=$ROOT
 Environment=PYTHONUNBUFFERED=1
-Environment=PROSPECTOR_ADMIN_USER=${PROSPECTOR_ADMIN_USER:-admin}
-Environment=PROSPECTOR_ADMIN_PASS=${PROSPECTOR_ADMIN_PASS:-prospector2026}
+Environment=PROSPECTOR_ADMIN_USER=${PROSPECTOR_ADMIN_USER:?Set PROSPECTOR_ADMIN_USER}
+Environment=PROSPECTOR_ADMIN_PASS=${PROSPECTOR_ADMIN_PASS:?Set PROSPECTOR_ADMIN_PASS}
+Environment=PROSPECTOR_SECRET_KEY=${PROSPECTOR_SECRET_KEY:?Set PROSPECTOR_SECRET_KEY}
 ExecStart=$VENV/bin/gunicorn -b 127.0.0.1:${PORT} -w 2 --timeout 120 wsgi:app
 Restart=always
 RestartSec=3
