@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import hashlib
 from pathlib import Path
 
 
@@ -68,6 +69,10 @@ def fallback_brief(lead: dict, previous: list[dict] | None = None) -> dict:
     candidates = [style for style in NICHE_STYLE_ORDER[group] if style in available]
     if not candidates:
         candidates = sorted(available)
+    seed = int(hashlib.sha1(f"{lead.get('nome','')}|{lead.get('nicho','')}".encode()).hexdigest()[:8], 16)
+    if candidates:
+        offset = seed % len(candidates)
+        candidates = candidates[offset:] + candidates[:offset]
     previous_pairs = {
         (item.get("style_id"), item.get("layout_id"))
         for item in (previous or [])
@@ -75,6 +80,8 @@ def fallback_brief(lead: dict, previous: list[dict] | None = None) -> dict:
     }
     for style in candidates:
         layouts = COMPOSITIONS.get(style, ["editorial-story", "conversion-split", "proof-rail"])
+        layout_offset = (seed // 7) % len(layouts)
+        layouts = layouts[layout_offset:] + layouts[:layout_offset]
         for layout in layouts:
             if (style, layout) not in previous_pairs:
                 return {
@@ -87,16 +94,19 @@ def fallback_brief(lead: dict, previous: list[dict] | None = None) -> dict:
                     "image_plan": ["hero", "support", "detail"],
                     "variation": {
                         "palette_direction": "brand-informed",
-                        "image_mood": "editorial-natural-light",
-                        "density": "balanced",
-                        "section_emphasis": "proof",
+                        "image_mood": ("editorial-natural-light", "cinematic-contrast", "warm-documentary")[seed % 3],
+                        "density": ("compact", "balanced", "spacious")[seed % 3],
+                        "section_emphasis": ("proof", "services", "story")[seed % 3],
+                        "hero_treatment": ("layout-led", "full-bleed", "statement-led")[seed % 3],
+                        "surface_tone": ("brand-adaptive", "light", "dark")[seed % 3],
+                        "section_rhythm": ("asymmetric", "alternating", "stacked")[seed % 3],
                     },
                 }
     return {
         "style_id": candidates[0], "layout_id": COMPOSITIONS.get(candidates[0], ["editorial-story"])[0],
         "confidence": 0.5, "selection_method": "rules", "reason": "Catálogo sem composição inédita.",
         "section_plan": ["hero", "about", "services", "contact"], "image_plan": ["hero", "support"],
-        "variation": {"palette_direction": "brand-informed", "image_mood": "editorial-natural-light", "density": "balanced", "section_emphasis": "proof"},
+        "variation": {"palette_direction": "brand-informed", "image_mood": "editorial-natural-light", "density": "balanced", "section_emphasis": "proof", "hero_treatment": "layout-led", "surface_tone": "brand-adaptive", "section_rhythm": "asymmetric"},
     }
 
 
@@ -109,6 +119,12 @@ def normalize_llm_brief(value: dict, lead: dict, previous: list[dict] | None = N
     layout = str(value.get("layout_id") or "")
     if layout not in layouts:
         layout = layouts[0]
+    previous_pairs = {
+        (item.get("style_id"), item.get("layout_id"))
+        for item in (previous or []) if isinstance(item, dict)
+    }
+    if (style, layout) in previous_pairs:
+        return fallback
     variation = value.get("variation") if isinstance(value.get("variation"), dict) else {}
     return {
         **fallback,
@@ -124,5 +140,8 @@ def normalize_llm_brief(value: dict, lead: dict, previous: list[dict] | None = N
             "image_mood": str(variation.get("image_mood") or fallback["variation"]["image_mood"])[:120],
             "density": str(variation.get("density") or fallback["variation"]["density"])[:40],
             "section_emphasis": str(variation.get("section_emphasis") or fallback["variation"]["section_emphasis"])[:60],
+            "hero_treatment": str(variation.get("hero_treatment") or fallback["variation"]["hero_treatment"])[:60],
+            "surface_tone": str(variation.get("surface_tone") or fallback["variation"]["surface_tone"])[:40],
+            "section_rhythm": str(variation.get("section_rhythm") or fallback["variation"]["section_rhythm"])[:40],
         },
     }

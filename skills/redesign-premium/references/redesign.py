@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(BASE_DIR))
-from app.design_catalog import fallback_brief, load_catalog, normalize_llm_brief
+from app.design_catalog import COMPOSITIONS, fallback_brief, load_catalog, normalize_llm_brief
 
 
 def _public_url(slug: str) -> str:
@@ -272,9 +272,12 @@ def extract_content_from_site(url: str) -> Dict:
         for image in soup.select("img[src]"):
             image_url = urljoin(r.url, image["src"])
             alt = (image.get("alt") or "").lower()
-            if any(blocked in image_url.lower() for blocked in blocked_image_hosts):
+            source_l = image_url.lower()
+            if source_l.startswith("data:") or any(blocked in source_l for blocked in blocked_image_hosts):
                 continue
-            if image_url not in public_images and not any(token in alt for token in ("logo", "icon", "favicon")):
+            if any(token in f"{alt} {source_l}" for token in ("logo", "icon", "favicon", "sprite")):
+                continue
+            if image_url not in public_images:
                 public_images.append(image_url)
         out["imagens"] = (out.get("imagens") or []) + public_images[:8]
         if not out.get("hero_image") and public_images:
@@ -287,7 +290,24 @@ def extract_content_from_site(url: str) -> Dict:
         if text_blocks:
             out["sobre"] = max(text_blocks, key=len)[:700] if not out["sobre"] else out["sobre"]
         service_markers = ("serviço", "especialidade", "tratamento", "procedimento", "o que fazemos")
-        service_headings = [h for h in headings if not any(marker in h.lower() for marker in service_markers)]
+        service_keywords = (
+            "direito ", "advocacia", "consulta", "terapia", "tratamento", "procedimento",
+            "odont", "implante", "ortodont", "nutri", "fisioterapia", "cirurgia", "estética",
+        )
+        semantic_services = []
+        for element in soup.select('[class*="service"], [class*="servico"], [class*="area"], .elementor-icon-list-text'):
+            label = element.get_text(" ", strip=True)
+            lowered = label.lower()
+            if 3 < len(label) < 80 and any(keyword in lowered for keyword in service_keywords) and label not in semantic_services:
+                semantic_services.append(label)
+        if semantic_services:
+            out["servicos"] = [{"titulo": label, "descricao": ""} for label in semantic_services[:6]]
+        generic_headings = ("quem somos", "áreas de atuação", "areas de atuacao", "blog", "fale conosco", "contato", "nos siga")
+        service_headings = [
+            h for h in headings
+            if not any(marker in h.lower() for marker in service_markers)
+            and not any(generic in h.lower() for generic in generic_headings)
+        ]
         if not out["servicos"]:
             out["servicos"] = [{"titulo": h, "descricao": ""} for h in service_headings[:6] if 3 < len(h) < 80]
         for detail in soup.select("details"):
@@ -320,6 +340,27 @@ def extract_content_from_site(url: str) -> Dict:
     return out
 
 
+def localize_brand_assets(content: Dict, site_dir: Path) -> Dict:
+    """Keep the original public logo stable instead of hotlinking it."""
+    logo_url = content.get("logo_url") or ""
+    if not logo_url or not logo_url.startswith("http"):
+        return content
+    try:
+        response = requests.get(logo_url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        response.raise_for_status()
+        content_type = response.headers.get("content-type", "").lower()
+        suffix = ".svg" if "svg" in content_type else ".webp" if "webp" in content_type else ".png" if "png" in content_type else ".jpg"
+        assets = site_dir / "assets"
+        assets.mkdir(parents=True, exist_ok=True)
+        target = assets / f"source-logo{suffix}"
+        target.write_bytes(response.content)
+        content["source_logo_url"] = logo_url
+        content["logo_url"] = f"assets/{target.name}"
+    except requests.RequestException:
+        pass
+    return content
+
+
 def extract_palette(html: str) -> Dict | None:
     """Derive a restrained brand palette from real CSS, avoiding neutral colors."""
     colors = Counter(re.findall(r"#[0-9a-fA-F]{6}\b", html))
@@ -335,11 +376,57 @@ def extract_palette(html: str) -> Dict | None:
         candidates.append((count, value, rgb))
     if not candidates:
         return None
-    _, primary, (r, g, b) = max(candidates, key=lambda item: item[0])
-    secondary = "#082f49" if b >= r else "#1f2937"
-    accent = "#38bdf8" if b >= r else primary
-    bg = "#f0f9ff" if b >= r else "#f8fafc"
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    _, primary, primary_rgb = candidates[0]
+    distinct = [item for item in candidates[1:] if sum((a - b) ** 2 for a, b in zip(item[2], primary_rgb)) > 4200]
+    accent = distinct[0][1] if distinct else _mix_hex(primary, "#ffffff", 0.28)
+    secondary = _mix_hex(primary, "#080b12", 0.68)
+    bg = _mix_hex(primary, "#ffffff", 0.94)
     return {"primary": primary, "secondary": secondary, "accent": accent, "bg": bg}
+
+
+def _mix_hex(first: str, second: str, second_weight: float) -> str:
+    def rgb(value: str) -> tuple[int, int, int]:
+        value = value.lstrip("#")
+        return tuple(int(value[index:index + 2], 16) for index in (0, 2, 4))
+
+    try:
+        a, b = rgb(first), rgb(second)
+    except (ValueError, TypeError):
+        return first
+    weight = max(0.0, min(1.0, second_weight))
+    mixed = tuple(round(x * (1 - weight) + y * weight) for x, y in zip(a, b))
+    return "#" + "".join(f"{channel:02x}" for channel in mixed)
+
+
+def _luminance(value: str) -> float:
+    try:
+        channels = [int(value.lstrip("#")[index:index + 2], 16) / 255 for index in (0, 2, 4)]
+    except (ValueError, TypeError):
+        return 0.5
+    linear = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def resolve_brand_palette(conteudo: Dict, family: str, style: str, variation: Dict) -> Dict:
+    source = conteudo.get("cores") or {}
+    primary = source.get("primary") or "#315f78"
+    secondary = source.get("secondary") or _mix_hex(primary, "#070a10", 0.7)
+    accent = source.get("accent") or _mix_hex(primary, "#ffffff", 0.25)
+    background = source.get("bg") or _mix_hex(primary, "#ffffff", 0.94)
+    tone = str(variation.get("surface_tone") or "brand-adaptive").lower()
+
+    if style == "monochrome":
+        return {"bg": "#f7f7f5", "ink": "#111111", "accent": "#111111", "secondary": "#242424", "surface": "#ffffff"}
+    if style == "newsprint":
+        return {"bg": "#f5f1e8", "ink": "#171512", "accent": primary, "secondary": secondary, "surface": "#fffdf7"}
+    if family in {"technical", "kinetic"} or "dark" in tone:
+        return {"bg": secondary, "ink": "#f7f8fa", "accent": accent, "secondary": primary, "surface": _mix_hex(secondary, "#ffffff", 0.08)}
+    if family == "geometric":
+        return {"bg": background, "ink": secondary, "accent": primary, "secondary": accent, "surface": _mix_hex(background, "#ffffff", 0.5)}
+    if family == "soft":
+        return {"bg": _mix_hex(background, "#ffffff", 0.35), "ink": secondary, "accent": primary, "secondary": accent, "surface": "#ffffff"}
+    return {"bg": background, "ink": secondary, "accent": primary, "secondary": accent, "surface": _mix_hex(background, "#ffffff", 0.72)}
 
 
 def niche_palette(nicho: str) -> Dict:
@@ -472,9 +559,12 @@ def select_creative_brief(lead: Lead, source: Dict, previous: List[Dict]) -> Dic
             prompt=(
                 f"Negócio: {lead.nome}; nicho: {lead.nicho}; cidade: {lead.cidade}; "
                 f"reputação: {lead.nota} ({lead.avaliacoes} avaliações); conteúdo: {source.get('sobre', '')[:900]}. "
+                f"Identidade extraída: cores={source.get('cores', {})}; logo={'sim' if source.get('logo_url') else 'não'}. "
+                f"Direção única recomendada para evitar sites genéricos no nicho: {fallback['style_id']} / {fallback['layout_id']}. "
                 f"Opções: {json.dumps(options, ensure_ascii=False)}. "
                 "JSON: style_id, layout_id, confidence (0-1), reason, section_plan (lista), image_plan (lista), "
-                "variation {palette_direction, image_mood, density, section_emphasis}."
+                "variation {palette_direction, image_mood, density, section_emphasis, hero_treatment, surface_tone, section_rhythm}. "
+                "Cada campo deve variar a composição, não apenas adjetivos. Respeite logo e cores corporativas extraídas."
             ),
             model=llm_cfg.get("orchestrator_model") or None,
         )
@@ -814,41 +904,56 @@ def generate_catalog_page(lead: Lead, conteudo: Dict) -> str:
         else "soft" if style in {"material-design", "claymorphism", "neumorphism", "botanical", "organic", "aurora-mesh", "glassmorphism"}
         else "editorial"
     )
-    palettes = {
-        "kinetic": ("#09090b", "#fafafa", "#dfe104", "Space Grotesk,Arial,sans-serif"),
-        "geometric": ("#f0f0f0", "#121212", "#d02020", "Outfit,Arial,sans-serif"),
-        "technical": ("#050506", "#ededed", "#5e6ad2", "Inter,Arial,sans-serif"),
-        "soft": ("#fffafe", "#1c1b1f", "#6750a4", "Roboto,Arial,sans-serif"),
-        "editorial": ("#f9f8f6", "#1a1a1a", "#d4af37", "Playfair Display,Georgia,serif"),
+    font_by_family = {
+        "kinetic": "Space Grotesk,Arial,sans-serif", "geometric": "Outfit,Arial,sans-serif",
+        "technical": "Inter,Arial,sans-serif", "soft": "Roboto,Arial,sans-serif",
+        "editorial": "Playfair Display,Georgia,serif",
     }
-    bg, ink, accent, heading_font = palettes[family]
-    brand_primary = str((conteudo.get("cores") or {}).get("primary") or "")
-    if re.fullmatch(r"#[0-9a-fA-F]{6}", brand_primary) and style not in {"monochrome", "bauhaus", "newsprint"}:
-        # The selected style controls structure; a validated extracted brand
-        # color makes each variation recognizably owned by the prospect.
-        accent = brand_primary
-    if style == "newsprint":
-        bg, ink, accent, heading_font = "#f9f9f7", "#111111", "#cc0000", "Playfair Display,Georgia,serif"
-    if style == "monochrome":
-        bg, ink, accent, heading_font = "#ffffff", "#000000", "#000000", "Playfair Display,Georgia,serif"
-    hero_markup = ""
-    if family == "kinetic":
-        hero_markup = f'''<section class="hero kinetic-hero"><div class="giant" aria-hidden="true">{brand[:1].upper()}</div><div class="container hero-copy"><p class="label">{lead.nicho} / {lead.cidade}</p><h1>{headline}</h1><p>{subtitle}</p><a class="button" href="{contact}">COMEÇAR AGORA ↗</a></div></section><div class="marquee" aria-hidden="true"><span>{brand.upper()} · RESULTADO · EXPERIÊNCIA · ATENDIMENTO · {brand.upper()} · RESULTADO · EXPERIÊNCIA · ATENDIMENTO · </span></div>'''
-    elif family == "geometric":
-        hero_markup = f'''<section class="hero geometric-hero"><div class="shape circle" aria-hidden="true"></div><div class="shape square" aria-hidden="true"></div><div class="container hero-grid"><div><p class="label">{lead.nicho} · {lead.cidade}</p><h1>{headline}</h1><p>{subtitle}</p><a class="button" href="{contact}">FALAR AGORA ↗</a></div><div class="hero-image" style="background-image:url('{hero}')"></div></div></section>'''
-    elif family == "technical":
-        hero_markup = f'''<section class="hero technical-hero"><div class="grid-overlay" aria-hidden="true"></div><div class="container hero-grid"><div><p class="label">[ {lead.nicho.upper()} / {lead.cidade.upper()} ]</p><h1>{headline}</h1><p>{subtitle}</p><a class="button" href="{contact}">INICIAR CONTATO ↗</a></div><aside class="status-panel"><span>STATUS / ONLINE</span><b>{lead.nota or "5.0"} ★</b><small>{lead.avaliacoes or ""} avaliações verificadas</small></aside></div></section>'''
-    elif family == "soft":
-        hero_markup = f'''<section class="hero soft-hero"><div class="blob one" aria-hidden="true"></div><div class="blob two" aria-hidden="true"></div><div class="container hero-grid"><div><p class="label">{lead.nicho} · {lead.cidade}</p><h1>{headline}</h1><p>{subtitle}</p><a class="button" href="{contact}">Agendar conversa ↗</a></div><img class="hero-photo" src="{hero}" alt="{brand}"></div></section>'''
+    palette = resolve_brand_palette(conteudo, family, style, variation)
+    bg, ink, accent, secondary, surface = (
+        palette["bg"], palette["ink"], palette["accent"], palette["secondary"], palette["surface"]
+    )
+    heading_font = font_by_family[family]
+    layouts = COMPOSITIONS.get(style, [layout])
+    layout_index = layouts.index(layout) if layout in layouts else 0
+    composition = ("split", "immersive", "statement")[layout_index % 3]
+    hero_treatment = str(variation.get("hero_treatment") or "").lower()
+    if "full" in hero_treatment or "cinematic" in hero_treatment:
+        composition = "immersive"
+    elif "statement" in hero_treatment or "text" in hero_treatment:
+        composition = "statement"
+    logo = conteudo.get("logo_url") or ""
+    brand_markup = f'<img class="brand-logo" src="{logo}" alt="{brand}">' if logo else brand
+    eyebrow = f"{lead.nicho} · {lead.cidade}"
+    cta_label = "Falar no WhatsApp ↗"
+    ornament = (
+        f'<div class="giant" aria-hidden="true">{brand[:1].upper()}</div>' if family == "kinetic"
+        else '<div class="shape circle" aria-hidden="true"></div><div class="shape square" aria-hidden="true"></div>' if family == "geometric"
+        else '<div class="grid-overlay" aria-hidden="true"></div>' if family == "technical"
+        else '<div class="blob one" aria-hidden="true"></div><div class="blob two" aria-hidden="true"></div>' if family == "soft"
+        else ""
+    )
+    if composition == "immersive":
+        hero_markup = f'''<section class="hero hero-immersive" style="--hero:url('{hero}')">{ornament}<div class="hero-shade"></div><div class="container hero-copy"><p class="label">{eyebrow}</p><h1>{headline}</h1><p>{subtitle}</p><a class="button" href="{contact}">{cta_label}</a></div></section>'''
+    elif composition == "statement":
+        hero_markup = f'''<section class="hero hero-statement">{ornament}<div class="container statement-grid"><div class="hero-copy"><p class="label">{eyebrow}</p><h1>{headline}</h1><a class="button" href="{contact}">{cta_label}</a></div><div><p class="statement-intro">{subtitle}</p><img class="statement-image" src="{hero}" alt="{brand}"></div></div></section>'''
     else:
-        hero_markup = f'''<section class="hero editorial-hero"><div class="container editorial-grid"><div class="hero-copy"><p class="label">{lead.nicho} · {lead.cidade}</p><h1>{headline}</h1><p>{subtitle}</p><a class="button" href="{contact}">Agendar atendimento ↗</a></div><figure><img src="{hero}" alt="{brand}"><figcaption>{brand} / proposta visual</figcaption></figure></div></section>'''
+        hero_markup = f'''<section class="hero hero-split">{ornament}<div class="container hero-grid"><div class="hero-copy"><p class="label">{eyebrow}</p><h1>{headline}</h1><p>{subtitle}</p><a class="button" href="{contact}">{cta_label}</a></div><figure class="hero-figure"><img src="{hero}" alt="{brand}"><figcaption>{lead.cidade}</figcaption></figure></div></section>'''
     hero_fx = '''<svg class="hero-fx" viewBox="0 0 800 800" aria-hidden="true"><circle cx="400" cy="400" r="300" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="8 18"/><circle cx="400" cy="400" r="210" fill="none" stroke="currentColor" stroke-width="1" opacity=".45"/><path d="M100 400h600M400 100v600" fill="none" stroke="currentColor" opacity=".2"/><circle cx="700" cy="400" r="7" fill="currentColor"/></svg>'''
     hero_markup = hero_markup.replace("</section>", hero_fx + "</section>", 1)
+    about_section = f'''<section class="content about"><div class="container split"><div><p class="label">Nossa abordagem</p><h2>{brand}, com intenção em cada detalhe.</h2><p>{about}</p></div><img class="support" src="{support}" alt="Ambiente de {brand}"></div></section>'''
+    services_section = f'''<section class="content expertise"><div class="container"><p class="label">Especialidades</p><h2>O que podemos fazer por você.</h2><div class="services">{cards}</div><img class="detail-media" src="{detail}" alt="Detalhe de {brand}"></div></section>'''
+    emphasis = str(variation.get("section_emphasis") or "").lower()
+    content_sections = services_section + about_section if any(word in emphasis for word in ("serv", "especial", "oferta")) else about_section + services_section
+    rhythm = str(variation.get("section_rhythm") or "asymmetric").lower()
+    density = str(variation.get("density") or "balanced").lower()
     return f'''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{brand} — {lead.cidade}</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet"><style>
-:root{{--bg:{bg};--ink:{ink};--accent:{accent};--heading:{heading_font}}}
+:root{{--bg:{bg};--ink:{ink};--accent:{accent};--secondary:{secondary};--surface:{surface};--heading:{heading_font}}}
 .hero-fx{{position:absolute;width:min(70vw,760px);height:min(70vw,760px);right:-18%;top:5%;opacity:.18;pointer-events:none;animation:fxSpin 28s linear infinite}}@keyframes fxSpin{{to{{transform:rotate(360deg)}}}}@media(max-width:760px){{.editorial-grid figure{{display:block!important}}}}
 body{{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;line-height:1.6}}.container{{width:min(1160px,calc(100% - 40px));margin:auto}}.top{{position:absolute;inset:0 0 auto;padding:20px 0;z-index:2;color:#fff}}.top .container{{display:flex;justify-content:space-between}}a{{color:inherit}}.brand{{font:700 1.1rem var(--heading);text-decoration:none}}.hero{{min-height:86svh;display:flex;align-items:center;position:relative;overflow:hidden}}.hero-grid,.editorial-grid,.split{{display:grid;grid-template-columns:1fr 1fr;gap:7vw;align-items:center}}h1,h2,h3{{font-family:var(--heading);line-height:.94;letter-spacing:-.05em}}h1{{font-size:clamp(3rem,7vw,7.6rem)}}h2{{font-size:clamp(2.5rem,5vw,5rem)}}.button{{display:inline-flex;padding:15px 22px;background:var(--ink);color:var(--bg);font-weight:700;text-decoration:none}}.proof{{padding:28px 0;background:var(--ink);color:var(--bg)}}.proof .container{{display:flex;gap:24px;flex-wrap:wrap}}.content{{padding:10vw 0}}.support,.detail-media,.hero-photo,.editorial-grid img{{width:100%;object-fit:cover}}.support,.hero-photo,.editorial-grid img{{aspect-ratio:4/5}}.detail-media{{height:min(40vw,460px);margin-top:20px}}.services{{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#9994;margin-top:35px}}.service-card{{background:var(--bg);padding:28px}}.kinetic-hero,.technical-hero{{background:#09090b;color:#fafafa}}.giant{{position:absolute;right:2%;bottom:-16%;font-size:40vw;color:#27272a}}.marquee{{padding:16px;background:var(--accent);overflow:hidden;white-space:nowrap}}.geometric-hero{{background:#f0f0f0}}.shape{{position:absolute;border:4px solid #121212}}.circle{{width:34vw;height:34vw;border-radius:50%;background:var(--accent);right:-8vw;top:8vh}}.square{{width:17vw;height:17vw;background:#1040c0;left:45%;bottom:-7vw}}.hero-image{{min-height:65vh;background:center/cover;border:4px solid #121212}}.grid-overlay{{position:absolute;inset:0;background-image:linear-gradient(#5e6ad222 1px,transparent 1px),linear-gradient(90deg,#5e6ad222 1px,transparent 1px);background-size:48px 48px}}.status-panel{{position:relative;padding:30px;border:1px solid #fff4}}.soft-hero{{background:#fffafe}}.blob{{position:absolute;border-radius:50%;filter:blur(60px);opacity:.3}}.one{{width:40vw;height:40vw;background:var(--accent);top:-15vw;right:-8vw}}.two{{width:28vw;height:28vw;background:#db2777;bottom:-12vw;left:30%}}.contact{{padding:11vw 0;text-align:center}}@media(max-width:760px){{.hero{{padding:100px 0 60px}}.hero-grid,.editorial-grid,.split,.services{{grid-template-columns:1fr}}.editorial-grid figure,.status-panel{{display:none}}}}
-</style></head><body data-style="{style}" data-layout="{layout}" data-density="{variation.get('density', 'balanced')}"><header class="top"><div class="container"><a class="brand" href="#main">{brand}</a><a href="{contact}">WhatsApp ↗</a></div></header><main id="main">{hero_markup}<section class="proof"><div class="container"><span><b>{lead.nota or '5.0'} ★</b> reputação Google</span><span>{lead.avaliacoes or 'Atendimento'} avaliações</span><span>{brief.get('reason', 'Direção visual selecionada')}</span></div></section><section class="content"><div class="container split"><div><p class="label">Nossa abordagem</p><h2>{brand}, com intenção em cada detalhe.</h2><p>{about}</p></div><img class="support" src="{support}" alt="Ambiente de {brand}"></div></section><section class="content"><div class="container"><p class="label">Especialidades</p><h2>O que podemos fazer por você.</h2><div class="services">{cards}</div><img class="detail-media" src="{detail}" alt="Detalhe de {brand}"></div></section><section class="contact" id="contato"><div class="container"><p class="label">Próximo passo</p><h2>Vamos conversar sobre o que você precisa.</h2><a class="button" href="{contact}">Falar no WhatsApp ↗</a></div></section></main><footer><div class="container">{brand} · {lead.cidade} · {style} / {layout}</div></footer></body></html>'''
+.top{{color:var(--ink)}}.top .container{{align-items:center}}.brand-logo{{display:block;max-width:190px;max-height:58px;object-fit:contain}}.hero{{background:var(--bg)}}.hero-copy{{position:relative;z-index:1}}.hero-copy p{{max-width:580px}}.hero-split .hero-grid{{min-height:88svh;padding:110px 0 70px;grid-template-columns:minmax(0,.9fr) minmax(380px,1.1fr)}}.hero-figure{{margin:0;position:relative;height:min(76vh,780px)}}.hero-figure img{{width:100%;height:100%;object-fit:cover}}.hero-figure figcaption{{position:absolute;right:14px;bottom:12px;padding:6px 9px;background:var(--surface);color:var(--ink);font-size:.7rem}}.hero-immersive{{min-height:100svh;align-items:flex-end;background-image:var(--hero);background-size:cover;background-position:center;color:#fff}}.hero-immersive .hero-copy{{padding:30vh 0 10vh;max-width:850px}}.hero-immersive h1{{color:#fff}}.hero-shade{{position:absolute;inset:0;background:linear-gradient(90deg,color-mix(in srgb,var(--ink) 88%,transparent),color-mix(in srgb,var(--secondary) 42%,transparent),transparent)}}.mode-immersive .top{{color:#fff}}.mode-immersive .brand-logo{{filter:brightness(0) invert(1)}}.hero-statement{{padding:150px 0 80px;min-height:92svh}}.statement-grid{{display:grid;grid-template-columns:1.35fr .65fr;gap:6vw;align-items:end}}.statement-grid h1{{font-size:clamp(4rem,9vw,10rem);margin:.15em 0 .35em}}.statement-intro{{font-size:1.1rem;margin-bottom:25px}}.statement-image{{width:100%;height:min(48vh,520px);object-fit:cover}}.content{{background:var(--bg)}}.expertise{{background:var(--surface)}}.service-card{{background:var(--surface)}}.expertise .service-card{{background:var(--bg)}}.detail-media{{width:100%;object-fit:cover}}.rhythm-alternating .about .split>img{{order:-1}}.density-compact .content{{padding:6vw 0}}.density-spacious .content{{padding:14vw 0}}footer{{padding:32px 0;background:var(--ink);color:var(--bg)}}@media(max-width:760px){{.top{{padding:14px 0}}.brand-logo{{max-width:135px;max-height:44px}}.hero-split .hero-grid,.statement-grid{{grid-template-columns:1fr}}.hero-split .hero-grid{{padding-top:130px}}.hero-figure{{height:64svh}}.hero-statement{{padding-top:130px}}.statement-grid h1{{font-size:clamp(3.4rem,16vw,6rem)}}.statement-image{{height:55svh}}.hero-immersive .hero-copy{{padding-top:42vh}}}}
+.shape{{border-color:var(--ink)}}.square{{background:var(--secondary)}}.two{{background:var(--secondary)}}.giant{{color:color-mix(in srgb,var(--accent) 18%,transparent)}}.grid-overlay{{background-image:linear-gradient(color-mix(in srgb,var(--accent) 18%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--accent) 18%,transparent) 1px,transparent 1px)}}
+</style></head><body class="mode-{composition} density-{density} rhythm-{rhythm}"><header class="top"><div class="container"><a class="brand" href="#main">{brand_markup}</a><a href="{contact}">WhatsApp ↗</a></div></header><main id="main">{hero_markup}<section class="proof"><div class="container"><span><b>{lead.nota or '5.0'} ★</b> reputação Google</span><span>{lead.avaliacoes or 'Atendimento'} avaliações</span><span>{lead.cidade}</span></div></section>{content_sections}<section class="contact" id="contato"><div class="container"><p class="label">Próximo passo</p><h2>Vamos conversar sobre o que você precisa.</h2><a class="button" href="{contact}">Falar no WhatsApp ↗</a></div></section></main><footer><div class="container">{brand} · {lead.cidade} · Todos os direitos reservados</div></footer></body></html>'''
 
 
 def generate_page_html(lead: Lead, conteudo: Dict) -> str:
@@ -1083,7 +1188,7 @@ async def redesign_lead(lead: Lead, conteudo_extra: Dict = None) -> Dict:
             print("   ⚠️ design-overrides.json inválido; ignorando overrides")
 
     # Extrai conteúdo público; assets gerados aprovados têm prioridade.
-    conteudo = extract_content_from_site(lead.site_atual)
+    conteudo = localize_brand_assets(extract_content_from_site(lead.site_atual), site_dir)
     history = []
     if history_file.exists():
         try:
@@ -1207,9 +1312,11 @@ def generate_missing_visual_assets(lead: Lead, conteudo: Dict, site_dir: Path, o
                 f"{framing} for {lead.nome}, a {lead.nicho} business in {lead.cidade}. "
                 f"Visual direction: {style_meta.get('name', style_id)}. {style_meta.get('description', '')}. "
                 f"Variation: {variation.get('image_mood', 'editorial natural light')}; "
-                f"palette direction {variation.get('palette_direction', 'brand informed')} inspired by {palette.get('primary')}. "
+                f"palette direction {variation.get('palette_direction', 'brand informed')}; corporate colors "
+                f"{palette.get('primary')}, {palette.get('secondary')}, {palette.get('accent')}. "
                 "Premium commercial photography, believable people and environment, composition with clean negative space for web copy; "
-                "no readable text, no logo, no watermark, no collage, no distorted anatomy."
+                "specific to this business and city, avoid generic stock-photo poses and obvious industry clichés; "
+                "no readable text, no invented logo, no watermark, no collage, no distorted anatomy."
             )
             result = _kie_payload(_kie_call(key, model, {"prompt": prompt, "aspect_ratio": ratio, "resolution": "1K"}))
             task_id = ((result.get("response") or {}).get("data") or {}).get("taskId")
@@ -1536,7 +1643,7 @@ async def main():
             if not brief_file.exists():
                 print(f"❌ Briefing inexistente para render-only: {slug}")
                 continue
-            content = extract_content_from_site(lead.site_atual)
+            content = localize_brand_assets(extract_content_from_site(lead.site_atual), site_dir)
             content["creative_brief"] = json.loads(brief_file.read_text(encoding="utf-8"))
             if overrides_file.exists():
                 content.update(json.loads(overrides_file.read_text(encoding="utf-8")))

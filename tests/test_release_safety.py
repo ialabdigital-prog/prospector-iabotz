@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 from app.composio_gmail import gmail_status
 from app.followups import business_days_since
+from app.design_catalog import fallback_brief, normalize_llm_brief
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -133,6 +134,25 @@ class ReleaseSafetyTests(unittest.TestCase):
                 self.assertTrue(followup_candidates("lead-test")[0]["due_email"])
                 mark_followup("lead-test", "email")
                 self.assertEqual(followup_candidates("lead-test"), [])
+
+    def test_creative_brief_never_repeats_the_same_style_layout_pair(self):
+        previous = [{"style_id": "luxury", "layout_id": "offset-editorial"}]
+        brief = normalize_llm_brief(
+            {"style_id": "luxury", "layout_id": "offset-editorial"},
+            {"nome": "Escritório Exemplo", "nicho": "advogados"},
+            previous,
+        )
+        self.assertNotEqual((brief["style_id"], brief["layout_id"]), ("luxury", "offset-editorial"))
+
+    def test_same_niche_rotates_directions_by_brand(self):
+        pairs = {
+            (brief["style_id"], brief["layout_id"])
+            for brief in (
+                fallback_brief({"nome": name, "nicho": "advogados"})
+                for name in ("Alfa Legal", "Bravo Advocacia", "Costa Jurídico", "Delta Law")
+            )
+        }
+        self.assertGreater(len(pairs), 1)
 
 
 if __name__ == "__main__":
