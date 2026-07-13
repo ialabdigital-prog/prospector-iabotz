@@ -12,6 +12,7 @@ from unittest.mock import patch
 from app.composio_gmail import gmail_status
 from app.followups import business_days_since
 from app.design_catalog import fallback_brief, normalize_llm_brief
+from app.proposal_readiness import check_proposal_readiness
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -153,6 +154,39 @@ class ReleaseSafetyTests(unittest.TestCase):
             )
         }
         self.assertGreater(len(pairs), 1)
+
+    def test_outreach_is_blocked_when_proposal_contains_placeholders(self):
+        import app.proposal_readiness as readiness
+
+        with TemporaryDirectory() as folder, patch.object(readiness, "SITES_DIR", Path(folder)):
+            site = Path(folder) / "lead-test"
+            assets = site / "assets"
+            assets.mkdir(parents=True)
+            (site / "index.html").write_text("x" * 2_000)
+            (assets / "before.png").write_bytes(b"x" * 12_000)
+            (assets / "after.png").write_bytes(b"x" * 12_000)
+            (site / "proposta.html").write_text(
+                "<div class='card-img placeholder'>inserir screenshot</div>"
+                "<img src='assets/before.png'><img src='assets/after.png'>" + "x" * 2_000
+            )
+            result = check_proposal_readiness("lead-test", verify_public=False)
+            self.assertFalse(result["ready"])
+            self.assertIn("a proposta ainda contém placeholders", result["errors"])
+
+    def test_complete_local_proposal_is_ready(self):
+        import app.proposal_readiness as readiness
+
+        with TemporaryDirectory() as folder, patch.object(readiness, "SITES_DIR", Path(folder)):
+            site = Path(folder) / "lead-test"
+            assets = site / "assets"
+            assets.mkdir(parents=True)
+            (site / "index.html").write_text("x" * 2_000)
+            (assets / "before.png").write_bytes(b"x" * 12_000)
+            (assets / "after.png").write_bytes(b"x" * 12_000)
+            (site / "proposta.html").write_text(
+                "<img src='assets/before.png'><img src='assets/after.png'>" + "x" * 2_000
+            )
+            self.assertTrue(check_proposal_readiness("lead-test", verify_public=False)["ready"])
 
 
 if __name__ == "__main__":

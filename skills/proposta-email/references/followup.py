@@ -54,6 +54,8 @@ async def main() -> None:
 
     composio = config.get("composio") or {}
     for lead in candidates:
+        from app.proposal_readiness import require_proposal_ready
+        require_proposal_ready(lead["slug"], lead.get("urlNova") or "")
         subject, body = generate_followup(lead, config)
         gmail = None
         error = ""

@@ -271,6 +271,20 @@ async def main():
             print(f"⚠️  {lead['nome']}: sem WhatsApp cadastrado — pulando")
             continue
 
+        try:
+            from app.proposal_readiness import require_proposal_ready
+            require_proposal_ready(lead["slug"], lead.get("url_nova") or "")
+            print(f"✅ {lead['nome']}: proposta pública validada com prints antes/depois")
+        except Exception as exc:
+            result = {
+                "success": False, "channel": "whatsapp", "status": "blocked",
+                "sent": False, "error": str(exc), "location": "",
+            }
+            print(f"❌ {lead['nome']}: {exc}")
+            print("   Enviado: NÃO")
+            print("RESULT_JSON:" + json.dumps(result, ensure_ascii=False))
+            continue
+
         text = generate_whatsapp_message(lead, config)
         if draft_only:
             draft_file = save_draft(lead, text)

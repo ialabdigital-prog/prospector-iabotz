@@ -54,6 +54,14 @@ async def main() -> None:
     provider = wa.get("provedor") or "evolution_api"
     draft_only = (envio.get("modo") or "rascunho") != "envio"
     for lead in candidates:
+        try:
+            from app.proposal_readiness import require_proposal_ready
+            require_proposal_ready(lead["slug"], lead.get("urlNova") or "")
+        except Exception as exc:
+            payload = {"channel": "whatsapp", "status": "blocked", "sent": False, "error": str(exc), "kind": "followup"}
+            print(f"❌ {lead['nome']}: {exc}")
+            print("RESULT_JSON:" + json.dumps(payload, ensure_ascii=False))
+            continue
         text = message_for(lead, config)
         number = "".join(ch for ch in (lead.get("whatsapp") or lead.get("telefone") or "") if ch.isdigit())
         result = None
